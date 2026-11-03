@@ -9,6 +9,9 @@ export const copy = {
   reasonsBody: 'A few words is enough. You will see these again when it gets hard.',
   reasonPlaceholder: 'A reason, in your own words',
   addReason: 'Add another',
+  specificTitle: 'Reasons for a specific one',
+  specificBody: 'Optional. These show instead of the reasons above, just for that one.',
+  showSpecific: 'Add reasons for a specific one',
   skip: 'Skip for now',
   done: 'Done',
 } as const;

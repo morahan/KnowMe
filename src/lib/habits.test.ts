@@ -1,4 +1,16 @@
-import { cleanCustomHabitNames, cleanHabitName, isTrackedKind, isTrackedName, resolveHabitId } from './habits';
+import { cleanCustomHabitNames, cleanHabitName, habitLabel, isTrackedKind, isTrackedName, resolveHabitId } from './habits';
+
+describe('habitLabel', () => {
+  it('shows the preset label even when the stored name is lowercase', () => {
+    expect(habitLabel({ name: 'cannabis', kind: 'cannabis' })).toBe('Cannabis');
+    expect(habitLabel({ name: 'nicotine', kind: 'nicotine' })).toBe('Nicotine');
+    expect(habitLabel({ name: 'alcohol', kind: 'alcohol' })).toBe('Alcohol');
+  });
+  it('shows a cleaned custom name in its own casing', () => {
+    expect(habitLabel({ name: '  late night   scrolling ', kind: 'custom' })).toBe('late night scrolling');
+    expect(habitLabel({ name: 'Sugar', kind: 'custom' })).toBe('Sugar');
+  });
+});
 
 describe('cleanHabitName', () => {
   it('trims and collapses spaces', () => {

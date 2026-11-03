@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { getSetting } from '@/db/repos/settings';
+import { habitLabel } from '@/lib/habits';
 import { space } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Label } from '@/ui/Label';
@@ -48,7 +49,7 @@ export function TodayScreen() {
         <View style={styles.block}>
           {data.habits.map(({ habit, daysSince }) => (
             <View key={habit.id} style={styles.habit}>
-              <Stat value={daysSince} label={`${copy.daysSince} · ${habit.name}`} />
+              <Stat value={daysSince} label={`${copy.daysSince} · ${habitLabel(habit)}`} />
             </View>
           ))}
         </View>

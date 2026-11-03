@@ -4,7 +4,8 @@
  * card first and nothing is persisted. Repos and the router are mocked;
  * the real SafetyProvider and crisis matcher run.
  */
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { DeviceEventEmitter, Platform } from 'react-native';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { LogMomentScreen } from './LogMomentScreen';
 
@@ -71,6 +72,25 @@ describe('LogMomentScreen crisis guard (SAFETY.md case 1)', () => {
     await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ note: 'Rough evening, tea helped' }));
     expect(mockPush).not.toHaveBeenCalledWith('/crisis');
+  });
+});
+
+describe('LogMomentScreen save with keyboard open', () => {
+  it('keeps Save visible and tappable while typing in Anything else', async () => {
+    const utils = await renderLog();
+    await fireEvent.changeText(utils.getByPlaceholderText('Anything else? (optional)'), 'Rough evening, tea helped');
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    await act(async () => {
+      DeviceEventEmitter.emit(showEvent, {
+        endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 },
+        easing: 'keyboard',
+        duration: 250,
+      });
+    });
+    expect(utils.getByText('Save')).toBeTruthy();
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ note: 'Rough evening, tea helped' }));
   });
 });
 

@@ -7,8 +7,18 @@ export const PRESET_HABITS: { kind: Exclude<HabitKind, 'custom'>; label: string 
   { kind: 'alcohol', label: 'Alcohol' },
 ];
 
-/** Long enough for a person's own words, short enough to stay a chip. */
-export const MAX_HABIT_NAME_CHARS = 40;
+/** Long enough for a person's own words, short enough to stay a chip. Matches Setup's custom cap. */
+export const MAX_HABIT_NAME_CHARS = 20;
+
+/**
+ * The one label for a habit, everywhere it is shown (Me, Log, Today,
+ * I'm in it, Setup). Presets always show their named label, even for rows
+ * stored lowercase before this existed; customs show their cleaned name.
+ */
+export function habitLabel(habit: Pick<Habit, 'name' | 'kind'>): string {
+  const preset = PRESET_HABITS.find((p) => p.kind === habit.kind);
+  return preset ? preset.label : cleanHabitName(habit.name);
+}
 
 /** Trim and collapse spaces, the way a habit name is stored and shown. */
 export function cleanHabitName(raw: string): string {

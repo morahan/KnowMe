@@ -6,6 +6,7 @@ import { listHabits } from '@/db/repos/habits';
 import { insertMoment } from '@/db/repos/moments';
 import { CONTEXTS, FEELINGS, HELPERS, type Habit } from '@/db/schema';
 import { useSafety } from '@/features/safety';
+import { habitLabel } from '@/lib/habits';
 import { radius, space, touch, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Chip } from '@/ui/Chip';
@@ -233,6 +234,7 @@ export function LogMomentScreen() {
   return (
     <Screen
       scroll
+      footerVisibleWithKeyboard
       footer={
         <PrimaryButton label={copy.save} disabled={!isReady(draft) || saving} onPress={() => void save()} />
       }
@@ -246,7 +248,7 @@ export function LogMomentScreen() {
             {habits.map((h) => (
               <Chip
                 key={h.id}
-                label={h.name}
+                label={habitLabel(h)}
                 selected={draft.habitId === h.id}
                 onPress={() => setDraft((d) => ({ ...d, habitId: h.id }))}
               />

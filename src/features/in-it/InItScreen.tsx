@@ -1,12 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
-import type { Habit } from '@/db/schema';
-import { motion, radius, space, touch, type, useTheme } from '@/theme';
+import { habitLabel } from '@/lib/habits';
+import { visibleReasons } from '@/lib/reasons';
+import { motion, space } from '@/theme';
 import { Body } from '@/ui/Body';
 import { BreathCircle } from '@/ui/BreathCircle';
+import { Chip } from '@/ui/Chip';
 import { IntensityPicker } from '@/ui/IntensityPicker';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
@@ -44,24 +46,6 @@ function FadingReason({ text, index }: { text: string; index: number }) {
   );
 }
 
-function HabitOption({ habit, onPress }: { habit: Habit; onPress: () => void }) {
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={habit.name}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.habitOption,
-        { borderColor: colors.border, backgroundColor: colors.surface },
-        pressed && styles.pressed,
-      ]}
-    >
-      <Text style={[type.body, styles.habitLabel, { color: colors.text }]}>{habit.name}</Text>
-    </Pressable>
-  );
-}
-
 export function InItScreen() {
   const data = useInIt();
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
@@ -74,6 +58,7 @@ export function InItScreen() {
   const picking = data !== null && needsHabitPick(habits, selectedHabitId);
   const checking = !picking && data !== null && (manualCheck || secondsLeft === 0);
   const helpers = data ? topHelpersForHabit(data.moments, habit?.id ?? null) : [];
+  const shownReasons = data ? visibleReasons(data.reasons, habit?.id ?? null, habits.length) : [];
 
   // The 20 minutes only run once we know what this moment is about.
   useEffect(() => {
@@ -116,7 +101,7 @@ export function InItScreen() {
           <Body muted>{copy.whichOneBody}</Body>
           <View style={styles.options}>
             {habits.map((h) => (
-              <HabitOption key={h.id} habit={h} onPress={() => setSelectedHabitId(h.id)} />
+              <Chip key={h.id} label={habitLabel(h)} selected={false} onPress={() => setSelectedHabitId(h.id)} />
             ))}
           </View>
         </View>
@@ -145,17 +130,17 @@ export function InItScreen() {
         </View>
       }
     >
-      {data.reasons.length > 0 ? (
+      {shownReasons.length > 0 ? (
         <View style={styles.reasons}>
           <Label>{copy.yourReasons}</Label>
-          {data.reasons.map((r, i) => (
+          {shownReasons.map((r, i) => (
             <FadingReason key={r.id} text={r.text} index={i} />
           ))}
         </View>
       ) : null}
 
       <View style={styles.center}>
-        {habits.length > 1 && habit ? <Label>{habit.name}</Label> : null}
+        {habits.length > 1 && habit ? <Label>{habitLabel(habit)}</Label> : null}
         <BreathCircle inLabel={copy.breatheIn} outLabel={copy.breatheOut} />
         <Label>{formatCountdown(secondsLeft)}</Label>
       </View>
@@ -176,16 +161,5 @@ const styles = StyleSheet.create({
   helpers: { gap: space.sm, paddingBottom: space.lg, alignItems: 'center' },
   footer: { gap: space.md },
   pick: { gap: space.md, paddingTop: space.lg },
-  options: { gap: space.md, marginTop: space.md },
-  habitOption: {
-    minHeight: touch.min,
-    paddingVertical: space.md,
-    paddingHorizontal: space.md,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth * 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  habitLabel: { fontWeight: type.title.fontWeight },
-  pressed: { opacity: 0.7 },
+  options: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.md },
 });
