@@ -23,6 +23,7 @@ export type Moment = {
   outcome: Outcome;
   helpers: Helper[];
   note: string | null;
+  is_demo: boolean;
 };
 
 /** Index = target user_version - 1. Append only; never edit a shipped migration. */
@@ -56,4 +57,5 @@ export const MIGRATIONS: readonly string[] = [
     value TEXT NOT NULL
   );
   `,
+  `ALTER TABLE moments ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
 ];

@@ -8,7 +8,7 @@ const SECRET = 'my private note about Sam';
 function moment(over: Partial<Moment>): Moment {
   return {
     id: 'm', habit_id: 'h1', created_at: new Date(2026, 10, 2, 21, 0).toISOString(), intensity: 6,
-    context: 'home', feelings: ['bored'], outcome: 'rode_it_out', helpers: ['tea'], note: SECRET, ...over,
+    context: 'home', feelings: ['bored'], outcome: 'rode_it_out', helpers: ['tea'], note: SECRET, is_demo: false, ...over,
   };
 }
 
