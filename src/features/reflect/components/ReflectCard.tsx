@@ -10,6 +10,7 @@ import { Title } from '@/ui/Title';
 import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from '../copy';
 import { useReflection } from '../hooks';
+import { ThinkingGnome } from './ThinkingGnome';
 
 function FadingView({ index, children }: { index: number; children: ReactNode }) {
   const reduceMotion = useReduceMotion();
@@ -30,37 +31,6 @@ function FadingView({ index, children }: { index: number; children: ReactNode })
     return () => anim.stop();
   }, [index, opacity, reduceMotion]);
   return <Animated.View style={{ opacity }}>{children}</Animated.View>;
-}
-
-function LoadingLine() {
-  const reduceMotion = useReduceMotion();
-  const [opacity] = useState(() => new Animated.Value(1));
-  useEffect(() => {
-    if (reduceMotion) return;
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.35,
-          duration: motion.slow,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: motion.slow,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [opacity, reduceMotion]);
-  return (
-    <Animated.View style={{ opacity }}>
-      <Body muted>{copy.loading}</Body>
-    </Animated.View>
-  );
 }
 
 function Letter({ lines }: { lines: string[] }) {
@@ -91,10 +61,7 @@ export function ReflectCard() {
       {lines ? (
         <Letter lines={lines} />
       ) : loading ? (
-        <>
-          <LoadingLine />
-          <PrimaryButton label={copy.loading} disabled onPress={() => undefined} />
-        </>
+        <ThinkingGnome />
       ) : (
         <>
           <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
