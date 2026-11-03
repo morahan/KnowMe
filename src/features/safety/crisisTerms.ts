@@ -1,0 +1,32 @@
+// Matched as whole words/phrases against normalized text (lowercase, punctuation -> space).
+// Err toward showing the card: a false positive costs a tap, a miss costs far more.
+// Keep in sync with proxy/lib/crisis.ts.
+export const CRISIS_TERMS: readonly string[] = [
+  'suicide',
+  'suicidal',
+  'kill myself',
+  'killing myself',
+  'want to die',
+  'wanna die',
+  'want to be dead',
+  'better off dead',
+  'end it',
+  'end it all',
+  'end my life',
+  'ending my life',
+  'take my life',
+  'no reason to live',
+  'nothing to live for',
+  'dont want to be here',
+  'dont want to live',
+  'hurt myself',
+  'hurting myself',
+  'harm myself',
+  'self harm',
+  'cut myself',
+  'cutting myself',
+  'overdose',
+  'overdosed',
+  'overdosing',
+  'od',
+];

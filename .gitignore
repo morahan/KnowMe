@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+ios/
+android/
+*.log
+.env
+.env.local
+proxy/.vercel/
+proxy/.env
+coverage/
+tempScratchPad

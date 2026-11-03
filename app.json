@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "KnowMe",
+    "slug": "knowme",
+    "scheme": "knowme",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0F1115",
+    "plugins": ["expo-router", "expo-sqlite"]
+  }
+}
