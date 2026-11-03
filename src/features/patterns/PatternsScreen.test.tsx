@@ -1,5 +1,5 @@
 /* eslint-disable import/first -- jest.mock must precede the imports it mocks */
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { PatternsScreen } from './PatternsScreen';
 
 jest.mock('expo-router', () => ({
@@ -12,6 +12,14 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/db/repos/moments', () => ({
   listMomentsSince: jest.fn(async () => []),
+}));
+
+let mockHabits = [
+  { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+];
+
+jest.mock('@/db/repos/habits', () => ({
+  listHabits: jest.fn(async () => mockHabits),
 }));
 
 import { listMomentsSince } from '@/db/repos/moments';
@@ -34,6 +42,9 @@ const realMoment = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockList.mockResolvedValue([]);
+  mockHabits = [
+    { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+  ];
 });
 
 describe('PatternsScreen sample data', () => {
@@ -51,5 +62,42 @@ describe('PatternsScreen sample data', () => {
     await waitFor(() => expect(getByText('Patterns')).toBeTruthy());
     expect(queryByText('Patterns - Sample Data')).toBeNull();
     expect(queryByText(/example data and example insights/)).toBeNull();
+  });
+
+  it('names each tracked behavior in the intensity legend when two are logged', async () => {
+    mockHabits = [
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+    ];
+    mockList.mockResolvedValue([
+      realMoment,
+      { ...realMoment, id: 'real-2', habit_id: 'h2', intensity: 4 },
+    ]);
+    const { getByText } = await render(<PatternsScreen />);
+    await waitFor(() => expect(getByText('Patterns')).toBeTruthy());
+    expect(getByText('Nicotine')).toBeTruthy();
+    expect(getByText('Cannabis')).toBeTruthy();
+  });
+
+  it('shares one three-behavior toggle across the page when four are logged', async () => {
+    mockHabits = [
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h3', name: 'Alcohol', kind: 'alcohol', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h4', name: 'Sugar', kind: 'custom', created_at: '2026-11-01T00:00:00.000Z' },
+    ];
+    mockList.mockResolvedValue([
+      realMoment,
+      { ...realMoment, id: 'real-2', habit_id: 'h2', intensity: 4 },
+      { ...realMoment, id: 'real-3', habit_id: 'h3', intensity: 5 },
+      { ...realMoment, id: 'real-4', habit_id: 'h4', intensity: 7 },
+    ]);
+    const view = await render(<PatternsScreen />);
+    await waitFor(() => expect(view.getByText(/Showing three at a time/)).toBeTruthy());
+    expect(view.getByLabelText('Sugar').props.accessibilityState.checked).toBe(false);
+    await fireEvent.press(view.getByLabelText('Nicotine'));
+    await fireEvent.press(view.getByLabelText('Sugar'));
+    expect(view.getByLabelText('Sugar').props.accessibilityState.checked).toBe(true);
+    expect(view.getByLabelText('Nicotine').props.accessibilityState.checked).toBe(false);
   });
 });

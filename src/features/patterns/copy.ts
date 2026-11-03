@@ -13,6 +13,7 @@ export const copy = {
   rodeRate: 'rode it out',
   times: 'times',
   percentRode: '% rode out',
+  showingThree: 'Showing three at a time. Tap one to swap it out.',
   intensityChartAlt: 'Intensity over time chart',
   hourChartAlt: 'Cravings by hour of day chart',
 } as const;

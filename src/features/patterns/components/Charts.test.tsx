@@ -1,6 +1,7 @@
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
+import { darkTheme, lightTheme } from '@/theme';
 import type { DayPoint } from '../logic';
-import { IntensityChart } from './Charts';
+import { BarList, HourChart, IntensityChart, type HourSeries, type IntensitySeries } from './Charts';
 
 const pts = (n: number): DayPoint[] =>
   Array.from({ length: n }, (_, i) => ({
@@ -79,5 +80,144 @@ describe('IntensityChart', () => {
     expect(d.startsWith('M')).toBe(true);
     expect(d).toContain(`${circles[0]!.props.cx} ${circles[0]!.props.cy}`);
     expect(d).toContain(`${circles[1]!.props.cx} ${circles[1]!.props.cy}`);
+  });
+
+  it('colors each behavior line and its nodes alike, and names them in a legend', async () => {
+    const axis: DayPoint[] = [
+      { date: '2026-11-01', avg: 6, count: 2 },
+      { date: '2026-11-02', avg: 5, count: 2 },
+    ];
+    const series: IntensitySeries[] = [
+      {
+        habitId: 'h1',
+        label: 'Nicotine',
+        points: [
+          { date: '2026-11-01', avg: 8, count: 1 },
+          { date: '2026-11-02', avg: 6, count: 1 },
+        ],
+      },
+      {
+        habitId: 'h2',
+        label: 'Cannabis',
+        points: [
+          { date: '2026-11-01', avg: 4, count: 1 },
+          { date: '2026-11-02', avg: 5, count: 1 },
+        ],
+      },
+    ];
+    const { toJSON, getByText } = await render(<IntensityChart points={axis} series={series} />);
+    const flat = flatten(toJSON() as JsonNode | null);
+    const circles = flat.filter((e) => e.type === 'RNSVGCircle');
+    const lines = flat.filter((e) => e.type === 'RNSVGPath');
+    expect(circles).toHaveLength(4);
+    expect(lines).toHaveLength(2);
+    // react-native-svg encodes colors as { type, payload } objects.
+    const fills = new Set(circles.map((c) => JSON.stringify(c.props.fill)));
+    const strokes = new Set(lines.map((l) => JSON.stringify(l.props.stroke)));
+    expect(fills.size).toBe(2);
+    expect(strokes).toEqual(fills);
+    expect(getByText('Nicotine')).toBeTruthy();
+    expect(getByText('Cannabis')).toBeTruthy();
+  });
+
+  it('shows no legend with a single behavior', async () => {
+    const { queryByText } = await render(<IntensityChart points={pts(2)} />);
+    expect(queryByText('Nicotine')).toBeNull();
+  });
+
+  const manySeries = (n: number): IntensitySeries[] =>
+    Array.from({ length: n }, (_, i) => ({
+      habitId: `h${i + 1}`,
+      label: `Habit ${i + 1}`,
+      points: [
+        { date: '2026-11-01', avg: 4 + i, count: 1 },
+        { date: '2026-11-02', avg: 5 + i, count: 1 },
+      ],
+    }));
+  const axis2: DayPoint[] = [
+    { date: '2026-11-01', avg: 6, count: 5 },
+    { date: '2026-11-02', avg: 6, count: 5 },
+  ];
+  const countMarks = (json: unknown) => {
+    const flat = flatten(json as JsonNode | null);
+    return {
+      lines: flat.filter((e) => e.type === 'RNSVGPath').length,
+      circles: flat.filter((e) => e.type === 'RNSVGCircle').length,
+    };
+  };
+
+  it('draws only three behaviors at a time and toggles which three', async () => {
+    const view = await render(<IntensityChart points={axis2} series={manySeries(5)} />);
+    expect(view.getByText(/Showing three at a time/)).toBeTruthy();
+    expect(countMarks(view.toJSON())).toEqual({ lines: 3, circles: 6 });
+    // Full: tapping a hidden fourth behavior changes nothing yet.
+    await fireEvent.press(view.getByLabelText('Habit 4'));
+    expect(countMarks(view.toJSON())).toEqual({ lines: 3, circles: 6 });
+    // Hide one, then the fourth can take its place.
+    await fireEvent.press(view.getByLabelText('Habit 2'));
+    expect(countMarks(view.toJSON())).toEqual({ lines: 2, circles: 4 });
+    await fireEvent.press(view.getByLabelText('Habit 5'));
+    expect(countMarks(view.toJSON())).toEqual({ lines: 3, circles: 6 });
+    expect(view.getByLabelText('Habit 5').props.accessibilityState.checked).toBe(true);
+    expect(view.getByLabelText('Habit 2').props.accessibilityState.checked).toBe(false);
+  });
+
+  it('uses only the three brand colors for behavior lines', () => {
+    expect(darkTheme.habitColors).toEqual(['#E8B07A', '#7FB3A6', '#8A8F98']);
+    expect(lightTheme.habitColors).toEqual(['#9A5B24', '#3F7A6C', '#6B6F77']);
+  });
+
+  it('stacks the hour bars by behavior in the same colors', async () => {
+    const buckets = Array.from({ length: 24 }, () => 0);
+    buckets[20] = 3;
+    buckets[21] = 1;
+    const h1 = Array.from({ length: 24 }, () => 0);
+    h1[20] = 2;
+    h1[21] = 1;
+    const h2 = Array.from({ length: 24 }, () => 0);
+    h2[20] = 1;
+    const series: HourSeries[] = [
+      { habitId: 'h1', label: 'Nicotine', buckets: h1 },
+      { habitId: 'h2', label: 'Cannabis', buckets: h2 },
+    ];
+    const { toJSON } = await render(<HourChart buckets={buckets} series={series} />);
+    const flat = flatten(toJSON() as JsonNode | null);
+    const rects = flat.filter((e) => e.type === 'RNSVGRect');
+    // Two segments at 8pm (one per behavior) plus one at 9pm.
+    expect(rects).toHaveLength(3);
+    const fills = new Set(rects.map((r) => JSON.stringify(r.props.fill)));
+    expect(fills.size).toBe(2);
+    // The 8pm segments stack to the full bar height with no gap or overlap.
+    const at20 = rects.filter((r) => Number(r.props.height) > 0);
+    expect(at20.length).toBe(3);
+  });
+
+  it('splits list bars into per-behavior segments in habit order', async () => {
+    const { toJSON, getByText } = await render(
+      <BarList
+        habitOrder={['h1', 'h2']}
+        rows={[{ name: 'home', count: 4, byHabit: [{ habitId: 'h1', value: 3 }, { habitId: 'h2', value: 1 }] }]}
+      />,
+    );
+    expect(getByText('home')).toBeTruthy();
+    const flat = flatten(toJSON() as JsonNode | null);
+    const colored = flat
+      .map((e) => e.props.style as { backgroundColor?: string; flex?: number } | { backgroundColor?: string; flex?: number }[] | undefined)
+      .flatMap((s) => (Array.isArray(s) ? s : s ? [s] : []))
+      .filter((s) => s.backgroundColor && s.flex !== undefined);
+    expect(colored).toEqual([
+      { flex: 3, backgroundColor: '#9A5B24' },
+      { flex: 1, backgroundColor: '#3F7A6C' },
+    ]);
+  });
+
+  it('hides the toggle when three or fewer behaviors are tracked', async () => {
+    const view = await render(<IntensityChart points={axis2} series={manySeries(3)} />);
+    expect(view.queryByText(/Showing three at a time/)).toBeNull();
+    expect(view.queryAllByRole('checkbox')).toHaveLength(0);
+    expect(countMarks(view.toJSON())).toEqual({ lines: 3, circles: 6 });
+    const two = await render(<IntensityChart points={axis2} series={manySeries(2)} />);
+    expect(two.queryByText(/Showing three at a time/)).toBeNull();
+    expect(two.queryAllByRole('checkbox')).toHaveLength(0);
   });
 });

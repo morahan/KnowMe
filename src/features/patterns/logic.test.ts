@@ -1,6 +1,6 @@
 import type { Moment } from '@/db/schema';
 import {
-  byHour, displayMoments, formatDayLabel, helperSuccess, intensityByDay, intensityChartContentWidth, intensityInsight, intensityPointX, peakHourLabel, rideOutRate, sampleMoments,
+  MAX_VISIBLE_HABITS, byHour, byHourByHabit, displayMoments, formatDayLabel, helperRodeByHabit, helperSuccess, intensityByDay, intensityByDayByHabit, intensityChartContentWidth, intensityInsight, intensityPointX, peakHourLabel, resolveVisibleHabitIds, rideOutRate, sampleMoments, toggleVisibleHabitId, topContextsByHabit, topFeelingsByHabit,
 } from './logic';
 
 const m = (over: Partial<Moment>): Moment => ({
@@ -38,6 +38,111 @@ describe('intensityByDay', () => {
 
   it('returns no points when there are no moments', () => {
     expect(intensityByDay([])).toEqual([]);
+  });
+});
+
+describe('intensityByDayByHabit', () => {
+  it('averages each behavior separately within a day', () => {
+    const moments = [
+      at(9, 8, { habit_id: 'h1', intensity: 8 }),
+      at(9, 9, { habit_id: 'h1', intensity: 6 }),
+      at(9, 10, { habit_id: 'h1', intensity: 10 }),
+      at(9, 11, { habit_id: 'h1', intensity: 4 }),
+      at(9, 12, { habit_id: 'h1', intensity: 7 }),
+      at(9, 13, { habit_id: 'h2', intensity: 3 }),
+    ];
+    const series = intensityByDayByHabit(moments, ['h1', 'h2']);
+    expect(series.map((s) => s.habitId)).toEqual(['h1', 'h2']);
+    // Five h1 logs on one day average into one point; h2 keeps its own.
+    expect(series[0]!.points).toEqual([{ date: '2026-11-09', avg: 7, count: 5 }]);
+    expect(series[1]!.points).toEqual([{ date: '2026-11-09', avg: 3, count: 1 }]);
+  });
+
+  it('shares one date axis and leaves per-behavior gaps null', () => {
+    const moments = [
+      at(1, 20, { habit_id: 'h1', intensity: 8 }),
+      at(3, 20, { habit_id: 'h2', intensity: 4 }),
+    ];
+    const series = intensityByDayByHabit(moments, ['h1', 'h2']);
+    expect(series[0]!.points.map((p) => p.date)).toEqual(['2026-11-01', '2026-11-02', '2026-11-03']);
+    expect(series[1]!.points.map((p) => p.date)).toEqual(['2026-11-01', '2026-11-02', '2026-11-03']);
+    expect(series[0]!.points.map((p) => p.avg)).toEqual([8, null, null]);
+    expect(series[1]!.points.map((p) => p.avg)).toEqual([null, null, 4]);
+  });
+
+  it('orders series by the tracked list, skips habits with no logs, and keeps unknown ids', () => {
+    const moments = [
+      at(2, 20, { habit_id: 'h2', intensity: 5 }),
+      at(2, 21, { habit_id: 'gone', intensity: 9 }),
+    ];
+    const series = intensityByDayByHabit(moments, ['h1', 'h2']);
+    expect(series.map((s) => s.habitId)).toEqual(['h2', 'gone']);
+    expect(intensityByDayByHabit([], ['h1'])).toEqual([]);
+  });
+});
+
+describe('visible habits (three at a time)', () => {
+  const ids = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'];
+
+  it('shows the first three by default', () => {
+    expect(MAX_VISIBLE_HABITS).toBe(3);
+    expect(resolveVisibleHabitIds(null, ids)).toEqual(['h1', 'h2', 'h3']);
+    expect(resolveVisibleHabitIds(null, ids.slice(0, 2))).toEqual(['h1', 'h2']);
+  });
+
+  it('keeps a valid pick and drops ids that no longer exist', () => {
+    expect(resolveVisibleHabitIds(['h5', 'h2'], ids)).toEqual(['h2', 'h5']);
+    expect(resolveVisibleHabitIds(['gone'], ids)).toEqual(['h1', 'h2', 'h3']);
+  });
+
+  it('toggles a behavior off, then lets another take its place', () => {
+    const off = toggleVisibleHabitId(['h1', 'h2', 'h3'], 'h2', ids);
+    expect(off).toEqual(['h1', 'h3']);
+    expect(toggleVisibleHabitId(off, 'h6', ids)).toEqual(['h1', 'h3', 'h6']);
+  });
+
+  it('never shows a fourth, and never hides the last visible one', () => {
+    expect(toggleVisibleHabitId(['h1', 'h2', 'h3'], 'h4', ids)).toEqual(['h1', 'h2', 'h3']);
+    expect(toggleVisibleHabitId(['h4'], 'h4', ids)).toEqual(['h4']);
+    expect(toggleVisibleHabitId(['h1'], 'gone', ids)).toEqual(['h1']);
+  });
+});
+
+describe('per-behavior charts', () => {
+  it('splits cravings by hour per behavior, in the given order', () => {
+    const moments = [at(1, 20, { habit_id: 'h2' }), at(1, 20, { habit_id: 'h1' }), at(2, 21, { habit_id: 'h1' })];
+    const series = byHourByHabit(moments, ['h1', 'h2']);
+    expect(series.map((s) => s.habitId)).toEqual(['h1', 'h2']);
+    expect(series[0]!.buckets[20]).toBe(1);
+    expect(series[0]!.buckets[21]).toBe(1);
+    expect(series[1]!.buckets[20]).toBe(1);
+    expect(series.reduce((n, s) => n + s.buckets.reduce((a, b) => a + b, 0), 0)).toBe(3);
+  });
+
+  it('splits top contexts and feelings per behavior', () => {
+    const moments = [
+      m({ habit_id: 'h1', context: 'home', feelings: ['bored'] }),
+      m({ habit_id: 'h2', context: 'home', feelings: ['bored', 'tired'] }),
+      m({ habit_id: 'h2', context: 'work', feelings: ['tired'] }),
+    ];
+    expect(topContextsByHabit(moments, ['h1', 'h2'])).toEqual([
+      { name: 'home', count: 2, byHabit: [{ habitId: 'h1', value: 1 }, { habitId: 'h2', value: 1 }] },
+      { name: 'work', count: 1, byHabit: [{ habitId: 'h2', value: 1 }] },
+    ]);
+    expect(topFeelingsByHabit(moments, ['h1', 'h2'])[0]).toEqual({
+      name: 'bored', count: 2, byHabit: [{ habitId: 'h1', value: 1 }, { habitId: 'h2', value: 1 }],
+    });
+  });
+
+  it('counts rode-out helpers per behavior', () => {
+    const moments = [
+      m({ habit_id: 'h1', outcome: 'rode_it_out', helpers: ['tea'] }),
+      m({ habit_id: 'h2', outcome: 'rode_it_out', helpers: ['tea'] }),
+      m({ habit_id: 'h2', outcome: 'used', helpers: ['tea'] }),
+    ];
+    expect(helperRodeByHabit(moments, ['h1', 'h2'])).toEqual({
+      tea: [{ habitId: 'h1', value: 1 }, { habitId: 'h2', value: 1 }],
+    });
   });
 });
 

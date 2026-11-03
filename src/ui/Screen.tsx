@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { gutter, space, useTheme } from '@/theme';
+import { gutter, layout, space, useTheme } from '@/theme';
 
 /** True while the software keyboard is open. iOS fires Will* before the
  * animation; Android only reliably fires Did*, so use both. */
@@ -44,7 +44,7 @@ export function Screen({ children, footer, footerVisibleWithKeyboard = false, sc
       >
         {scroll ? (
           <ScrollView
-            style={styles.body}
+            style={[styles.body, styles.column]}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
@@ -53,10 +53,10 @@ export function Screen({ children, footer, footerVisibleWithKeyboard = false, sc
             {children}
           </ScrollView>
         ) : (
-          <View style={styles.body}>{children}</View>
+          <View style={[styles.body, styles.column]}>{children}</View>
         )}
         {footer && (!keyboardVisible || footerVisibleWithKeyboard) ? (
-          <View style={styles.footer}>{footer}</View>
+          <View style={[styles.footer, styles.column]}>{footer}</View>
         ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -65,6 +65,8 @@ export function Screen({ children, footer, footerVisibleWithKeyboard = false, sc
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  // One centered column on wide windows (Duo open, iPad, landscape).
+  column: { width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center' },
   body: { flex: 1, paddingHorizontal: gutter },
   // Extra bottom room so the last field can scroll fully above the keyboard.
   scrollContent: { paddingTop: space.lg, paddingBottom: space.xxl, gap: space.lg },

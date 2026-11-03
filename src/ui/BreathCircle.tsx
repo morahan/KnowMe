@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { motion, radius, type, useTheme } from '@/theme';
+import { layout, motion, radius, type, useTheme } from '@/theme';
 import { useReduceMotion } from './useReduceMotion';
 
 type Props = { inLabel: string; outLabel: string };
@@ -13,7 +13,10 @@ const HALO_OPACITY = 0.1;
 export function BreathCircle({ inLabel, outLabel }: Props) {
   const { colors } = useTheme();
   const reduceMotion = useReduceMotion();
-  const size = useWindowDimensions().width * WIDTH_RATIO;
+  // Cap the diameter so the circle stays a focal point, not a full screen,
+  // on wide windows (iPhone Duo open, iPad, landscape).
+  const { width, height } = useWindowDimensions();
+  const size = Math.min(width * WIDTH_RATIO, height * WIDTH_RATIO, layout.breathMaxDiameter);
   const [scale] = useState(() => new Animated.Value(MIN_SCALE));
   const [labelOpacity] = useState(() => new Animated.Value(0));
   const [phase, setPhase] = useState<'in' | 'out'>('in');

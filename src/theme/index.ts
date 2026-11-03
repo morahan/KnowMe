@@ -70,6 +70,14 @@ const light: Colors = {
 // Chart series: accent first, calm second, muted for everything else.
 export const chartColors = (c: Colors) => [c.accent, c.calm, c.muted] as const;
 
+// Per-behavior series for the intensity chart only: exactly three colors,
+// all from the brand palette above — the lamp amber, the calm sage, and the
+// quiet muted gray. At most three behaviors show at once (see Patterns), so
+// no fourth hue is ever needed and no behavior reads as an alarm. Light mode
+// uses the deeper text variants so the lines stay readable on paper.
+const habitDark = [palette.amber, palette.sage, palette.stone] as const;
+const habitLight = [palette.amberDeep, palette.sageDeep, palette.slate] as const;
+
 // ─── Typography ───────────────────────────────────────────────────
 // System font only. Four sizes, two weights. Nothing else.
 export const type = {
@@ -86,6 +94,9 @@ export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 40, xxl: 64 } as const;
 export const gutter = space.lg;          // screen side padding
 export const radius = { md: 16, full: 999 } as const;
 export const touch = { min: 48 } as const; // minimum tap target (pt)
+// Wide windows (iPhone Duo open, iPad, landscape): keep one calm, thumb-first
+// column instead of stretching content edge to edge.
+export const layout = { maxContentWidth: 560, breathMaxDiameter: 360 } as const;
 
 // ─── Motion ───────────────────────────────────────────────────────
 // Slow and soft. Nothing bounces.
@@ -108,6 +119,7 @@ export type Theme = {
   touch: typeof touch;
   motion: typeof motion;
   scheme: 'dark' | 'light';
+  habitColors: readonly string[];
 };
 
 const build = (scheme: 'dark' | 'light'): Theme => ({
@@ -119,6 +131,7 @@ const build = (scheme: 'dark' | 'light'): Theme => ({
   touch,
   motion,
   scheme,
+  habitColors: scheme === 'dark' ? habitDark : habitLight,
 });
 
 export const darkTheme = build('dark');
@@ -131,6 +144,7 @@ export function useTheme(): Theme {
 
 // ─── Rules agents must follow ─────────────────────────────────────
 // 1. One accent. Amber is the only fill color. Sage is for "rode it out" and positive trends only.
+//    Exception: `habitColors` appears only as thin lines and dots on the intensity chart, never as fills.
 // 2. No red, ever. "Used" is `muted`, not a warning color.
 // 3. Primary button = accent fill + onAccent text. Secondary = text only, no border.
 // 4. Chips: off = border outline + text; on = accent fill + onAccent text.

@@ -24,6 +24,22 @@ const keyboardEvent = {
   duration: 250,
 };
 
+describe('Screen wide-window layout', () => {
+  it('caps the content column at the theme max width, centered', async () => {
+    const utils = await renderScreen();
+    const scrollers = utils.root!.queryAll(
+      (node) => node.props.keyboardShouldPersistTaps === 'handled',
+    );
+    const flat = (Array.isArray(scrollers[0]!.props.style)
+      ? scrollers[0]!.props.style
+      : [scrollers[0]!.props.style]
+    ) as Record<string, unknown>[];
+    expect(flat.some((s) => s.maxWidth === 560 && s.alignSelf === 'center' && s.width === '100%')).toBe(true);
+    const footerText = utils.getByText('ScreenFooter');
+    expect(footerText).toBeTruthy();
+  });
+});
+
 describe('Screen keyboard handling', () => {
   it('wraps content in a KeyboardAvoidingView with a platform behaviour', async () => {
     const utils = await renderScreen();
