@@ -8,10 +8,10 @@ const metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-async function renderScreen() {
+async function renderScreen(footerVisibleWithKeyboard = false) {
   return render(
     <SafeAreaProvider initialMetrics={metrics}>
-      <Screen scroll footer={<Text>ScreenFooter</Text>}>
+      <Screen scroll footer={<Text>ScreenFooter</Text>} footerVisibleWithKeyboard={footerVisibleWithKeyboard}>
         <TextInput placeholder="Note" />
       </Screen>
     </SafeAreaProvider>,
@@ -68,6 +68,21 @@ describe('Screen keyboard handling', () => {
     } finally {
       Object.defineProperty(Platform, 'OS', { value: original, configurable: true });
     }
+  });
+
+  it('keeps the footer visible while the keyboard is open when footerVisibleWithKeyboard is set', async () => {
+    const utils = await renderScreen(true);
+    expect(utils.getByText('ScreenFooter')).toBeTruthy();
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    await act(async () => {
+      DeviceEventEmitter.emit(showEvent, keyboardEvent);
+    });
+    expect(utils.getByText('ScreenFooter')).toBeTruthy();
+    await act(async () => {
+      DeviceEventEmitter.emit(hideEvent, keyboardEvent);
+    });
+    expect(utils.getByText('ScreenFooter')).toBeTruthy();
   });
 
   it('hides the footer while the keyboard is open and restores it on close', async () => {

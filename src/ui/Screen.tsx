@@ -23,12 +23,14 @@ export function useKeyboardVisible(): boolean {
 
 type Props = {
   children?: ReactNode;
-  /** Pinned to the bottom third, e.g. a PrimaryButton. Hidden while the keyboard is open. */
+  /** Pinned to the bottom, e.g. a PrimaryButton. Hidden while the keyboard is open unless `footerVisibleWithKeyboard`. */
   footer?: ReactNode;
+  /** Keep `footer` visible and tappable above the keyboard, e.g. Save while typing a note. */
+  footerVisibleWithKeyboard?: boolean;
   scroll?: boolean;
 };
 
-export function Screen({ children, footer, scroll = false }: Props) {
+export function Screen({ children, footer, footerVisibleWithKeyboard = false, scroll = false }: Props) {
   const { colors } = useTheme();
   const keyboardVisible = useKeyboardVisible();
   return (
@@ -53,7 +55,9 @@ export function Screen({ children, footer, scroll = false }: Props) {
         ) : (
           <View style={styles.body}>{children}</View>
         )}
-        {footer && !keyboardVisible ? <View style={styles.footer}>{footer}</View> : null}
+        {footer && (!keyboardVisible || footerVisibleWithKeyboard) ? (
+          <View style={styles.footer}>{footer}</View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -62,6 +66,7 @@ export function Screen({ children, footer, scroll = false }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   body: { flex: 1, paddingHorizontal: gutter },
-  scrollContent: { paddingVertical: space.lg, gap: space.lg },
+  // Extra bottom room so the last field can scroll fully above the keyboard.
+  scrollContent: { paddingTop: space.lg, paddingBottom: space.xxl, gap: space.lg },
   footer: { paddingHorizontal: gutter, paddingBottom: space.md },
 });
