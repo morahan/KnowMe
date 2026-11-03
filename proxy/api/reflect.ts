@@ -6,7 +6,7 @@ import { allow } from '../lib/rateLimit';
 
 const BASE_URL = process.env.LLAMA_BASE_URL ?? 'https://api.llama.com/compat/v1';
 const MODEL = process.env.LLAMA_MODEL ?? 'Llama-4-Maverick-17B-128E-Instruct-FP8';
-const MAX_BODY_BYTES = 16_000;
+const MAX_BODY_BYTES = 8_000;
 
 type ChatResponse = {
   choices?: { message?: { content?: string } }[];

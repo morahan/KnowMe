@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { listHabits } from '@/db/repos/habits';
 import { listMomentsSince } from '@/db/repos/moments';
 import { listReasons } from '@/db/repos/reasons';
-import { getInstallId } from '@/db/repos/settings';
+import { getInstallId, getSetting, setSetting } from '@/db/repos/settings';
 import { useSafety } from '@/features/safety';
 import { daysAgo } from '@/lib/dates';
 import { buildSummary, freeText } from './logic';
@@ -21,6 +21,20 @@ type ProxyResponse = { crisis: true } | { crisis: false; text: string };
 export function useReflection() {
   const { guard, showCrisisCard } = useSafety();
   const [state, setState] = useState<State>({ status: 'idle' });
+  const [cached, setCached] = useState<string[] | null>(null);
+
+  // Load the last cached letter once (offline-friendly).
+  useEffect(() => {
+    void getSetting('reflect_cache').then((raw) => {
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw) as { lines?: string[] };
+        if (Array.isArray(parsed.lines) && parsed.lines.length > 0) setCached(parsed.lines);
+      } catch {
+        // A corrupt cache is just no cache.
+      }
+    });
+  }, []);
 
   const reflect = useCallback(
     async (includeNotes: boolean) => {
@@ -58,6 +72,8 @@ export function useReflection() {
           return;
         }
         const lines = (data.text.match(/[^.?!]+[.?!]*/g) ?? [data.text]).map((l) => l.trim()).filter(Boolean);
+        // Cache locally so the letter survives offline and relaunch.
+        await setSetting('reflect_cache', JSON.stringify({ lines, at: new Date().toISOString() }));
         setState({ status: 'done', lines });
       } catch {
         setState({ status: 'error' });
@@ -66,5 +82,5 @@ export function useReflection() {
     [guard, showCrisisCard],
   );
 
-  return { state, reflect };
+  return { state, reflect, cached };
 }
