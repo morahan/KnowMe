@@ -20,11 +20,19 @@ function flatten(node: JsonNode | string | null, out: Flat[] = []): Flat[] {
 }
 
 async function chart(n: number) {
-  const { toJSON } = await render(<IntensityChart points={pts(n)} />);
+  return chartPoints(pts(n));
+}
+
+async function chartPoints(points: DayPoint[]) {
+  const { toJSON } = await render(<IntensityChart points={points} />);
   const flat = flatten(toJSON() as JsonNode | null);
   return {
     circles: flat.filter((e) => e.type === 'RNSVGCircle'),
+    // react-native-svg renders a Polyline as a Path with an `M…L…` d string.
+    polylines: flat.filter((e) => e.type === 'RNSVGPath'),
     svgWidth: flat.find((e) => e.type === 'RNSVGSvgView')?.props.width as number,
+    // The horizontal scroll frame carries the flex:1 width constraint.
+    scrollFramed: flat.some((e) => (e.props.style as { flex?: number } | undefined)?.flex === 1),
   };
 }
 
@@ -46,5 +54,30 @@ describe('IntensityChart', () => {
     const fit = await chart(30);
     const long = await chart(45);
     expect(long.svgWidth).toBeGreaterThan(fit.svgWidth);
+    // The scroll frame is width-constrained, so only one viewport (30 days
+    // at the fit spacing) is on screen at a time.
+    expect(long.scrollFramed).toBe(true);
+  });
+
+  it('draws nodes only on tracked days and connects them across skipped days', async () => {
+    const sparse: DayPoint[] = [
+      { date: '2026-11-01', avg: 8, count: 1 },
+      { date: '2026-11-02', avg: null, count: 0 },
+      { date: '2026-11-03', avg: null, count: 0 },
+      { date: '2026-11-04', avg: null, count: 0 },
+      { date: '2026-11-05', avg: null, count: 0 },
+      { date: '2026-11-06', avg: null, count: 0 },
+      { date: '2026-11-07', avg: 5, count: 1 },
+    ];
+    const { circles, polylines, svgWidth } = await chartPoints(sparse);
+    expect(circles).toHaveLength(2);
+    expect(circles[0]!.props.cx).toBe(16);
+    expect(circles[1]!.props.cx).toBe(svgWidth - 16);
+    // One unbroken line whose endpoints are exactly the two tracked nodes.
+    expect(polylines).toHaveLength(1);
+    const d = String(polylines[0]!.props.d);
+    expect(d.startsWith('M')).toBe(true);
+    expect(d).toContain(`${circles[0]!.props.cx} ${circles[0]!.props.cy}`);
+    expect(d).toContain(`${circles[1]!.props.cx} ${circles[1]!.props.cy}`);
   });
 });

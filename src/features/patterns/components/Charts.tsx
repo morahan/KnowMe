@@ -17,9 +17,11 @@ const EDGE_INSET = space.md;
 
 /**
  * Intensity over time: dots joined by a soft line. Y is 1-10.
- * The plot spans only the logged days (see intensityByDay): the first dot is
- * at the left inset, the newest at the right. Past a month of days the plot
- * outgrows the screen and scrolls sideways, opening on the newest end.
+ * The plot spans the first logged day through the last (see intensityByDay):
+ * the first dot is at the left inset, the newest at the right. Dots appear
+ * only on days with logs; the line joins them straight across skipped days.
+ * At most 30 days show at once — past that the plot scrolls sideways inside
+ * its fixed-width frame, opening on the newest end.
  */
 export function IntensityChart({ points }: { points: DayPoint[] }) {
   const { colors } = useTheme();
@@ -52,6 +54,7 @@ export function IntensityChart({ points }: { points: DayPoint[] }) {
         </View>
         <ScrollView
           ref={scrollRef}
+          style={styles.chartScroll}
           horizontal
           scrollEnabled={scrollable}
           showsHorizontalScrollIndicator={scrollable}
@@ -143,6 +146,9 @@ export function BarList({ rows, suffix }: { rows: { name: string; count: number 
 const styles = StyleSheet.create({
   chart: { gap: space.sm },
   chartRow: { flexDirection: 'row', gap: space.sm },
+  // Constrains the scroll frame to the row's remaining width, so at most one
+  // 30-day viewport of the plot shows at a time and the rest scrolls.
+  chartScroll: { flex: 1 },
   yLabels: { width: space.lg, justifyContent: 'space-between', alignItems: 'flex-end' },
   axisRow: { flexDirection: 'row', justifyContent: 'space-between' },
   list: { gap: space.md },

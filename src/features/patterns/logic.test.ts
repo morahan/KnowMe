@@ -29,6 +29,13 @@ describe('intensityByDay', () => {
     expect(pts.map((p) => p.avg)).toEqual([8, null, null, 5]);
   });
 
+  it('marks only the tracked days when days are skipped (day one and day seven)', () => {
+    const pts = intensityByDay([at(1, 20, { intensity: 8 }), at(7, 20, { intensity: 5 })]);
+    expect(pts).toHaveLength(7);
+    expect(pts.map((p) => p.avg)).toEqual([8, null, null, null, null, null, 5]);
+    expect(pts.filter((p) => p.avg !== null)).toHaveLength(2);
+  });
+
   it('returns no points when there are no moments', () => {
     expect(intensityByDay([])).toEqual([]);
   });
