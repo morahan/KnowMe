@@ -33,6 +33,10 @@ One line each: `date | decision | why`
 2026-11-03 | `IntensityPicker` wraps to two rows of five | one row of ten drops under 48pt wide on small phones
 2026-11-03 | Reduce Motion stills the breath circle and all fades via `ui/useReduceMotion` | DESIGN motion rules plus platform accessibility setting
 2026-11-03 | Log Other tags: 20-char cap, 40-char input, max 3 custom per feelings/helpers group; Other stays openable at max, removal frees a slot | short chips keep groups uncluttered; typed words save with the moment and surface in Patterns/Reflect as-is
+2026-11-03 | What-helped Other input is 140 chars (multiline); past 20 chars a "Save for quick tagging" option appears with the 20-char tag auto-filled and editable | a helper can be a full sentence, but the chip that saves with the moment stays 20 chars and in the person's own shortened words
+2026-11-03 | Same 140-char + quick-tag flow extended to What's-going-on Other; quick-tag state is per group | feelings get the same sentence-length input as helpers; the two groups never share a quick tag
 2026-11-03 | Removed unused `react-native-reanimated`/`gesture-handler`, added `expo-dev-client`, splash via `expo-splash-screen` plugin | pod install and dev builds fail without them on SDK 58; nothing imported reanimated
 2026-11-03 | Verified end to end on iOS simulator and Android emulator (adb, panel streaming unavailable) | both platforms completed the DEMO walk with demo data; crisis moment confirmed unsaved on each
 2026-11-03 | I'm in it habit pick is a phase inside `InItScreen`, not a new route | one tap then breathing; single habit skips it entirely, and the 20-minute timer only starts after the pick
+2026-11-03 | Patterns/Log section titles use new `SectionTitle` (17pt semibold) with a short 40pt hairline `SectionSeparator` between sections | user asked for larger titles + separators; stays inside the existing type/space scale, separator is short and quiet rather than a full-width divider
+2026-11-03 | Deployed proxy to Vercel as `knowme-proxy` (scope morahan); app .env points at https://knowme-proxy.vercel.app | stable production URL for the demo; key lives only in Vercel env
