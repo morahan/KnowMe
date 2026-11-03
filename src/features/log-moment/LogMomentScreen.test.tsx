@@ -73,3 +73,44 @@ describe('LogMomentScreen crisis guard (SAFETY.md case 1)', () => {
     expect(mockPush).not.toHaveBeenCalledWith('/crisis');
   });
 });
+
+describe('LogMomentScreen what-is-going-on quick tag', () => {
+  it('offers Save for quick tagging on a long feeling and saves the customized 20-char tag', async () => {
+    const utils = await renderLog();
+    // Feelings Other is the first Other chip in the tree.
+    await fireEvent.press(utils.getAllByText('Other')[0]!);
+    const longFeeling =
+      'Antsy and wired all morning, could not sit still at all and kept checking my phone every few minutes';
+    await fireEvent.changeText(utils.getByPlaceholderText('What is going on, in your own words'), longFeeling);
+    await waitFor(() => expect(utils.getByText('Save for quick tagging')).toBeTruthy());
+    await fireEvent.press(utils.getByText('Save for quick tagging'));
+    await waitFor(() => expect(utils.getByDisplayValue('Antsy and wired all')).toBeTruthy());
+    await fireEvent.changeText(utils.getByPlaceholderText('Quick tag'), 'wired all morning');
+    await fireEvent.press(utils.getByText('Add'));
+    await waitFor(() => expect(utils.getByText('wired all morning ×')).toBeTruthy());
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ feelings: ['wired all morning'] }));
+  });
+});
+
+describe('LogMomentScreen what-helped quick tag', () => {
+  it('offers Save for quick tagging on a long helper and saves the customized 20-char tag', async () => {
+    const utils = await renderLog();
+    // Feelings Other comes first in the tree; helpers Other is second.
+    await fireEvent.press(utils.getAllByText('Other')[1]!);
+    const longHelper =
+      'Sat on the porch with a cup of tea and called my sister, talked it through until the craving passed and I felt steady again tonight';
+    await fireEvent.changeText(utils.getByPlaceholderText('What helped, in your own words'), longHelper);
+    await waitFor(() => expect(utils.getByText('Save for quick tagging')).toBeTruthy());
+    await fireEvent.press(utils.getByText('Save for quick tagging'));
+    // Auto-filled with the first 20 characters, then customized.
+    await waitFor(() => expect(utils.getByDisplayValue('Sat on the porch wit')).toBeTruthy());
+    await fireEvent.changeText(utils.getByPlaceholderText('Quick tag'), 'porch + sister');
+    await fireEvent.press(utils.getByText('Add'));
+    await waitFor(() => expect(utils.getByText('porch + sister ×')).toBeTruthy());
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ helpers: ['porch + sister'] }));
+  });
+});

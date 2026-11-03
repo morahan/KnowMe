@@ -1,0 +1,87 @@
+import { act, render } from '@testing-library/react-native';
+import { DeviceEventEmitter, KeyboardAvoidingView, Platform, Text, TextInput } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Screen } from './Screen';
+
+const metrics = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 0, left: 0, right: 0, bottom: 0 },
+};
+
+async function renderScreen() {
+  return render(
+    <SafeAreaProvider initialMetrics={metrics}>
+      <Screen scroll footer={<Text>ScreenFooter</Text>}>
+        <TextInput placeholder="Note" />
+      </Screen>
+    </SafeAreaProvider>,
+  );
+}
+
+const keyboardEvent = {
+  endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 },
+  easing: 'keyboard',
+  duration: 250,
+};
+
+describe('Screen keyboard handling', () => {
+  it('wraps content in a KeyboardAvoidingView with a platform behaviour', async () => {
+    const utils = await renderScreen();
+    // Walk fibers: KeyboardAvoidingView is a composite, not a host node.
+    type FiberLike = {
+      type: unknown;
+      memoizedProps?: { behavior?: string };
+      child: FiberLike | null;
+      sibling: FiberLike | null;
+    };
+    let behavior: string | undefined;
+    const stack: FiberLike[] = [utils.root!.unstable_fiber as unknown as FiberLike];
+    while (stack.length > 0 && behavior === undefined) {
+      const fiber = stack.pop()!;
+      if (fiber.type === KeyboardAvoidingView) behavior = fiber.memoizedProps?.behavior;
+      if (fiber.sibling) stack.push(fiber.sibling);
+      if (fiber.child) stack.push(fiber.child);
+    }
+    // iOS pads, Android resizes by height; either keeps the focused input visible.
+    expect(behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
+    const scrollers = utils.root!.queryAll(
+      (node) => node.props.keyboardShouldPersistTaps === 'handled',
+    );
+    expect(scrollers.length).toBeGreaterThan(0);
+    expect(scrollers[0]!.props.automaticallyAdjustKeyboardInsets).toBe(true);
+  });
+
+  it('on Android hides the footer on keyboardDidShow and restores it on keyboardDidHide', async () => {
+    const original = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
+    try {
+      const utils = await renderScreen();
+      expect(utils.getByText('ScreenFooter')).toBeTruthy();
+      await act(async () => {
+        DeviceEventEmitter.emit('keyboardDidShow', keyboardEvent);
+      });
+      expect(utils.queryByText('ScreenFooter')).toBeNull();
+      await act(async () => {
+        DeviceEventEmitter.emit('keyboardDidHide', keyboardEvent);
+      });
+      expect(utils.getByText('ScreenFooter')).toBeTruthy();
+    } finally {
+      Object.defineProperty(Platform, 'OS', { value: original, configurable: true });
+    }
+  });
+
+  it('hides the footer while the keyboard is open and restores it on close', async () => {
+    const utils = await renderScreen();
+    expect(utils.getByText('ScreenFooter')).toBeTruthy();
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    await act(async () => {
+      DeviceEventEmitter.emit(showEvent, keyboardEvent);
+    });
+    expect(utils.queryByText('ScreenFooter')).toBeNull();
+    await act(async () => {
+      DeviceEventEmitter.emit(hideEvent, keyboardEvent);
+    });
+    expect(utils.getByText('ScreenFooter')).toBeTruthy();
+  });
+});

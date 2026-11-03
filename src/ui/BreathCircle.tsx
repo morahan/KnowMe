@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { motion, radius, type, useTheme } from '@/theme';
 import { useReduceMotion } from './useReduceMotion';
 
@@ -7,7 +7,7 @@ type Props = { inLabel: string; outLabel: string };
 
 const MIN_SCALE = 0.6;
 const WIDTH_RATIO = 0.6;
-const FILL_OPACITY = 0.25;
+const HALO_OPACITY = 0.1;
 
 /** 4s in, 6s out, forever. Soft, never bouncy. Still when Reduce Motion is on. */
 export function BreathCircle({ inLabel, outLabel }: Props) {
@@ -15,6 +15,7 @@ export function BreathCircle({ inLabel, outLabel }: Props) {
   const reduceMotion = useReduceMotion();
   const size = useWindowDimensions().width * WIDTH_RATIO;
   const [scale] = useState(() => new Animated.Value(MIN_SCALE));
+  const [labelOpacity] = useState(() => new Animated.Value(0));
   const [phase, setPhase] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
@@ -40,17 +41,51 @@ export function BreathCircle({ inLabel, outLabel }: Props) {
     };
   }, [reduceMotion, scale]);
 
+  // The word arrives softly after the circle has already started to move.
+  useEffect(() => {
+    if (reduceMotion) {
+      labelOpacity.setValue(1);
+      return;
+    }
+    labelOpacity.setValue(0);
+    const anim = Animated.timing(labelOpacity, {
+      toValue: 1,
+      duration: motion.slow,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [labelOpacity, phase, reduceMotion]);
+
+  const haloScale = scale.interpolate({
+    inputRange: [MIN_SCALE, 1],
+    outputRange: [MIN_SCALE * 1.18, 1.14],
+  });
+  const fillOpacity = scale.interpolate({
+    inputRange: [MIN_SCALE, 1],
+    outputRange: [0.2, 0.3],
+  });
+
   return (
     <View style={[styles.wrap, { width: size, height: size }]} accessibilityLiveRegion="polite">
       <Animated.View
-        style={[styles.circle, { backgroundColor: colors.accent, transform: [{ scale }] }]}
+        style={[
+          styles.circle,
+          { backgroundColor: colors.accent, opacity: HALO_OPACITY, transform: [{ scale: haloScale }] },
+        ]}
       />
-      <Text style={[type.title, { color: colors.text }]}>{reduceMotion ? '' : phase === 'in' ? inLabel : outLabel}</Text>
+      <Animated.View
+        style={[styles.circle, { backgroundColor: colors.accent, opacity: fillOpacity, transform: [{ scale }] }]}
+      />
+      <Animated.Text style={[type.title, { color: colors.text, opacity: labelOpacity }]}>
+        {reduceMotion ? '' : phase === 'in' ? inLabel : outLabel}
+      </Animated.Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
-  circle: { ...StyleSheet.absoluteFill, borderRadius: radius.full, opacity: FILL_OPACITY },
+  circle: { ...StyleSheet.absoluteFill, borderRadius: radius.full },
 });

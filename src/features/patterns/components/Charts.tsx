@@ -1,57 +1,117 @@
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import Svg, { Circle, Polyline, Rect } from 'react-native-svg';
+import { useCallback, useRef } from 'react';
+import { ScrollView, StyleSheet, View, useWindowDimensions, type ScrollViewInstance } from 'react-native';
+import Svg, { Circle, Line, Polyline, Rect } from 'react-native-svg';
 import { chartColors, gutter, space, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Label } from '@/ui/Label';
 import { copy } from '../copy';
-import type { DayPoint } from '../logic';
+import {
+  formatDayLabel, formatHour, intensityChartContentWidth, intensityPointX, type DayPoint,
+} from '../logic';
 
-// Chart height from theme spacing (xxl + xl + md), not a magic number.
-const CHART_H = space.xxl + space.xl + space.md;
+// Chart height from theme spacing, not a magic number. Tall enough to read at arm's length.
+const CHART_H = space.xxl * 2 + space.md;
+const PLOT_PAD = space.sm;
+// Inset so the first/last dots (r=5 plus stroke) never sit on the plot edge.
+const EDGE_INSET = space.md;
 
-/** Intensity over time: dots joined by a soft line. Y is 1-10. */
+/**
+ * Intensity over time: dots joined by a soft line. Y is 1-10.
+ * The plot spans only the logged days (see intensityByDay): the first dot is
+ * at the left inset, the newest at the right. Past a month of days the plot
+ * outgrows the screen and scrolls sideways, opening on the newest end.
+ */
 export function IntensityChart({ points }: { points: DayPoint[] }) {
   const { colors } = useTheme();
   const [accent] = chartColors(colors);
-  const width = useWindowDimensions().width - gutter * 2;
-  const withData = points.filter((p) => p.avg !== null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  const totalWidth = useWindowDimensions().width - gutter * 2;
+  const viewportWidth = totalWidth - space.lg - space.sm;
+  const contentWidth = intensityChartContentWidth(points.length, viewportWidth, EDGE_INSET);
+  const scrollable = contentWidth > viewportWidth;
+  const withData = points
+    .map((p, i) => ({ p, i }))
+    .filter((d): d is { p: DayPoint & { avg: number }; i: number } => d.p.avg !== null);
+  // Open (and stay, until the user scrolls) on the newest end when scrollable.
+  const showNewest = useCallback(() => {
+    scrollRef.current?.scrollToEnd({ animated: false });
+  }, []);
   if (withData.length === 0) return null;
-  const x = (i: number) => (points.length <= 1 ? width / 2 : (i / (points.length - 1)) * width);
-  const y = (v: number) => CHART_H - ((v - 1) / 9) * (CHART_H - 16) - 8;
-  const line = withData
-    .map((p) => `${x(points.indexOf(p))},${y(p.avg!)}`)
-    .join(' ');
+  const x = (i: number) => intensityPointX(i, points.length, contentWidth, EDGE_INSET);
+  const y = (v: number) => CHART_H - ((v - 1) / 9) * (CHART_H - PLOT_PAD * 2) - PLOT_PAD;
+  const line = withData.map((d) => `${x(d.i)},${y(d.p.avg)}`).join(' ');
+  const first = points[0]!;
+  const last = points[points.length - 1]!;
   return (
-    <Svg width={width} height={CHART_H} accessibilityLabel={copy.intensityChartAlt}>
-      {withData.length > 1 ? <Polyline points={line} fill="none" stroke={accent} strokeWidth={2} /> : null}
-      {withData.map((p) => (
-        <Circle key={p.date} cx={x(points.indexOf(p))} cy={y(p.avg!)} r={4} fill={accent} />
-      ))}
-    </Svg>
+    <View style={styles.chart}>
+      <View style={styles.chartRow}>
+        <View style={[styles.yLabels, { height: CHART_H }]}>
+          <Label>10</Label>
+          <Label>5</Label>
+          <Label>1</Label>
+        </View>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          scrollEnabled={scrollable}
+          showsHorizontalScrollIndicator={scrollable}
+          onContentSizeChange={scrollable ? showNewest : undefined}
+          onLayout={scrollable ? showNewest : undefined}
+        >
+          <View style={{ width: contentWidth }}>
+            <Svg width={contentWidth} height={CHART_H} accessibilityLabel={copy.intensityChartAlt}>
+              {[10, 5, 1].map((v) => (
+                <Line key={v} x1={0} x2={contentWidth} y1={y(v)} y2={y(v)} stroke={colors.border} strokeWidth={1} />
+              ))}
+              {withData.length > 1 ? (
+                <Polyline points={line} fill="none" stroke={accent} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+              ) : null}
+              {withData.map((d) => (
+                <Circle key={d.p.date} cx={x(d.i)} cy={y(d.p.avg)} r={5} fill={accent} stroke={colors.bg} strokeWidth={2} />
+              ))}
+            </Svg>
+            <View style={[styles.axisRow, { paddingHorizontal: EDGE_INSET }]}>
+              <Label>{formatDayLabel(first.date)}</Label>
+              {points.length > 1 ? <Label>{formatDayLabel(last.date)}</Label> : null}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
 
-/** 24 hour buckets as quiet bars. */
+/** 24 hour buckets as quiet bars. The busiest hour is the one warm bar. */
 export function HourChart({ buckets }: { buckets: number[] }) {
   const { colors } = useTheme();
   const [accent] = chartColors(colors);
   const width = useWindowDimensions().width - gutter * 2;
   const max = Math.max(1, ...buckets);
   const bw = width / 24;
+  const plotH = CHART_H - PLOT_PAD;
   return (
-    <Svg width={width} height={CHART_H} accessibilityLabel={copy.hourChartAlt}>
-      {buckets.map((n, h) => (
-        <Rect
-          key={h}
-          x={h * bw + 1}
-          y={CHART_H - (n / max) * (CHART_H - 8)}
-          width={Math.max(2, bw - 2)}
-          height={Math.max(2, (n / max) * (CHART_H - 8))}
-          rx={2}
-          fill={n === max && n > 0 ? accent : colors.border}
-        />
-      ))}
-    </Svg>
+    <View style={styles.chart}>
+      <Svg width={width} height={CHART_H} accessibilityLabel={copy.hourChartAlt}>
+        {buckets.map((n, h) => (
+          <Rect
+            key={h}
+            x={h * bw + 1}
+            y={CHART_H - (n / max) * plotH}
+            width={Math.max(2, bw - 2)}
+            height={Math.max(2, (n / max) * plotH)}
+            rx={space.xs}
+            fill={n === max && n > 0 ? accent : colors.muted}
+            fillOpacity={n === max && n > 0 ? 1 : 0.5}
+          />
+        ))}
+      </Svg>
+      <View style={styles.axisRow}>
+        <Label>{formatHour(0)}</Label>
+        <Label>{formatHour(6)}</Label>
+        <Label>{formatHour(12)}</Label>
+        <Label>{formatHour(18)}</Label>
+      </View>
+    </View>
   );
 }
 
@@ -67,10 +127,12 @@ export function BarList({ rows, suffix }: { rows: { name: string; count: number 
         <View key={r.name} style={styles.row}>
           <View style={styles.label}>
             <Body>{r.name}</Body>
-            <Label>{suffix ? `${r.count} ${suffix}` : String(r.count)}</Label>
+            <Body muted>{suffix ? `${r.count} ${suffix}` : String(r.count)}</Body>
           </View>
           <View style={[styles.track, { backgroundColor: colors.border }]}>
-            <View style={[styles.fill, { backgroundColor: accent, width: `${(r.count / max) * 100}%` }]} />
+            <View
+              style={[styles.fill, { backgroundColor: accent, width: `${(r.count / max) * 100}%` }]}
+            />
           </View>
         </View>
       ))}
@@ -79,9 +141,13 @@ export function BarList({ rows, suffix }: { rows: { name: string; count: number 
 }
 
 const styles = StyleSheet.create({
+  chart: { gap: space.sm },
+  chartRow: { flexDirection: 'row', gap: space.sm },
+  yLabels: { width: space.lg, justifyContent: 'space-between', alignItems: 'flex-end' },
+  axisRow: { flexDirection: 'row', justifyContent: 'space-between' },
   list: { gap: space.md },
-  row: { gap: space.xs },
+  row: { gap: space.sm },
   label: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  track: { height: space.sm, borderRadius: space.xs, overflow: 'hidden' },
-  fill: { height: space.sm, borderRadius: space.xs },
+  track: { height: space.md, borderRadius: space.xs, overflow: 'hidden' },
+  fill: { height: space.md, borderRadius: space.xs, minWidth: space.sm },
 });

@@ -1,7 +1,8 @@
 import { FEELINGS, HELPERS } from '@/db/schema';
 import {
-  CUSTOM_INPUT_MAX_CHARS, MAX_CUSTOM_TAGS, MAX_TAG_CHARS, addCustomTag, canAddCustomTag, customTags,
-  emptyDraft, isReady, normalizeTag, removeTag, toNewMoment,
+  CUSTOM_INPUT_MAX_CHARS, FEELING_INPUT_MAX_CHARS, HELPER_INPUT_MAX_CHARS, MAX_CUSTOM_TAGS, MAX_TAG_CHARS,
+  addCustomTag, canAddCustomTag, customTags, emptyDraft, isLongCustomText, isReady, normalizeTag, quickTagDraft,
+  removeTag, resolveCustomTag, toNewMoment,
 } from './logic';
 
 describe('log draft', () => {
@@ -68,5 +69,57 @@ describe('custom tags', () => {
   it('preset picks do not count toward the custom max', () => {
     expect(canAddCustomTag(['bored', 'stressed', 'tired', 'lonely'], FEELINGS)).toBe(true);
     expect(addCustomTag(['tea'], 'cold water', HELPERS)).toEqual(['tea', 'cold water']);
+  });
+});
+
+describe('what helped long input', () => {
+  const longHelper =
+    'Sat on the porch with a cup of tea and called my sister, talked it through until the craving passed and I felt steady again tonight';
+
+  it('allows 140 characters for what helped', () => {
+    expect(HELPER_INPUT_MAX_CHARS).toBe(140);
+    expect(longHelper.length).toBeLessThanOrEqual(HELPER_INPUT_MAX_CHARS);
+    expect(isLongCustomText(longHelper)).toBe(true);
+    expect(isLongCustomText('cold water')).toBe(false);
+    expect(isLongCustomText('12345678901234567890')).toBe(false);
+    expect(isLongCustomText('123456789012345678901')).toBe(true);
+  });
+
+  it('auto-fills the first 20 characters as the quick tag', () => {
+    expect(quickTagDraft(longHelper)).toBe('Sat on the porch wit');
+    expect(quickTagDraft(longHelper).length).toBe(MAX_TAG_CHARS);
+  });
+
+  it('uses the customized quick tag when saving for quick tagging', () => {
+    expect(resolveCustomTag(longHelper, false, 'porch + sister')).toBe('Sat on the porch wit');
+    expect(resolveCustomTag(longHelper, true, 'porch + sister')).toBe('porch + sister');
+    expect(resolveCustomTag(longHelper, true, '  porch   +  sister call  ')).toBe('porch + sister call');
+    expect(resolveCustomTag(longHelper, true, 'a very long custom tag here')).toBe('a very long custom t');
+  });
+
+  it('adds the customized quick tag, not the long text, to helpers', () => {
+    const tag = resolveCustomTag(longHelper, true, 'porch + sister');
+    expect(addCustomTag(['tea'], tag, HELPERS)).toEqual(['tea', 'porch + sister']);
+    expect(addCustomTag([], resolveCustomTag(longHelper, true, '   '), HELPERS)).toEqual([]);
+  });
+});
+
+describe('what is going on long input', () => {
+  const longFeeling = 'Antsy and wired all morning, could not sit still at all and kept checking my phone every few minutes';
+
+  it('allows 140 characters for what is going on', () => {
+    expect(FEELING_INPUT_MAX_CHARS).toBe(140);
+    expect(longFeeling.length).toBeLessThanOrEqual(FEELING_INPUT_MAX_CHARS);
+    expect(isLongCustomText(longFeeling)).toBe(true);
+  });
+
+  it('auto-fills and customizes the 20-char quick tag for feelings', () => {
+    expect(quickTagDraft(longFeeling)).toBe('Antsy and wired all');
+    const tag = resolveCustomTag(longFeeling, true, 'wired all morning');
+    expect(tag).toBe('wired all morning');
+    expect(addCustomTag(['bored'], tag, FEELINGS)).toEqual(['bored', 'wired all morning']);
+    expect(addCustomTag([], resolveCustomTag(longFeeling, false, 'wired all morning'), FEELINGS)).toEqual([
+      'Antsy and wired all',
+    ]);
   });
 });

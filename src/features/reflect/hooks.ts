@@ -5,10 +5,15 @@ import { listReasons } from '@/db/repos/reasons';
 import { getInstallId, getSetting, setSetting } from '@/db/repos/settings';
 import { useSafety } from '@/features/safety';
 import { daysAgo } from '@/lib/dates';
+import { motion } from '@/theme';
 import { buildSummary, classifyResponse, freeText, type ProxyResponse } from './logic';
 
 const DAYS = 7;
 const PROXY_URL = process.env.EXPO_PUBLIC_PROXY_URL;
+// A fast reply still gets a short, calm beat before the letter appears.
+const MIN_REVEAL_MS = motion.slow + motion.base;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 type State =
   | { status: 'idle' }
@@ -41,6 +46,7 @@ export function useReflection() {
         return;
       }
       setState({ status: 'loading' });
+      const startedAt = Date.now();
       try {
         const [habits, reasons, moments, installId] = await Promise.all([
           listHabits(),
@@ -73,6 +79,10 @@ export function useReflection() {
         const lines = result.lines;
         // Cache locally so the letter survives offline and relaunch.
         await setSetting('reflect_cache', JSON.stringify({ lines, at: new Date().toISOString() }));
+        // Hold the loading state briefly so the reveal never flashes. The
+        // crisis path above returns earlier and is never delayed (SAFETY.md §1).
+        const remaining = MIN_REVEAL_MS - (Date.now() - startedAt);
+        if (remaining > 0) await wait(remaining);
         setState({ status: 'done', lines });
       } catch {
         setState({ status: 'error' });

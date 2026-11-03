@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { addHabit, listHabits } from '@/db/repos/habits';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { addHabit, listHabits, removeHabit } from '@/db/repos/habits';
 import { listReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import { setSetting } from '@/db/repos/settings';
-import type { HabitKind } from '@/db/schema';
+import type { Habit, HabitKind } from '@/db/schema';
 import { useSafety } from '@/features/safety';
 import { radius, space, touch, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
@@ -15,7 +15,7 @@ import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
-import { canAddReason, cleanReasons } from './logic';
+import { MAX_CUSTOM_HABIT_CHARS, canAddReason, canSaveCustomHabit, cleanCustomHabit, cleanReasons } from './logic';
 
 const PRESETS: { kind: HabitKind; label: string }[] = [
   { kind: 'cannabis', label: 'Cannabis' },
@@ -28,15 +28,44 @@ export function SetupScreen() {
   const { guard } = useSafety();
   const [picked, setPicked] = useState<Set<HabitKind>>(new Set());
   const [custom, setCustom] = useState('');
+  const [customHabits, setCustomHabits] = useState<Habit[]>([]);
   const [reasons, setReasons] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
+  const [savingCustom, setSavingCustom] = useState(false);
 
   useEffect(() => {
     void (async () => {
       const [habits, saved] = await Promise.all([listHabits(), listReasons()]);
       if (habits.length > 0) setPicked(new Set(habits.map((h) => h.kind)));
+      setCustomHabits(habits.filter((h) => h.kind === 'custom'));
       if (saved.length > 0) setReasons(saved.map((r) => r.text));
     })();
+  }, []);
+
+  // Inline save: the footer Done button is hidden while the keyboard is
+  // open, so the typed word needs its own save right beside the input.
+  const saveCustom = useCallback(async () => {
+    const name = cleanCustomHabit(custom);
+    if (!name || savingCustom) return;
+    if (guard(name)) return;
+    if (customHabits.some((h) => h.name.toLowerCase() === name.toLowerCase())) {
+      setCustom('');
+      return;
+    }
+    setSavingCustom(true);
+    try {
+      const habit = await addHabit(name, 'custom');
+      setCustomHabits((prev) => [...prev, habit]);
+      setCustom('');
+    } finally {
+      setSavingCustom(false);
+    }
+  }, [custom, customHabits, guard, savingCustom]);
+
+  const removeCustom = useCallback((habit: Habit) => {
+    void removeHabit(habit.id).then(() => {
+      setCustomHabits((prev) => prev.filter((h) => h.id !== habit.id));
+    });
   }, []);
 
   const finish = useCallback(async () => {
@@ -50,8 +79,13 @@ export function SetupScreen() {
       for (const p of PRESETS) {
         if (picked.has(p.kind) && !existingKinds.has(p.kind)) await addHabit(p.label.toLowerCase(), p.kind);
       }
-      if (picked.has('custom') && custom.trim() && !existing.some((h) => h.name === custom.trim())) {
-        await addHabit(custom.trim(), 'custom');
+      const pendingCustom = cleanCustomHabit(custom);
+      if (
+        picked.has('custom') &&
+        pendingCustom &&
+        !existing.some((h) => h.name.toLowerCase() === pendingCustom.toLowerCase())
+      ) {
+        await addHabit(pendingCustom, 'custom');
       }
       await replaceReasons(cleaned);
       await setSetting('onboarded', '1');
@@ -96,16 +130,44 @@ export function SetupScreen() {
           <Chip key={p.kind} label={p.label} selected={picked.has(p.kind)} onPress={() => toggle(p.kind)} />
         ))}
         <Chip label={copy.somethingElse} selected={picked.has('custom')} onPress={() => toggle('custom')} />
+        {customHabits.map((h) => (
+          <Chip key={h.id} label={`${h.name} ×`} selected onPress={() => removeCustom(h)} />
+        ))}
       </View>
+      {customHabits.length > 0 ? <Label>{copy.removeCustomHint}</Label> : null}
       {picked.has('custom') ? (
-        <TextInput
-          accessibilityLabel={copy.customPlaceholder}
-          placeholder={copy.customPlaceholder}
-          placeholderTextColor={colors.muted}
-          value={custom}
-          onChangeText={setCustom}
-          style={inputStyle}
-        />
+        <View style={styles.customBox}>
+          <View style={styles.customRow}>
+            <TextInput
+              accessibilityLabel={copy.customPlaceholder}
+              placeholder={copy.customPlaceholder}
+              placeholderTextColor={colors.muted}
+              value={custom}
+              onChangeText={setCustom}
+              maxLength={MAX_CUSTOM_HABIT_CHARS}
+              autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={() => void saveCustom()}
+              style={[inputStyle, styles.customInput]}
+            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canSaveCustomHabit(custom) || savingCustom }}
+              disabled={!canSaveCustomHabit(custom) || savingCustom}
+              onPress={() => void saveCustom()}
+              style={({ pressed }) => [
+                styles.saveButton,
+                { borderColor: colors.border },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[type.label, { color: canSaveCustomHabit(custom) ? colors.text : colors.muted }]}>
+                {copy.saveCustom}
+              </Text>
+            </Pressable>
+          </View>
+          <Label>{`${custom.length}/${MAX_CUSTOM_HABIT_CHARS}`}</Label>
+        </View>
       ) : null}
 
       <Title>{copy.reasonsTitle}</Title>
@@ -133,6 +195,17 @@ export function SetupScreen() {
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  customBox: { gap: space.sm },
+  customRow: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
+  customInput: { flex: 1 },
+  saveButton: {
+    minHeight: touch.min,
+    paddingHorizontal: space.md,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderRadius: radius.md,
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.7 },
   reasons: { gap: space.sm },
   footer: { gap: space.sm, alignItems: 'stretch' },
   input: {

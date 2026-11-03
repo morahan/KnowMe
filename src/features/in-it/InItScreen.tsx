@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
 import type { Habit } from '@/db/schema';
 import { motion, radius, space, touch, type, useTheme } from '@/theme';
@@ -20,23 +20,25 @@ import { SESSION_SECONDS, formatCountdown, needsHabitPick, resolveHabit, topHelp
 
 function FadingReason({ text, index }: { text: string; index: number }) {
   const reduceMotion = useReduceMotion();
-  const [opacity] = useState(() => new Animated.Value(0));
+  const [progress] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (reduceMotion) {
-      opacity.setValue(1);
+      progress.setValue(1);
       return;
     }
-    const anim = Animated.timing(opacity, {
+    const anim = Animated.timing(progress, {
       toValue: 1,
       duration: motion.slow,
       delay: index * motion.slow,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
     anim.start();
     return () => anim.stop();
-  }, [index, opacity, reduceMotion]);
+  }, [index, progress, reduceMotion]);
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [space.sm, 0] });
   return (
-    <Animated.View style={{ opacity }}>
+    <Animated.View style={{ opacity: progress, transform: [{ translateY }] }}>
       <Body>{text}</Body>
     </Animated.View>
   );
@@ -159,7 +161,7 @@ export function InItScreen() {
       </View>
 
       {helpers.length > 0 ? (
-        <View style={styles.reasons}>
+        <View style={styles.helpers}>
           <Label>{copy.whatHelps}</Label>
           <Body muted>{helpers.join(' · ')}</Body>
         </View>
@@ -169,9 +171,10 @@ export function InItScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
-  reasons: { gap: space.sm, paddingTop: space.lg },
-  footer: { gap: space.sm },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
+  reasons: { gap: space.md, paddingTop: space.xl },
+  helpers: { gap: space.sm, paddingBottom: space.lg, alignItems: 'center' },
+  footer: { gap: space.md },
   pick: { gap: space.md, paddingTop: space.lg },
   options: { gap: space.md, marginTop: space.md },
   habitOption: {

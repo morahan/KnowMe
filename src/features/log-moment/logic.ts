@@ -4,6 +4,9 @@ import type { Context, Outcome } from '@/db/schema';
 /** Custom tags stay short so chips do not crowd the group. The input allows more while typing. */
 export const MAX_TAG_CHARS = 20;
 export const CUSTOM_INPUT_MAX_CHARS = 40;
+/** Both Other inputs get a full sentence, not just a word. Quick tags stay capped at MAX_TAG_CHARS. */
+export const HELPER_INPUT_MAX_CHARS = 140;
+export const FEELING_INPUT_MAX_CHARS = 140;
 export const MAX_CUSTOM_TAGS = 3;
 
 export type LogDraft = {
@@ -27,6 +30,21 @@ export function isReady(d: LogDraft): boolean {
 /** Trim, collapse spaces, and cap a typed word at tag length. */
 export function normalizeTag(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ').slice(0, MAX_TAG_CHARS).trim();
+}
+
+/** True when typed text is longer than a tag, so a quick tag is worth offering. */
+export function isLongCustomText(raw: string): boolean {
+  return raw.trim().replace(/\s+/g, ' ').length > MAX_TAG_CHARS;
+}
+
+/** The 20 characters auto-filled from a long input. The person can edit them before saving. */
+export function quickTagDraft(raw: string): string {
+  return normalizeTag(raw);
+}
+
+/** Tag to add: the edited quick tag when saving for quick tagging, else the auto-filled one. */
+export function resolveCustomTag(raw: string, saveForQuickTagging: boolean, quickTagText: string): string {
+  return saveForQuickTagging ? normalizeTag(quickTagText) : normalizeTag(raw);
 }
 
 export function isCustomTag(tag: string, presets: readonly string[]): boolean {

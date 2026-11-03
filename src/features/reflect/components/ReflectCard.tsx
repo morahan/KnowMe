@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { motion, space } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Chip } from '@/ui/Chip';
@@ -10,7 +11,7 @@ import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from '../copy';
 import { useReflection } from '../hooks';
 
-function FadingLine({ text, index }: { text: string; index: number }) {
+function FadingView({ index, children }: { index: number; children: ReactNode }) {
   const reduceMotion = useReduceMotion();
   const [opacity] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -20,16 +21,44 @@ function FadingLine({ text, index }: { text: string; index: number }) {
     }
     const anim = Animated.timing(opacity, {
       toValue: 1,
-      duration: motion.base,
+      duration: motion.slow,
       delay: index * motion.base,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
     anim.start();
     return () => anim.stop();
   }, [index, opacity, reduceMotion]);
+  return <Animated.View style={{ opacity }}>{children}</Animated.View>;
+}
+
+function LoadingLine() {
+  const reduceMotion = useReduceMotion();
+  const [opacity] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    if (reduceMotion) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.35,
+          duration: motion.slow,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: motion.slow,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity, reduceMotion]);
   return (
     <Animated.View style={{ opacity }}>
-      <Body letter>{text}</Body>
+      <Body muted>{copy.loading}</Body>
     </Animated.View>
   );
 }
@@ -38,9 +67,13 @@ function Letter({ lines }: { lines: string[] }) {
   return (
     <View style={styles.letter}>
       {lines.map((line, i) => (
-        <FadingLine key={`${i}-${line.slice(0, 12)}`} text={line} index={i} />
+        <FadingView key={`${i}-${line.slice(0, 12)}`} index={i}>
+          <Body letter>{line}</Body>
+        </FadingView>
       ))}
-      <Label>{copy.attribution}</Label>
+      <FadingView index={lines.length}>
+        <Label>{copy.attribution}</Label>
+      </FadingView>
     </View>
   );
 }
@@ -49,6 +82,7 @@ export function ReflectCard() {
   const { state, reflect, cached } = useReflection();
   const [includeNotes, setIncludeNotes] = useState(false);
   const lines = state.status === 'done' ? state.lines : cached;
+  const loading = state.status === 'loading';
 
   return (
     <View style={styles.wrap}>
@@ -56,6 +90,11 @@ export function ReflectCard() {
 
       {lines ? (
         <Letter lines={lines} />
+      ) : loading ? (
+        <>
+          <LoadingLine />
+          <PrimaryButton label={copy.loading} disabled onPress={() => undefined} />
+        </>
       ) : (
         <>
           <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
@@ -63,11 +102,7 @@ export function ReflectCard() {
             <Chip label={copy.includeNotes} selected={includeNotes} onPress={() => setIncludeNotes((v) => !v)} />
             <Label>{copy.includeNotesHint}</Label>
           </View>
-          <PrimaryButton
-            label={state.status === 'loading' ? copy.loading : copy.button}
-            disabled={state.status === 'loading'}
-            onPress={() => reflect(includeNotes)}
-          />
+          <PrimaryButton label={copy.button} onPress={() => reflect(includeNotes)} />
         </>
       )}
     </View>

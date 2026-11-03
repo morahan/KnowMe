@@ -10,6 +10,7 @@
     "icon": "./assets/icon.png",
     "ios": { "supportsTablet": true, "bundleIdentifier": "com.freiolabs.knowme" },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.freiolabs.knowme",
       "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#0F1115" }
     },
