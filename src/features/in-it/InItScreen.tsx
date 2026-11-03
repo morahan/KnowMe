@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
 import { motion, space } from '@/theme';
@@ -16,7 +16,7 @@ import { useInIt } from './hooks';
 import { SESSION_SECONDS, formatCountdown } from './logic';
 
 function FadingReason({ text, index }: { text: string; index: number }) {
-  const opacity = useRef(new Animated.Value(0)).current;
+  const [opacity] = useState(() => new Animated.Value(0));
   useEffect(() => {
     const anim = Animated.timing(opacity, {
       toValue: 1,
@@ -37,17 +37,14 @@ function FadingReason({ text, index }: { text: string; index: number }) {
 export function InItScreen() {
   const data = useInIt();
   const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
-  const [checking, setChecking] = useState(false);
+  const [manualCheck, setManualCheck] = useState(false);
   const [intensity, setIntensity] = useState<number | null>(null);
+  const checking = manualCheck || secondsLeft === 0;
 
   useEffect(() => {
     const id = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(id);
   }, []);
-
-  useEffect(() => {
-    if (secondsLeft === 0) setChecking(true);
-  }, [secondsLeft]);
 
   const save = async () => {
     if (data?.habit && intensity !== null) {
@@ -81,7 +78,7 @@ export function InItScreen() {
     <Screen
       footer={
         <View style={styles.footer}>
-          <PrimaryButton label={copy.through} onPress={() => setChecking(true)} />
+          <PrimaryButton label={copy.through} onPress={() => setManualCheck(true)} />
           <QuietLink label={copy.close} onPress={() => router.back()} />
         </View>
       }
