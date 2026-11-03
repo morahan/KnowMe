@@ -1,3 +1,4 @@
+/* eslint-disable import/first -- jest.mock must precede the repo imports it mocks */
 /**
  * Repository tests against an in-memory fake of the expo-sqlite async API.
  * The fake dispatches on the exact SQL the repos issue; it stores rows as
