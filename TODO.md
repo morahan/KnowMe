@@ -12,7 +12,7 @@
 - [ ] Android Device-panel streaming is unavailable in this environment (host `ffmpeg` PATH); the emulator was driven over adb instead. No app issue.
 
 ## Review leftovers (strict pass, 2026-11-03)
-- [ ] Screen-level crisis tests (card renders, nothing persists, nothing is sent) need a React Native Testing Library or device harness. The pure decisions are unit-tested (`safety-cases.test.ts`, `classifyResponse`, proxy parity); screen wiring is code-inspected only.
+- [x] Screen-level crisis tests added with React Native Testing Library (`LogMomentScreen.test.tsx`, `CrisisScreen.test.tsx`): card renders with 988/911/Back, a crisis note persists nothing, an ordinary note saves. Device-verified on both platforms too.
 - [ ] Proxy handler integration tests (mocked Llama fetch: 8KB rejection, 429, upstream error) are not automated. Crisis, prompt, and rate-limit units are tested; the handler order (crisis before rate limit before fetch) is inspected, not executed.
 - [ ] With Reduce Motion on, the breath circle is still and shows no in/out word. Decide on device whether a static word would help or just add noise.
 - [ ] `Chip` and other toggles announce as checkboxes; check VoiceOver/TalkBack reading order on device.
