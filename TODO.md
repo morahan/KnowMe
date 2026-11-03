@@ -1,11 +1,15 @@
 # TODO.md
 
 ## Verify on a real device / account
-- [ ] Verify Llama base URL and model name against the real account; deploy the proxy and set `EXPO_PUBLIC_PROXY_URL`.
-- [ ] Check light mode on device, including the largest Dynamic Type sizes (text scales by default; no device pass yet).
+- [ ] Verify Llama base URL and model name against the real account; deploy the proxy and set `EXPO_PUBLIC_PROXY_URL`. (Reflect's offline path is verified on both platforms; a live letter is not.)
+- [ ] Check the largest Dynamic Type sizes on device (text scales by default; simulator pass was at default size).
 - [ ] Android nav bar color in both schemes (status bar is themed via `expo-status-bar`; nav bar needs a device check).
 - [ ] Splash background is a single dark `#0F1115` in `app.json` (Expo takes one color); check it reads fine in light mode.
-- [ ] Run the full DEMO.md script on a phone with demo data loaded.
+
+## Device verification (2026-11-03, iPhone 17 Pro sim + Pixel 7 API 34 emu)
+- [x] Full DEMO.md walk on iOS and Android with demo data: Setup → Today → Log → Save → I'm in it (breath, countdown, re-check save) → Me demo load → Patterns insights → crisis card (moment not saved) → Reflect offline error. Light theme rendered correctly on both.
+- [x] Fixed on the way: unused `react-native-reanimated` broke CocoaPods; added `expo-dev-client`; moved splash to the `expo-splash-screen` plugin (Expo Doctor); Log Save stayed disabled after the first save (tabs stay mounted) — now reloads on focus; one inconsistent dedupe expectation in `habits.test.ts`.
+- [ ] Android Device-panel streaming is unavailable in this environment (host `ffmpeg` PATH); the emulator was driven over adb instead. No app issue.
 
 ## Review leftovers (strict pass, 2026-11-03)
 - [ ] Screen-level crisis tests (card renders, nothing persists, nothing is sent) need a React Native Testing Library or device harness. The pure decisions are unit-tested (`safety-cases.test.ts`, `classifyResponse`, proxy parity); screen wiring is code-inspected only.

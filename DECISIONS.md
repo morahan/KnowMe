@@ -32,3 +32,7 @@ One line each: `date | decision | why`
 2026-11-03 | Icon and splash regenerated at ~10% padding on #0F1115; `assets/logo.png` shown on Today | brand asset in-app and on the phone, one treatment everywhere
 2026-11-03 | `IntensityPicker` wraps to two rows of five | one row of ten drops under 48pt wide on small phones
 2026-11-03 | Reduce Motion stills the breath circle and all fades via `ui/useReduceMotion` | DESIGN motion rules plus platform accessibility setting
+2026-11-03 | Log Other tags: 20-char cap, 40-char input, max 3 custom per feelings/helpers group; Other stays openable at max, removal frees a slot | short chips keep groups uncluttered; typed words save with the moment and surface in Patterns/Reflect as-is
+2026-11-03 | Removed unused `react-native-reanimated`/`gesture-handler`, added `expo-dev-client`, splash via `expo-splash-screen` plugin | pod install and dev builds fail without them on SDK 58; nothing imported reanimated
+2026-11-03 | Verified end to end on iOS simulator and Android emulator (adb, panel streaming unavailable) | both platforms completed the DEMO walk with demo data; crisis moment confirmed unsaved on each
+2026-11-03 | I'm in it habit pick is a phase inside `InItScreen`, not a new route | one tap then breathing; single habit skips it entirely, and the 20-minute timer only starts after the pick

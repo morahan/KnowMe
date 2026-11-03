@@ -11,4 +11,9 @@ export const copy = {
   habit: 'Which one?',
   noHabit: 'Pick what you are tracking first, in Me or on the setup screen.',
   save: 'Save',
+  other: 'Other',
+  otherPlaceholder: 'Your own word',
+  addTag: 'Add',
+  removeCustomHint: 'Tap a word you added to remove it.',
+  maxCustomTags: 'That is the most here. Remove one to add another.',
 } as const;

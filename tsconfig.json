@@ -3,9 +3,21 @@
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["jest"],
-    "paths": { "@/*": ["./src/*"] }
+    "types": [
+      "jest"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
-  "include": ["app", "src", "expo-env.d.ts", ".expo/types/**/*.ts"],
-  "exclude": ["proxy", "node_modules"]
+  "include": [
+    "app",
+    "src"
+  ],
+  "exclude": [
+    "proxy",
+    "node_modules"
+  ]
 }

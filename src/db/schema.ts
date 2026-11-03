@@ -20,9 +20,11 @@ export type Moment = {
   created_at: string;
   intensity: number;
   context: Context;
-  feelings: Feeling[];
+  /** Preset values plus short custom tags typed under Other. */
+  feelings: string[];
   outcome: Outcome;
-  helpers: Helper[];
+  /** Preset values plus short custom tags typed under Other. */
+  helpers: string[];
   note: string | null;
   is_demo: boolean;
 };

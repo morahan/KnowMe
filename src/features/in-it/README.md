@@ -1,6 +1,6 @@
 # in-it
 
-Full screen, no tab bar. The user's reasons fade in one at a time, top 3 helpers, the breath circle in the center, a small muted 20-minute timer, then "Where's it at now?".
+Full screen, no tab bar. With 2+ habits tracked, a "Which one?" pick comes first — one tap tags the moment and starts the breathing. A single habit skips the pick. Then: reasons fade in one at a time, top 3 helpers for that habit, the breath circle in the center, a small muted 20-minute timer, then "Where's it at now?".
 
-Route: `app/in-it.tsx`. Uses: `db/repos/reasons`, `db/repos/moments` (top helpers), `ui/BreathCircle`.
+Route: `app/in-it.tsx`. Uses: `db/repos/habits`, `db/repos/reasons`, `db/repos/moments` (top helpers), `ui/BreathCircle`.
 Status: breath circle works; reasons, helpers and timer — see TODO.md.

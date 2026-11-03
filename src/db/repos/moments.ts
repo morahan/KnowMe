@@ -1,5 +1,5 @@
 import { db } from '@/db/client';
-import type { Context, Feeling, Helper, Moment, Outcome } from '@/db/schema';
+import type { Context, Moment, Outcome } from '@/db/schema';
 import { CONTEXTS, OUTCOMES } from '@/db/schema';
 import { newId } from '@/lib/ids';
 
@@ -17,8 +17,8 @@ const toMoment = (r: Row): Moment => ({
   ...r,
   context: r.context as Context,
   outcome: r.outcome as Outcome,
-  feelings: JSON.parse(r.feelings) as Feeling[],
-  helpers: JSON.parse(r.helpers) as Helper[],
+  feelings: JSON.parse(r.feelings) as string[],
+  helpers: JSON.parse(r.helpers) as string[],
   is_demo: r.is_demo === 1,
 });
 
