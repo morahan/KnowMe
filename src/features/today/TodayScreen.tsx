@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { getSetting } from '@/db/repos/settings';
 import { habitLabel } from '@/lib/habits';
@@ -24,9 +24,13 @@ export function TodayScreen() {
     });
   }, []);
 
-  useFocusEffect(() => {
-    void reload();
-  });
+  // Must be memoized: a fresh callback each render re-runs the effect, and
+  // reload sets state, so an inline arrow reloads forever while focused.
+  useFocusEffect(
+    useCallback(() => {
+      void reload();
+    }, [reload]),
+  );
 
   return (
     <Screen footer={<PrimaryButton label={copy.imInIt} onPress={() => router.push('/in-it')} />}>

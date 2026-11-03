@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { space } from '@/theme';
 import { Body } from '@/ui/Body';
@@ -23,9 +23,13 @@ export function PatternsScreen({ footer }: Props) {
   // One pick for the whole page: the same (at most) three behaviors, in the
   // same order and brand colors, on every chart below.
   const [picked, setPicked] = useState<string[] | null>(null);
-  useFocusEffect(() => {
-    void reload();
-  });
+  // Must be memoized: a fresh callback each render re-runs the effect, and
+  // reload sets state, so an inline arrow reloads forever while focused.
+  useFocusEffect(
+    useCallback(() => {
+      void reload();
+    }, [reload]),
+  );
 
   if (moments === null) {
     return (
