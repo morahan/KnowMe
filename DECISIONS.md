@@ -28,3 +28,7 @@ One line each: `date | decision | why`
 2026-11-03 | Crisis parity test imports the proxy modules from the root jest run | proves app/proxy term lists never drift; proxy still deploys standalone
 2026-11-03 | Disabled `react-hooks/set-state-in-effect` in ESLint | SQLite data hooks set state after an await; the rule flags the intended pattern
 2026-11-03 | Pinned ESLint 9 | eslint-plugin-react breaks on ESLint 10 (getFilename)
+2026-11-03 | Strict review: SAFETY cases pinned as named unit tests (guard, classifyResponse, proxy prompt) | screen-level card rendering needs a device harness; the pure decisions are now locked
+2026-11-03 | Icon and splash regenerated at ~10% padding on #0F1115; `assets/logo.png` shown on Today | brand asset in-app and on the phone, one treatment everywhere
+2026-11-03 | `IntensityPicker` wraps to two rows of five | one row of ten drops under 48pt wide on small phones
+2026-11-03 | Reduce Motion stills the breath circle and all fades via `ui/useReduceMotion` | DESIGN motion rules plus platform accessibility setting

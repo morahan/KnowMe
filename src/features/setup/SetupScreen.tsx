@@ -95,7 +95,7 @@ export function SetupScreen() {
         {PRESETS.map((p) => (
           <Chip key={p.kind} label={p.label} selected={picked.has(p.kind)} onPress={() => toggle(p.kind)} />
         ))}
-        <Chip label="Something else" selected={picked.has('custom')} onPress={() => toggle('custom')} />
+        <Chip label={copy.somethingElse} selected={picked.has('custom')} onPress={() => toggle('custom')} />
       </View>
       {picked.has('custom') ? (
         <TextInput

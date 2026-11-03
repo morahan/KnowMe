@@ -1,5 +1,5 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
-import { buildSummary, freeText } from './logic';
+import { buildSummary, classifyResponse, freeText } from './logic';
 
 const habit: Habit = { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' };
 const reasons: Reason[] = [{ id: 'r1', text: 'Sleep better', sort_order: 0 }];
@@ -39,5 +39,19 @@ describe('buildSummary', () => {
   it('exposes every free-text field to the crisis guard', () => {
     const s = buildSummary({ habits: [habit], reasons, moments, days: 7, includeNotes: true });
     expect(freeText(s)).toEqual(['cannabis', 'Sleep better', SECRET, SECRET]);
+  });
+});
+
+// SAFETY.md test case: model output containing "CRISIS" shows the card.
+// The proxy turns that token into { crisis: true }; the app must never render it as a letter.
+describe('classifyResponse (SAFETY.md: CRISIS output shows the card)', () => {
+  it('classifies a crisis response as crisis, never as a letter', () => {
+    expect(classifyResponse({ crisis: true })).toEqual({ kind: 'crisis' });
+  });
+
+  it('splits a normal letter into lines', () => {
+    const r = classifyResponse({ crisis: false, text: 'Evenings look hardest. Tea helped twice. What feels different then?' });
+    expect(r.kind).toBe('letter');
+    if (r.kind === 'letter') expect(r.lines).toHaveLength(3);
   });
 });

@@ -1,17 +1,19 @@
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Polyline, Rect } from 'react-native-svg';
-import { chartColors, space, useTheme } from '@/theme';
+import { chartColors, gutter, space, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Label } from '@/ui/Label';
+import { copy } from '../copy';
 import type { DayPoint } from '../logic';
 
-const CHART_H = 120;
+// Chart height from theme spacing (xxl + xl + md), not a magic number.
+const CHART_H = space.xxl + space.xl + space.md;
 
 /** Intensity over time: dots joined by a soft line. Y is 1-10. */
 export function IntensityChart({ points }: { points: DayPoint[] }) {
   const { colors } = useTheme();
   const [accent] = chartColors(colors);
-  const width = useWindowDimensions().width - 48;
+  const width = useWindowDimensions().width - gutter * 2;
   const withData = points.filter((p) => p.avg !== null);
   if (withData.length === 0) return null;
   const x = (i: number) => (points.length <= 1 ? width / 2 : (i / (points.length - 1)) * width);
@@ -20,7 +22,7 @@ export function IntensityChart({ points }: { points: DayPoint[] }) {
     .map((p) => `${x(points.indexOf(p))},${y(p.avg!)}`)
     .join(' ');
   return (
-    <Svg width={width} height={CHART_H} accessibilityLabel="Intensity over time chart">
+    <Svg width={width} height={CHART_H} accessibilityLabel={copy.intensityChartAlt}>
       {withData.length > 1 ? <Polyline points={line} fill="none" stroke={accent} strokeWidth={2} /> : null}
       {withData.map((p) => (
         <Circle key={p.date} cx={x(points.indexOf(p))} cy={y(p.avg!)} r={4} fill={accent} />
@@ -33,11 +35,11 @@ export function IntensityChart({ points }: { points: DayPoint[] }) {
 export function HourChart({ buckets }: { buckets: number[] }) {
   const { colors } = useTheme();
   const [accent] = chartColors(colors);
-  const width = useWindowDimensions().width - 48;
+  const width = useWindowDimensions().width - gutter * 2;
   const max = Math.max(1, ...buckets);
   const bw = width / 24;
   return (
-    <Svg width={width} height={CHART_H} accessibilityLabel="Cravings by hour of day chart">
+    <Svg width={width} height={CHART_H} accessibilityLabel={copy.hourChartAlt}>
       {buckets.map((n, h) => (
         <Rect
           key={h}
@@ -80,6 +82,6 @@ const styles = StyleSheet.create({
   list: { gap: space.md },
   row: { gap: space.xs },
   label: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  track: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4 },
+  track: { height: space.sm, borderRadius: space.xs, overflow: 'hidden' },
+  fill: { height: space.sm, borderRadius: space.xs },
 });

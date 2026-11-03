@@ -6,12 +6,18 @@ import { Chip } from '@/ui/Chip';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { Title } from '@/ui/Title';
+import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from '../copy';
 import { useReflection } from '../hooks';
 
 function FadingLine({ text, index }: { text: string; index: number }) {
+  const reduceMotion = useReduceMotion();
   const [opacity] = useState(() => new Animated.Value(0));
   useEffect(() => {
+    if (reduceMotion) {
+      opacity.setValue(1);
+      return;
+    }
     const anim = Animated.timing(opacity, {
       toValue: 1,
       duration: motion.base,
@@ -20,7 +26,7 @@ function FadingLine({ text, index }: { text: string; index: number }) {
     });
     anim.start();
     return () => anim.stop();
-  }, [index, opacity]);
+  }, [index, opacity, reduceMotion]);
   return (
     <Animated.View style={{ opacity }}>
       <Body letter>{text}</Body>

@@ -2,6 +2,7 @@ export const copy = {
   title: 'What are you looking at?',
   body: 'Pick what you want to understand. You can change this any time.',
   customPlaceholder: 'Your own words',
+  somethingElse: 'Something else',
   reasonsTitle: 'Why does this matter to you?',
   reasonsBody: 'A few words is enough. You will see these again when it gets hard.',
   reasonPlaceholder: 'A reason, in your own words',

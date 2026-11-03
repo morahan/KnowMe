@@ -1,8 +1,8 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { getSetting } from '@/db/repos/settings';
-import { space, useTheme } from '@/theme';
+import { space } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
@@ -14,7 +14,6 @@ import { copy } from './copy';
 import { useToday } from './hooks';
 
 export function TodayScreen() {
-  const { colors } = useTheme();
   const { data, reload } = useToday();
 
   // First launch: offer setup once, until done or skipped.
@@ -30,6 +29,12 @@ export function TodayScreen() {
 
   return (
     <Screen footer={<PrimaryButton label={copy.imInIt} onPress={() => router.push('/in-it')} />}>
+      <Image
+        source={require('../../../assets/logo.png')}
+        style={styles.logo}
+        accessibilityLabel={copy.logoAlt}
+        resizeMode="contain"
+      />
       <Title>{copy.title}</Title>
 
       {data === null ? (
@@ -63,7 +68,6 @@ export function TodayScreen() {
           <Body muted>{copy.empty}</Body>
         )}
       </View>
-      <View style={{ borderColor: colors.border }} />
     </Screen>
   );
 }
@@ -75,6 +79,7 @@ function formatTime(iso: string): string {
 }
 
 const styles = StyleSheet.create({
+  logo: { width: space.xxl, height: space.xxl, alignSelf: 'center', marginTop: space.md },
   block: { gap: space.sm, marginTop: space.lg },
   habit: { alignItems: 'center', paddingVertical: space.md },
 });

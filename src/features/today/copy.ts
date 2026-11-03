@@ -1,5 +1,6 @@
 export const copy = {
   title: 'Today',
+  logoAlt: 'KnowMe gnome holding a lantern',
   imInIt: "I'm in it",
   daysSince: 'days',
   today: 'Today',

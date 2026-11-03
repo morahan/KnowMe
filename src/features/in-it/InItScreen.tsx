@@ -11,13 +11,19 @@ import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
+import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from './copy';
 import { useInIt } from './hooks';
 import { SESSION_SECONDS, formatCountdown } from './logic';
 
 function FadingReason({ text, index }: { text: string; index: number }) {
+  const reduceMotion = useReduceMotion();
   const [opacity] = useState(() => new Animated.Value(0));
   useEffect(() => {
+    if (reduceMotion) {
+      opacity.setValue(1);
+      return;
+    }
     const anim = Animated.timing(opacity, {
       toValue: 1,
       duration: motion.slow,
@@ -26,7 +32,7 @@ function FadingReason({ text, index }: { text: string; index: number }) {
     });
     anim.start();
     return () => anim.stop();
-  }, [index, opacity]);
+  }, [index, opacity, reduceMotion]);
   return (
     <Animated.View style={{ opacity }}>
       <Body>{text}</Body>

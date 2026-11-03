@@ -31,6 +31,7 @@ export function IntensityPicker({ value, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row' },
-  cell: { flex: 1, minHeight: touch.min, alignItems: 'center', justifyContent: 'center' },
+  // Two rows of five: every cell stays at least 48pt wide on a small phone.
+  row: { flexDirection: 'row', flexWrap: 'wrap' },
+  cell: { flexBasis: '20%', minHeight: touch.min, alignItems: 'center', justifyContent: 'center' },
 });

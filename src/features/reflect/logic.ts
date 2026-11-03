@@ -57,6 +57,16 @@ export function freeText(summary: ReflectionSummary): string[] {
   return [...summary.habits, ...summary.reasons, ...(summary.notes ?? [])];
 }
 
+export type ProxyResponse = { crisis: true } | { crisis: false; text: string };
+export type Classified = { kind: 'crisis' } | { kind: 'letter'; lines: string[] };
+
+/** SAFETY.md: a crisis flag from the proxy always wins; the letter is never shown instead. */
+export function classifyResponse(data: ProxyResponse): Classified {
+  if (data.crisis) return { kind: 'crisis' };
+  const lines = (data.text.match(/[^.?!]+[.?!]*/g) ?? [data.text]).map((l) => l.trim()).filter(Boolean);
+  return { kind: 'letter', lines };
+}
+
 function roundOrNull(n: number | null): number | null {
   return n === null ? null : Math.round(n * 10) / 10;
 }

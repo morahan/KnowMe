@@ -5,7 +5,7 @@ import { listReasons } from '@/db/repos/reasons';
 import { getInstallId, getSetting, setSetting } from '@/db/repos/settings';
 import { useSafety } from '@/features/safety';
 import { daysAgo } from '@/lib/dates';
-import { buildSummary, freeText } from './logic';
+import { buildSummary, classifyResponse, freeText, type ProxyResponse } from './logic';
 
 const DAYS = 7;
 const PROXY_URL = process.env.EXPO_PUBLIC_PROXY_URL;
@@ -15,8 +15,6 @@ type State =
   | { status: 'loading' }
   | { status: 'done'; lines: string[] }
   | { status: 'error' };
-
-type ProxyResponse = { crisis: true } | { crisis: false; text: string };
 
 export function useReflection() {
   const { guard, showCrisisCard } = useSafety();
@@ -66,12 +64,13 @@ export function useReflection() {
         if (!res.ok) throw new Error(`proxy ${res.status}`);
         const data = (await res.json()) as ProxyResponse;
 
-        if (data.crisis) {
+        const result = classifyResponse(data);
+        if (result.kind === 'crisis') {
           showCrisisCard();
           setState({ status: 'idle' });
           return;
         }
-        const lines = (data.text.match(/[^.?!]+[.?!]*/g) ?? [data.text]).map((l) => l.trim()).filter(Boolean);
+        const lines = result.lines;
         // Cache locally so the letter survives offline and relaunch.
         await setSetting('reflect_cache', JSON.stringify({ lines, at: new Date().toISOString() }));
         setState({ status: 'done', lines });
