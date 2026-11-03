@@ -29,4 +29,11 @@ export const CRISIS_TERMS: readonly string[] = [
   'overdosed',
   'overdosing',
   'od',
+  // Common slang. The model screen misses these (proxy/eval/crisisEval.ts). "kms" can also
+  // mean kilometres; a false card costs a tap.
+  'kms',
+  'kys',
+  'unalive',
+  'sewerslide',
+  'sewer slide',
 ];

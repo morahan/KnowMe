@@ -1,7 +1,7 @@
 # TODO.md
 
 ## Verify on a real device / account
-- [ ] Verify Llama base URL and model name against the real account; deploy the proxy and set `EXPO_PUBLIC_PROXY_URL`. (Reflect's offline path is verified on both platforms; a live letter is not.)
+- [x] Proxy live on DeepInfra Llama 3.3 70B; a live letter returns 200 (2026-11-03).
 - [ ] Check the largest Dynamic Type sizes on device (text scales by default; simulator pass was at default size).
 - [ ] Android nav bar color in both schemes (status bar is themed via `expo-status-bar`; nav bar needs a device check).
 - [ ] Splash background is a single dark `#0F1115` in `app.json` (Expo takes one color); check it reads fine in light mode.
@@ -18,6 +18,8 @@
 - [ ] `Chip` and other toggles announce as checkboxes; check VoiceOver/TalkBack reading order on device.
 
 ## If this ships beyond the demo
+- [ ] Crisis eval (`proxy/eval/crisisEval.ts`) is ~70 English phrases written by us, not a clinical validation. Grow it with real-world phrasing (and other languages) and have someone with crisis-line experience review the screen prompt.
+- [ ] Clef (Cloudflare decision model on DeepInfra) scored 91–96% recall vs the Llama screen's 96% and missed "standing at the edge of the balcony"; revisit if latency or cost matters.
 - [ ] Rate limit is per warm Vercel instance only. Use shared storage (e.g. Upstash) for a real limit.
 - [ ] "How much can I safely use?" is handled by the system prompt only. Add a proxy-side dosing-phrase check if it ever matters.
 - [ ] Light-theme polish pass; dark is the designed default.

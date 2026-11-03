@@ -5,6 +5,7 @@ const CRISIS_TERMS: readonly string[] = [
   'no reason to live', 'nothing to live for', 'dont want to be here', 'dont want to live',
   'hurt myself', 'hurting myself', 'harm myself', 'self harm', 'cut myself', 'cutting myself',
   'overdose', 'overdosed', 'overdosing', 'od',
+  'kms', 'kys', 'unalive', 'sewerslide', 'sewer slide',
 ];
 
 function normalize(text: string): string {
@@ -26,7 +27,7 @@ export function outputIsCrisis(text: string): boolean {
   return /\bCRISIS\b/.test(text) || isCrisis(text);
 }
 
-function collectStrings(value: unknown): string[] {
+export function collectStrings(value: unknown): string[] {
   if (typeof value === 'string') return [value];
   if (Array.isArray(value)) return value.flatMap(collectStrings);
   if (value && typeof value === 'object') return Object.values(value).flatMap(collectStrings);
