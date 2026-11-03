@@ -28,7 +28,7 @@ These rules override every other doc. If a feature conflicts with one, the featu
 ## 4. Privacy
 - Raw notes never leave the device unless the user turns on "Include my notes" for that reflection.
 - The summary sent to the proxy contains counts, hours, intensities, tags, and the user's reasons. No names, no device IDs beyond a random per-install ID for rate limiting.
-- The proxy logs nothing but token counts and errors.
+- The proxy logs nothing but token counts, errors, and which check flagged a crisis (`keyword`, `screen`, or `output`). Never the text, never the install ID. Crisis messages are not stored anywhere.
 - No analytics SDKs. No crash reporters that send content.
 
 ## 5. People over the app

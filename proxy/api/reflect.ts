@@ -1,5 +1,5 @@
 // POST /api/reflect  { installId, summary }  ->  { crisis: true } | { crisis: false, text }
-// Logs nothing but token counts and errors (SAFETY.md §4).
+// Logs nothing but token counts, errors, and which check flagged a crisis (SAFETY.md §4).
 import { collectStrings, inputIsCrisis, outputIsCrisis } from '../lib/crisis';
 import { SYSTEM_PROMPT, userMessage } from '../lib/prompt';
 import { allow } from '../lib/rateLimit';
@@ -15,6 +15,12 @@ type ChatResponse = {
 };
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
+
+// Count-only: the check's name, never the text or installId (SAFETY.md §4).
+const crisis = (by: 'keyword' | 'screen' | 'output') => {
+  console.log('crisis', by);
+  return json({ crisis: true });
+};
 
 export async function POST(req: Request): Promise<Response> {
   const apiKey = process.env.LLAMA_API_KEY;
@@ -35,13 +41,13 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   // Crisis first, before rate limits or network.
-  if (inputIsCrisis(summary)) return json({ crisis: true });
+  if (inputIsCrisis(summary)) return crisis('keyword');
   if (!allow(installId)) return json({ error: 'slow down' }, 429);
 
   // Model screen before writing anything. If the screen can't run, fail closed: no reflection.
   try {
     const flagged = await screenForCrisis(collectStrings(summary).join('\n'), { baseUrl: BASE_URL, apiKey, model: MODEL });
-    if (flagged) return json({ crisis: true });
+    if (flagged) return crisis('screen');
   } catch (err) {
     console.error('screen failed', err instanceof Error ? err.message : 'unknown');
     return json({ error: 'upstream' }, 502);
@@ -70,7 +76,7 @@ export async function POST(req: Request): Promise<Response> {
 
     const text = data.choices?.[0]?.message?.content?.trim() ?? '';
     if (!text) return json({ error: 'empty' }, 502);
-    if (outputIsCrisis(text)) return json({ crisis: true });
+    if (outputIsCrisis(text)) return crisis('output');
     return json({ crisis: false, text });
   } catch (err) {
     console.error('reflect failed', err instanceof Error ? err.name : 'unknown');
