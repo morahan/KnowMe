@@ -14,6 +14,7 @@ Every change must make the app **simpler, calmer, or more honest**. If it doesn'
 ## How to work
 - Work autonomously. Don't stop to ask. Make the reasonable call and log it in `DECISIONS.md` (one line: date, decision, why).
 - Build in phases. Commit after each phase with a clear message.
+- Always commit and push finished work. Don't leave completed changes uncommitted or unpushed; commit in small, coherent batches and push once checks pass.
 - Before every commit: `npx tsc --noEmit`, lint, tests. Fix failures first.
 - Anything unfinished goes in `TODO.md`. No silent gaps.
 - Prefer deleting code to adding it. One great screen beats three okay ones.
