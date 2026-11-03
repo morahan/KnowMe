@@ -86,9 +86,12 @@ export function IntensityChart({
     <View style={styles.chart}>
       <View style={styles.chartRow}>
         <View style={[styles.yLabels, { height: CHART_H }]}>
-          <Label>10</Label>
-          <Label>5</Label>
-          <Label>1</Label>
+          {/* Each label is centered on its own gridline, at any text size. */}
+          {[10, 5, 1].map((v) => (
+            <View key={v} style={[styles.yTick, { top: y(v) }]}>
+              <Label>{v}</Label>
+            </View>
+          ))}
         </View>
         <ScrollView
           ref={scrollRef}
@@ -218,11 +221,13 @@ export function HourChart({ buckets, series }: { buckets: number[]; series?: Hou
               />
             ))}
       </Svg>
+      {/* Four equal quarters, so each label starts under its own hour's bar. */}
       <View style={styles.axisRow}>
-        <Label>{formatHour(0)}</Label>
-        <Label>{formatHour(6)}</Label>
-        <Label>{formatHour(12)}</Label>
-        <Label>{formatHour(18)}</Label>
+        {[0, 6, 12, 18].map((h) => (
+          <View key={h} style={styles.hourTick}>
+            <Label>{formatHour(h)}</Label>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -294,7 +299,9 @@ const styles = StyleSheet.create({
   toggleItem: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touch.min },
   pressed: { opacity: 0.7 },
   legendDot: { width: space.sm + space.xs, height: space.sm + space.xs, borderRadius: space.xs },
-  yLabels: { width: space.lg, justifyContent: 'space-between', alignItems: 'flex-end' },
+  yLabels: { width: space.lg },
+  yTick: { position: 'absolute', right: 0, height: 0, justifyContent: 'center' },
+  hourTick: { flex: 1 },
   axisRow: { flexDirection: 'row', justifyContent: 'space-between' },
   list: { gap: space.md },
   row: { gap: space.sm },

@@ -1,49 +1,27 @@
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { motion, space } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Chip } from '@/ui/Chip';
+import { FadeIn } from '@/ui/FadeIn';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { Title } from '@/ui/Title';
-import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from '../copy';
 import { useReflection } from '../hooks';
 import { ThinkingGnome } from './ThinkingGnome';
-
-function FadingView({ index, children }: { index: number; children: ReactNode }) {
-  const reduceMotion = useReduceMotion();
-  const [opacity] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    if (reduceMotion) {
-      opacity.setValue(1);
-      return;
-    }
-    const anim = Animated.timing(opacity, {
-      toValue: 1,
-      duration: motion.slow,
-      delay: index * motion.base,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-    anim.start();
-    return () => anim.stop();
-  }, [index, opacity, reduceMotion]);
-  return <Animated.View style={{ opacity }}>{children}</Animated.View>;
-}
 
 function Letter({ lines }: { lines: string[] }) {
   return (
     <View style={styles.letter}>
       {lines.map((line, i) => (
-        <FadingView key={`${i}-${line.slice(0, 12)}`} index={i}>
+        <FadeIn key={`${i}-${line.slice(0, 12)}`} delay={i * motion.base}>
           <Body letter>{line}</Body>
-        </FadingView>
+        </FadeIn>
       ))}
-      <FadingView index={lines.length}>
+      <FadeIn delay={lines.length * motion.base}>
         <Label>{copy.attribution}</Label>
-      </FadingView>
+      </FadeIn>
     </View>
   );
 }
@@ -61,16 +39,19 @@ export function ReflectCard() {
       {lines ? (
         <Letter lines={lines} />
       ) : loading ? (
-        <ThinkingGnome />
+        <FadeIn>
+          <ThinkingGnome />
+        </FadeIn>
       ) : (
-        <>
+        // Keyed by status so returning from an error fades in too.
+        <FadeIn key={state.status} style={styles.idle}>
           <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
           <View style={styles.toggle}>
             <Chip label={copy.includeNotes} selected={includeNotes} onPress={() => setIncludeNotes((v) => !v)} />
             <Label>{copy.includeNotesHint}</Label>
           </View>
           <PrimaryButton label={copy.button} onPress={() => reflect(includeNotes)} />
-        </>
+        </FadeIn>
       )}
     </View>
   );
@@ -79,5 +60,6 @@ export function ReflectCard() {
 const styles = StyleSheet.create({
   wrap: { gap: space.md },
   letter: { gap: space.md },
+  idle: { gap: space.md },
   toggle: { gap: space.sm, alignItems: 'flex-start' },
 });

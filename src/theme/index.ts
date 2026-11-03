@@ -70,7 +70,7 @@ const light: Colors = {
 // Chart series: accent first, calm second, muted for everything else.
 export const chartColors = (c: Colors) => [c.accent, c.calm, c.muted] as const;
 
-// Per-behavior series for the intensity chart only: exactly three colors,
+// Per-behavior series for Patterns charts only: exactly three colors,
 // all from the brand palette above — the lamp amber, the calm sage, and the
 // quiet muted gray. At most three behaviors show at once (see Patterns), so
 // no fourth hue is ever needed and no behavior reads as an alarm. Light mode
@@ -144,7 +144,7 @@ export function useTheme(): Theme {
 
 // ─── Rules agents must follow ─────────────────────────────────────
 // 1. One accent. Amber is the only fill color. Sage is for "rode it out" and positive trends only.
-//    Exception: `habitColors` appears only as thin lines and dots on the intensity chart, never as fills.
+//    Exception: `habitColors` marks behaviors on Patterns charts only (lines, dots, bar segments), never buttons or chips.
 // 2. No red, ever. "Used" is `muted`, not a warning color.
 // 3. Primary button = accent fill + onAccent text. Secondary = text only, no border.
 // 4. Chips: off = border outline + text; on = accent fill + onAccent text.

@@ -13,7 +13,10 @@ const PROXY_URL = process.env.EXPO_PUBLIC_PROXY_URL;
 // A fast reply still gets a short, calm beat before the letter appears.
 const MIN_REVEAL_MS = motion.slow + motion.base;
 
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const holdUntilReveal = (startedAt: number) => {
+  const remaining = MIN_REVEAL_MS - (Date.now() - startedAt);
+  return remaining > 0 ? new Promise<void>((resolve) => setTimeout(resolve, remaining)) : Promise.resolve();
+};
 
 type State =
   | { status: 'idle' }
@@ -81,10 +84,10 @@ export function useReflection() {
         await setSetting('reflect_cache', JSON.stringify({ lines, at: new Date().toISOString() }));
         // Hold the loading state briefly so the reveal never flashes. The
         // crisis path above returns earlier and is never delayed (SAFETY.md §1).
-        const remaining = MIN_REVEAL_MS - (Date.now() - startedAt);
-        if (remaining > 0) await wait(remaining);
+        await holdUntilReveal(startedAt);
         setState({ status: 'done', lines });
       } catch {
+        await holdUntilReveal(startedAt);
         setState({ status: 'error' });
       }
     },

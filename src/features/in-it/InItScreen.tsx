@@ -1,53 +1,28 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
 import { habitLabel } from '@/lib/habits';
 import { visibleReasons } from '@/lib/reasons';
-import { motion, space } from '@/theme';
+import { motion, space, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { BreathCircle } from '@/ui/BreathCircle';
 import { Chip } from '@/ui/Chip';
+import { FadeIn } from '@/ui/FadeIn';
 import { IntensityPicker } from '@/ui/IntensityPicker';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
 import { Title } from '@/ui/Title';
-import { useReduceMotion } from '@/ui/useReduceMotion';
 import { copy } from './copy';
 import { useInIt } from './hooks';
 import { SESSION_SECONDS, formatCountdown, needsHabitPick, resolveHabit, topHelpersForHabit } from './logic';
 
-function FadingReason({ text, index }: { text: string; index: number }) {
-  const reduceMotion = useReduceMotion();
-  const [progress] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    if (reduceMotion) {
-      progress.setValue(1);
-      return;
-    }
-    const anim = Animated.timing(progress, {
-      toValue: 1,
-      duration: motion.slow,
-      delay: index * motion.slow,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-    anim.start();
-    return () => anim.stop();
-  }, [index, progress, reduceMotion]);
-  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [space.sm, 0] });
-  return (
-    <Animated.View style={{ opacity: progress, transform: [{ translateY }] }}>
-      <Body>{text}</Body>
-    </Animated.View>
-  );
-}
-
 export function InItScreen() {
   const data = useInIt();
+  const { colors } = useTheme();
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
   const [manualCheck, setManualCheck] = useState(false);
@@ -96,7 +71,7 @@ export function InItScreen() {
   if (picking) {
     return (
       <Screen footer={<QuietLink label={copy.close} onPress={() => router.back()} />}>
-        <View style={styles.pick}>
+        <FadeIn style={styles.pick}>
           <Title>{copy.whichOne}</Title>
           <Body muted>{copy.whichOneBody}</Body>
           <View style={styles.options}>
@@ -104,7 +79,7 @@ export function InItScreen() {
               <Chip key={h.id} label={habitLabel(h)} selected={false} onPress={() => setSelectedHabitId(h.id)} />
             ))}
           </View>
-        </View>
+        </FadeIn>
       </Screen>
     );
   }
@@ -112,11 +87,11 @@ export function InItScreen() {
   if (checking) {
     return (
       <Screen footer={<PrimaryButton label={copy.save} disabled={intensity === null} onPress={() => void save()} />}>
-        <View style={styles.center}>
-          <Label>{copy.whereNow}</Label>
+        <FadeIn style={styles.center}>
+          <Title>{copy.whereNow}</Title>
           <IntensityPicker value={intensity} onChange={setIntensity} />
           <QuietLink label={copy.close} onPress={() => router.back()} />
-        </View>
+        </FadeIn>
       </Screen>
     );
   }
@@ -134,22 +109,25 @@ export function InItScreen() {
         <View style={styles.reasons}>
           <Label>{copy.yourReasons}</Label>
           {shownReasons.map((r, i) => (
-            <FadingReason key={r.id} text={r.text} index={i} />
+            <FadeIn key={r.id} delay={motion.slow * (i + 1)}>
+              <Body>{r.text}</Body>
+            </FadeIn>
           ))}
         </View>
       ) : null}
 
-      <View style={styles.center}>
+      <FadeIn style={styles.center}>
         {habits.length > 1 && habit ? <Label>{habitLabel(habit)}</Label> : null}
         <BreathCircle inLabel={copy.breatheIn} outLabel={copy.breatheOut} />
-        <Label>{formatCountdown(secondsLeft)}</Label>
-      </View>
+        {/* Fixed-width digits so the countdown ticks without shifting. */}
+        <Text style={[type.label, styles.countdown, { color: colors.muted }]}>{formatCountdown(secondsLeft)}</Text>
+      </FadeIn>
 
       {helpers.length > 0 ? (
-        <View style={styles.helpers}>
+        <FadeIn style={styles.helpers} delay={motion.slow * (shownReasons.length + 1)}>
           <Label>{copy.whatHelps}</Label>
           <Body muted>{helpers.join(' · ')}</Body>
-        </View>
+        </FadeIn>
       ) : null}
     </Screen>
   );
@@ -160,6 +138,7 @@ const styles = StyleSheet.create({
   reasons: { gap: space.md, paddingTop: space.xl },
   helpers: { gap: space.sm, paddingBottom: space.lg, alignItems: 'center' },
   footer: { gap: space.md },
+  countdown: { fontVariant: ['tabular-nums'] },
   pick: { gap: space.md, paddingTop: space.lg },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.md },
 });

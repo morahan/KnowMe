@@ -8,8 +8,17 @@ type Props = { inLabel: string; outLabel: string };
 const MIN_SCALE = 0.6;
 const WIDTH_RATIO = 0.6;
 const HALO_OPACITY = 0.1;
+// Each word fades over `motion.slow` at both ends of its phase, so the swap
+// always happens while both words are invisible.
+const IN_FADE = motion.slow / motion.breathIn;
+const OUT_FADE = motion.slow / motion.breathOut;
 
-/** 4s in, 6s out, forever. Soft, never bouncy. Still when Reduce Motion is on. */
+/**
+ * 4s in, 6s out, forever. Soft, never bouncy. Still when Reduce Motion is on.
+ * One looping value drives everything on the native thread: 0→1 is the
+ * in-breath, 1→2 the out-breath. Nothing re-renders per breath, so the
+ * screen's countdown ticking each second can never make the circle stutter.
+ */
 export function BreathCircle({ inLabel, outLabel }: Props) {
   const { colors } = useTheme();
   const reduceMotion = useReduceMotion();
@@ -17,73 +26,72 @@ export function BreathCircle({ inLabel, outLabel }: Props) {
   // on wide windows (iPhone Duo open, iPad, landscape).
   const { width, height } = useWindowDimensions();
   const size = Math.min(width * WIDTH_RATIO, height * WIDTH_RATIO, layout.breathMaxDiameter);
-  const [scale] = useState(() => new Animated.Value(MIN_SCALE));
-  const [labelOpacity] = useState(() => new Animated.Value(0));
-  const [phase, setPhase] = useState<'in' | 'out'>('in');
+  const [anim] = useState(() => {
+    const t = new Animated.Value(0);
+    const breath = { inputRange: [0, 1, 2], extrapolate: 'clamp' as const };
+    return {
+      t,
+      scale: t.interpolate({ ...breath, outputRange: [MIN_SCALE, 1, MIN_SCALE] }),
+      haloScale: t.interpolate({ ...breath, outputRange: [MIN_SCALE * 1.18, 1.14, MIN_SCALE * 1.18] }),
+      fillOpacity: t.interpolate({ ...breath, outputRange: [0.2, 0.3, 0.2] }),
+      inOpacity: t.interpolate({
+        inputRange: [0, IN_FADE, 1 - IN_FADE, 1, 2],
+        outputRange: [0, 1, 1, 0, 0],
+        extrapolate: 'clamp',
+      }),
+      outOpacity: t.interpolate({
+        inputRange: [0, 1, 1 + OUT_FADE, 2 - OUT_FADE, 2],
+        outputRange: [0, 0, 1, 1, 0],
+        extrapolate: 'clamp',
+      }),
+    };
+  });
 
   useEffect(() => {
     if (reduceMotion) {
-      scale.setValue(0.8);
+      anim.t.setValue(0.5); // a still, half-full circle
       return;
     }
-    let alive = true;
-    const run = (p: 'in' | 'out') => {
-      if (!alive) return;
-      setPhase(p);
-      Animated.timing(scale, {
-        toValue: p === 'in' ? 1 : MIN_SCALE,
-        duration: p === 'in' ? motion.breathIn : motion.breathOut,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-      }).start(({ finished }) => finished && run(p === 'in' ? 'out' : 'in'));
-    };
-    run('in');
-    return () => {
-      alive = false;
-      scale.stopAnimation();
-    };
-  }, [reduceMotion, scale]);
-
-  // The word arrives softly after the circle has already started to move.
-  useEffect(() => {
-    if (reduceMotion) {
-      labelOpacity.setValue(1);
-      return;
-    }
-    labelOpacity.setValue(0);
-    const anim = Animated.timing(labelOpacity, {
-      toValue: 1,
-      duration: motion.slow,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-    anim.start();
-    return () => anim.stop();
-  }, [labelOpacity, phase, reduceMotion]);
-
-  const haloScale = scale.interpolate({
-    inputRange: [MIN_SCALE, 1],
-    outputRange: [MIN_SCALE * 1.18, 1.14],
-  });
-  const fillOpacity = scale.interpolate({
-    inputRange: [MIN_SCALE, 1],
-    outputRange: [0.2, 0.3],
-  });
+    const ease = Easing.inOut(Easing.sin);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim.t, { toValue: 1, duration: motion.breathIn, easing: ease, useNativeDriver: true }),
+        Animated.timing(anim.t, { toValue: 2, duration: motion.breathOut, easing: ease, useNativeDriver: true }),
+      ]),
+    );
+    anim.t.setValue(0);
+    loop.start();
+    return () => loop.stop();
+  }, [anim, reduceMotion]);
 
   return (
-    <View style={[styles.wrap, { width: size, height: size }]} accessibilityLiveRegion="polite">
+    <View
+      style={[styles.wrap, { width: size, height: size }]}
+      accessible
+      accessibilityLabel={`${inLabel}, ${outLabel}`}
+    >
       <Animated.View
         style={[
           styles.circle,
-          { backgroundColor: colors.accent, opacity: HALO_OPACITY, transform: [{ scale: haloScale }] },
+          { backgroundColor: colors.accent, opacity: HALO_OPACITY, transform: [{ scale: anim.haloScale }] },
         ]}
       />
       <Animated.View
-        style={[styles.circle, { backgroundColor: colors.accent, opacity: fillOpacity, transform: [{ scale }] }]}
+        style={[
+          styles.circle,
+          { backgroundColor: colors.accent, opacity: anim.fillOpacity, transform: [{ scale: anim.scale }] },
+        ]}
       />
-      <Animated.Text style={[type.title, { color: colors.text, opacity: labelOpacity }]}>
-        {reduceMotion ? '' : phase === 'in' ? inLabel : outLabel}
-      </Animated.Text>
+      {reduceMotion ? null : (
+        <>
+          <Animated.Text style={[styles.word, type.title, { color: colors.text, opacity: anim.inOpacity }]}>
+            {inLabel}
+          </Animated.Text>
+          <Animated.Text style={[styles.word, type.title, { color: colors.text, opacity: anim.outOpacity }]}>
+            {outLabel}
+          </Animated.Text>
+        </>
+      )}
     </View>
   );
 }
@@ -91,4 +99,6 @@ export function BreathCircle({ inLabel, outLabel }: Props) {
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   circle: { ...StyleSheet.absoluteFill, borderRadius: radius.full },
+  // Both words share the center; only one is ever visible.
+  word: { position: 'absolute' },
 });
