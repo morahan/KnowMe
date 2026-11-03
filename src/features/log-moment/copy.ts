@@ -8,5 +8,7 @@ export const copy = {
   used: 'Used',
   helpers: 'What helped?',
   note: 'Anything else? (optional)',
+  habit: 'Which one?',
+  noHabit: 'Pick what you are tracking first, in Me or on the setup screen.',
   save: 'Save',
 } as const;
