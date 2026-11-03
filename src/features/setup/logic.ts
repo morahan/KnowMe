@@ -1,4 +1,4 @@
-import { MAX_REASONS } from '@/db/repos/reasons';
+import { MAX_REASONS } from '@/db/schema';
 
 /** Reasons ready to save: trimmed, empties dropped, max MAX_REASONS. */
 export function cleanReasons(texts: string[]): string[] {

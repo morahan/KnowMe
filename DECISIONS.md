@@ -19,3 +19,12 @@ One line each: `date | decision | why`
 2026-11-03 | Components read colors via `useTheme()` and set `app.json` userInterfaceStyle to automatic | theme supports light mode; dark stays the default
 2026-11-03 | BreathCircle sizes to 60% of screen width | theme has no size token; a ratio scales across phones
 2026-11-03 | Added `CLAUDE.md` that imports `AGENTS.md` | Claude Code reads CLAUDE.md, not AGENTS.md
+2026-11-03 | Built all placeholder screens end to end (Setup, Log, Today, I'm in it, Patterns, Me) | the brief asks for a working MVP, not scaffolding
+2026-11-03 | Charts are hand-rolled react-native-svg, not victory-native | installs cleanly, no native chart dep, full theme control
+2026-11-03 | Proxy rejects bodies over 8KB (was 16KB) | matches the brief exactly
+2026-11-03 | Demo moments carry `is_demo` (migration 2) and clearing deletes only those | demo data can never eat real data
+2026-11-03 | `MAX_REASONS` moved to `db/schema.ts` (re-exported from the repo) | pure logic tests must not open SQLite on import
+2026-11-03 | Reflect caches the last letter in `settings` (`reflect_cache`) | the letter survives offline and relaunch; no new storage
+2026-11-03 | Crisis parity test imports the proxy modules from the root jest run | proves app/proxy term lists never drift; proxy still deploys standalone
+2026-11-03 | Disabled `react-hooks/set-state-in-effect` in ESLint | SQLite data hooks set state after an await; the rule flags the intended pattern
+2026-11-03 | Pinned ESLint 9 | eslint-plugin-react breaks on ESLint 10 (getFilename)

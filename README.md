@@ -1,31 +1,72 @@
 # KnowMe
 
-A private journal for people changing a habit. Start with `AGENTS.md`.
+A private journal for people changing a habit. It reflects your own data back to you. It never lectures, never labels, never shames.
 
-## First-time setup
+> Know thyself. The data is yours, the conclusions are yours.
+
+## Start here
+
+`AGENTS.md` · `PRODUCT.md` what · `DESIGN.md` how it looks · `SAFETY.md` non-negotiables · `STRUCTURE.md` where things go · `DECISIONS.md` · `TODO.md` · `DEMO.md` (3-minute demo script)
+
+## Run locally
+
 Needs Node 20+ and Yarn.
 
 ```sh
 yarn install
-yarn add expo expo-router expo-sqlite react-native-safe-area-context react-native-screens \
-  expo-linking expo-constants expo-status-bar react react-native
-yarn add -D typescript @types/react jest jest-expo @types/jest
-yarn expo install --fix        # pins everything to the current SDK
-cp .env.example .env           # set EXPO_PUBLIC_PROXY_URL once the proxy is deployed
+cp .env.example .env   # set EXPO_PUBLIC_PROXY_URL after deploying the proxy (optional)
+yarn ios               # or: yarn android · yarn start for the QR code
 ```
 
-## Run
-```sh
-yarn ios        # or: yarn android
-```
+First launch offers setup: pick what you are tracking and write your reasons. Everything is skippable and editable later in **Me**.
 
 ## Check before every commit
+
 ```sh
 yarn typecheck && yarn lint && yarn test
 ```
 
-## Proxy
-See `proxy/README.md`. The Llama key lives only in Vercel.
+## How it works
 
-## Docs
-`PRODUCT.md` what · `DESIGN.md` how it looks · `SAFETY.md` non-negotiables · `STRUCTURE.md` where things go · `DECISIONS.md` · `TODO.md` · `DEMO.md`
+| Tab | What it does |
+|---|---|
+| Today | Days since last "used" per habit, today's moments, the big **I'm in it** button |
+| Log | One screen, under 10 seconds: intensity, context, feelings, rode it out / used, helpers, note |
+| Patterns | Local charts only (no AI): intensity over time, cravings by hour, top contexts/feelings, what helps |
+| Me | Edit habits and reasons, Get support (988 · SAMHSA · QUIT-NOW), privacy note, demo-data switch |
+
+**I'm in it** (full screen): your reasons fade in, your top helpers, a 20-minute timer with a 4s-in / 6s-out breathing circle, then "Where's it at now?" saves a moment.
+
+**Reflect** (in Patterns): sends only an aggregated summary (counts, hours, tags, intensities, your reasons — never raw notes unless you toggle "Include my notes") to the proxy. Llama writes 4–6 calm sentences ending in one open question. Results are cached on the phone.
+
+**Safety**: every free-text field is checked locally for crisis language before anything is saved or sent. A match shows the 988 / 911 card first. The proxy checks input and output again. See `SAFETY.md`.
+
+## Data & privacy
+
+Local only: `expo-sqlite` (`knowme.db`). No accounts, no sync, no analytics. Demo moments are flagged `is_demo` so clearing them never touches real data.
+
+## Deploy the proxy
+
+The Llama key never ships in the app. One Vercel function: `POST /api/reflect`.
+
+```sh
+cd proxy
+vercel link            # Root Directory: proxy/
+vercel env add LLAMA_API_KEY
+vercel deploy
+```
+
+Then set `EXPO_PUBLIC_PROXY_URL` in `.env` (no trailing slash) and restart Expo.
+
+| Var | Required | Default |
+|---|---|---|
+| `LLAMA_API_KEY` | yes | — |
+| `LLAMA_BASE_URL` | no | `https://api.llama.com/compat/v1` (OpenAI-compatible) |
+| `LLAMA_MODEL` | no | `Llama-4-Maverick-17B-128E-Instruct-FP8` |
+| `RATE_LIMIT_PER_HOUR` | no | `10` per install, per warm instance |
+
+The base URL and model name are env vars with sensible defaults — verify them against your Llama API account. The proxy caps `max_tokens`, rejects bodies over 8KB, rate-limits per install id, and logs only token counts and errors. Details: `proxy/README.md`.
+
+## Stack
+
+Expo (latest SDK), React Native, TypeScript strict, expo-router, expo-sqlite, react-native-svg charts (own code, no chart library). Minimal dependencies by design.
