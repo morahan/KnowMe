@@ -1,1 +1,1 @@
-export { seedDemoData } from './hooks';
+export { clearDemoData, hasDemoMoments, seedDemoData } from './hooks';

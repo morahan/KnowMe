@@ -1,8 +1,9 @@
 import { db } from '@/db/client';
+import { MAX_REASONS } from '@/db/schema';
 import type { Reason } from '@/db/schema';
 import { newId } from '@/lib/ids';
 
-export const MAX_REASONS = 8;
+export { MAX_REASONS } from '@/db/schema';
 
 export function listReasons(): Promise<Reason[]> {
   return db.getAllAsync<Reason>('SELECT * FROM reasons ORDER BY sort_order');

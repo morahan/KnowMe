@@ -22,7 +22,15 @@ function rng(seed: number): () => number {
 
 const pick = <T>(r: () => number, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)]!;
 
-/** 21 days ending `now`. Most cravings land 7–10pm; later days ride it out more often. */
+/** Tea and walk carry most rode-it-out moments, so Patterns can say so honestly. */
+function pickHelper(r: () => number): Helper {
+  const x = r();
+  if (x < 0.4) return 'tea';
+  if (x < 0.7) return 'walk';
+  return pick(r, HELPERS);
+}
+
+/** 21 days ending `now`. Evenings 7–10pm, intensity easing from 8s toward 5s, only a few "used". */
 export function generateDemoMoments(now: Date = new Date(), days = 21, seed = 7): DemoMoment[] {
   const r = rng(seed);
   const out: DemoMoment[] = [];
@@ -34,14 +42,14 @@ export function generateDemoMoments(now: Date = new Date(), days = 21, seed = 7)
       const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d, hour, Math.floor(r() * 60));
       if (at > now) continue;
       const progress = 1 - d / days;
-      const rodeItOut = r() < 0.4 + progress * 0.4;
+      const rodeItOut = r() < 0.72 + progress * 0.23;
       out.push({
         created_at: at.toISOString(),
-        intensity: Math.max(1, Math.min(10, Math.round(7 - progress * 2 + (r() - 0.5) * 4))),
+        intensity: Math.max(3, Math.min(10, Math.round(8 - progress * 3 + (r() - 0.5) * 3))),
         context: evening ? 'home' : pick(r, CONTEXTS),
         feelings: [evening ? pick(r, ['bored', 'tired', 'restless'] as const) : pick(r, FEELINGS)],
         outcome: rodeItOut ? 'rode_it_out' : 'used',
-        helpers: rodeItOut ? [pick(r, HELPERS)] : [],
+        helpers: rodeItOut ? [pickHelper(r)] : [],
         note: null,
       });
     }

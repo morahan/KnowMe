@@ -25,4 +25,20 @@ describe('generateDemoMoments', () => {
   it('only has helpers on rode-it-out moments', () => {
     for (const m of moments) if (m.outcome === 'used') expect(m.helpers).toEqual([]);
   });
+
+  it('eases intensity from 8s toward 5s with only a few used', () => {
+    const early = moments.slice(0, 10).reduce((a, m) => a + m.intensity, 0) / 10;
+    const late = moments.slice(-10).reduce((a, m) => a + m.intensity, 0) / 10;
+    expect(early).toBeGreaterThan(late);
+    const used = moments.filter((m) => m.outcome === 'used').length;
+    expect(used).toBeGreaterThanOrEqual(1);
+    expect(used).toBeLessThanOrEqual(8);
+  });
+
+  it('makes tea and walk the top helpers', () => {
+    const counts = new Map<string, number>();
+    for (const m of moments) for (const h of m.helpers) counts.set(h, (counts.get(h) ?? 0) + 1);
+    const top2 = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k).sort();
+    expect(top2).toEqual(['tea', 'walk']);
+  });
 });
