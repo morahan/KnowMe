@@ -31,7 +31,7 @@ Accounts, cloud sync, payments, notifications, social features, the GuideMe chat
 
 ## Data model
 - `habits(id, name, kind, created_at)`
-- `reasons(id, text, sort_order)`
+- `reasons(id, habit_id, text, sort_order)` — `habit_id` null means universal (applies to every habit); a habit id means that reason belongs to that habit only. Per-habit reasons are optional and only offered when tracking 2+ habits.
 - `moments(id, habit_id, created_at, intensity, context, feelings[], outcome, helpers[], note)`
   - `context`: home | car | work | social | other
   - `outcome`: rode_it_out | used

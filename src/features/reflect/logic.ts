@@ -1,4 +1,5 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
+import { allReasonTexts } from '@/lib/reasons';
 import { countBy, mean, topN } from '@/lib/stats';
 
 /** Everything that leaves the device for a reflection. Nothing else may be added without SAFETY.md review. */
@@ -43,7 +44,9 @@ export function buildSummary({ habits, reasons, moments, days, includeNotes }: I
     topContexts: topN(countBy(moments.map((m) => m.context)), 3),
     topFeelings: topN(countBy(moments.flatMap((m) => m.feelings)), 3),
     topHelpers: topN(countBy(moments.filter((m) => m.outcome === 'rode_it_out').flatMap((m) => m.helpers)), 3),
-    reasons: reasons.map((r) => r.text),
+    // Universal plus any per-habit reasons, each text once. Still only the
+    // person's own reason words; nothing new leaves the device (SAFETY §4).
+    reasons: allReasonTexts(reasons),
   };
 
   if (includeNotes) {

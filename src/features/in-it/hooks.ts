@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listHabits } from '@/db/repos/habits';
 import { listMomentsSince } from '@/db/repos/moments';
-import { listReasons } from '@/db/repos/reasons';
+import { listAllReasons } from '@/db/repos/reasons';
 import type { Habit, Moment, Reason } from '@/db/schema';
 import { daysAgo } from '@/lib/dates';
 
@@ -13,7 +13,7 @@ export function useInIt() {
     void (async () => {
       const [habits, reasons, moments] = await Promise.all([
         listHabits(),
-        listReasons(),
+        listAllReasons(),
         listMomentsSince(daysAgo(90).toISOString()),
       ]);
       setData({ habits, reasons, moments });

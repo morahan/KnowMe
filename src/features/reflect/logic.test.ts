@@ -2,7 +2,7 @@ import type { Habit, Moment, Reason } from '@/db/schema';
 import { buildSummary, classifyResponse, freeText } from './logic';
 
 const habit: Habit = { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' };
-const reasons: Reason[] = [{ id: 'r1', text: 'Sleep better', sort_order: 0 }];
+const reasons: Reason[] = [{ id: 'r1', habit_id: null, text: 'Sleep better', sort_order: 0 }];
 const SECRET = 'my private note about Sam';
 
 function moment(over: Partial<Moment>): Moment {
@@ -34,6 +34,16 @@ describe('buildSummary', () => {
     expect(s.averageIntensity).toBe(7);
     expect(s.topHelpers).toEqual(['tea']);
     expect(s.reasons).toEqual(['Sleep better']);
+  });
+
+  it('includes per-habit reasons once, alongside the universal ones', () => {
+    const mixed: Reason[] = [
+      ...reasons,
+      { id: 'r2', habit_id: 'h1', text: 'For my lungs', sort_order: 0 },
+      { id: 'r3', habit_id: 'h2', text: 'Sleep better', sort_order: 0 },
+    ];
+    const s = buildSummary({ habits: [habit], reasons: mixed, moments, days: 7, includeNotes: false });
+    expect(s.reasons).toEqual(['Sleep better', 'For my lungs']);
   });
 
   it('exposes every free-text field to the crisis guard', () => {

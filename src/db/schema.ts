@@ -13,7 +13,8 @@ export type Helper = (typeof HELPERS)[number];
 export type HabitKind = (typeof HABIT_KINDS)[number];
 
 export type Habit = { id: string; name: string; kind: HabitKind; created_at: string };
-export type Reason = { id: string; text: string; sort_order: number };
+/** A reason with `habit_id: null` is universal (applies to every tracked habit). Otherwise it belongs to that one habit. */
+export type Reason = { id: string; habit_id: string | null; text: string; sort_order: number };
 export type Moment = {
   id: string;
   habit_id: string;
@@ -61,4 +62,10 @@ export const MIGRATIONS: readonly string[] = [
   );
   `,
   `ALTER TABLE moments ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
+  // Reasons gain an optional habit tag. NULL means universal (every habit);
+  // a habit id means that reason belongs to that habit only. Existing rows
+  // are universal, so nothing changes for single-habit users. Removing a
+  // habit cascades its tagged reasons, like its moments.
+  `ALTER TABLE reasons ADD COLUMN habit_id TEXT REFERENCES habits(id) ON DELETE CASCADE;
+   CREATE INDEX reasons_habit_id ON reasons(habit_id);`,
 ];

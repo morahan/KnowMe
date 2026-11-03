@@ -20,10 +20,15 @@ const fakeDb = {
     } else if (s.startsWith('DELETE FROM habits')) {
       tables.habits = tables.habits!.filter((r) => r.id !== args[0]);
       tables.moments = tables.moments!.filter((r) => r.habit_id !== args[0]); // ON DELETE CASCADE
+      tables.reasons = tables.reasons!.filter((r) => r.habit_id !== args[0]); // ON DELETE CASCADE
+    } else if (s.startsWith('DELETE FROM reasons WHERE habit_id IS NULL')) {
+      tables.reasons = tables.reasons!.filter((r) => r.habit_id !== null);
+    } else if (s.startsWith('DELETE FROM reasons WHERE habit_id = ?')) {
+      tables.reasons = tables.reasons!.filter((r) => r.habit_id !== args[0]);
     } else if (s.startsWith('DELETE FROM reasons')) {
       tables.reasons = [];
     } else if (s.startsWith('INSERT INTO reasons')) {
-      tables.reasons!.push({ id: args[0], text: args[1], sort_order: args[2] });
+      tables.reasons!.push({ id: args[0], habit_id: args[1], text: args[2], sort_order: args[3] });
     } else if (s.startsWith('INSERT INTO moments')) {
       tables.moments!.push({
         id: args[0], habit_id: args[1], created_at: args[2], intensity: args[3], context: args[4],
@@ -43,8 +48,19 @@ const fakeDb = {
     if (s.startsWith('SELECT * FROM habits')) {
       return [...tables.habits!].sort(byStr('created_at')) as T[];
     }
+    if (s.startsWith('SELECT * FROM reasons WHERE habit_id IS NULL')) {
+      return tables.reasons!.filter((r) => r.habit_id === null)
+        .sort((a, b) => (a.sort_order as number) - (b.sort_order as number)) as T[];
+    }
+    if (s.startsWith('SELECT * FROM reasons WHERE habit_id = ?')) {
+      return tables.reasons!.filter((r) => r.habit_id === args[0])
+        .sort((a, b) => (a.sort_order as number) - (b.sort_order as number)) as T[];
+    }
     if (s.startsWith('SELECT * FROM reasons')) {
-      return [...tables.reasons!].sort((a, b) => (a.sort_order as number) - (b.sort_order as number)) as T[];
+      return [...tables.reasons!].sort((a, b) =>
+        (a.habit_id === null ? 0 : 1) - (b.habit_id === null ? 0 : 1)
+        || String(a.habit_id ?? '').localeCompare(String(b.habit_id ?? ''))
+        || (a.sort_order as number) - (b.sort_order as number)) as T[];
     }
     if (s.startsWith('SELECT * FROM moments')) {
       return tables.moments!.filter((r) => (r.created_at as string) >= (args[0] as string))
@@ -82,7 +98,7 @@ jest.mock('@/db/client', () => ({ db: fakeDb, migrate: () => undefined }));
 
 import { addHabit, listHabits, removeHabit } from './habits';
 import { countMoments, deleteDemoMoments, hasDemoMoments, insertMoment, lastUsedAt, listMomentsSince } from './moments';
-import { listReasons, replaceReasons } from './reasons';
+import { listAllReasons, listReasons, listReasonsForHabit, replaceReasons } from './reasons';
 import { getInstallId, getSetting, setSetting } from './settings';
 
 const base = {
@@ -122,6 +138,27 @@ describe('reasons repo', () => {
     await replaceReasons(['one']);
     await replaceReasons(['two']);
     expect((await listReasons()).map((r) => r.text)).toEqual(['two']);
+  });
+
+  it('keeps the universal list and per-habit lists apart', async () => {
+    const a = await addHabit('nicotine', 'nicotine');
+    const b = await addHabit('cannabis', 'cannabis');
+    await replaceReasons(['For everyone']);
+    await replaceReasons(['For my lungs'], a.id);
+    await replaceReasons(['Clear head'], b.id);
+    expect((await listReasons()).map((r) => r.text)).toEqual(['For everyone']);
+    expect((await listReasonsForHabit(a.id)).map((r) => r.text)).toEqual(['For my lungs']);
+    const all = (await listAllReasons()).map((r) => r.text);
+    expect(all[0]).toBe('For everyone');
+    expect(new Set(all)).toEqual(new Set(['For everyone', 'Clear head', 'For my lungs']));
+    // Replacing one habit's list never touches the others.
+    await replaceReasons(['New lungs reason'], a.id);
+    expect((await listReasons()).map((r) => r.text)).toEqual(['For everyone']);
+    expect((await listReasonsForHabit(b.id)).map((r) => r.text)).toEqual(['Clear head']);
+    // Removing a habit cascades only its own reasons.
+    await removeHabit(a.id);
+    expect(await listReasonsForHabit(a.id)).toEqual([]);
+    expect((await listReasons()).map((r) => r.text)).toEqual(['For everyone']);
   });
 });
 

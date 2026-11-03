@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listHabits } from '@/db/repos/habits';
 import { listMomentsSince } from '@/db/repos/moments';
-import { listReasons } from '@/db/repos/reasons';
+import { listAllReasons } from '@/db/repos/reasons';
 import { getInstallId, getSetting, setSetting } from '@/db/repos/settings';
 import { useSafety } from '@/features/safety';
 import { daysAgo } from '@/lib/dates';
@@ -50,7 +50,7 @@ export function useReflection() {
       try {
         const [habits, reasons, moments, installId] = await Promise.all([
           listHabits(),
-          listReasons(),
+          listAllReasons(),
           listMomentsSince(daysAgo(DAYS).toISOString()),
           getInstallId(),
         ]);
