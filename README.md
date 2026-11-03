@@ -43,7 +43,11 @@ yarn typecheck && yarn lint && yarn test
 
 ## Data & privacy
 
-Local only: `expo-sqlite` (`knowme.db`). No accounts, no sync, no analytics. Demo moments are flagged `is_demo` so clearing them never touches real data.
+All data is saved locally, and only locally. Everything the app stores — habits, reasons, moments, settings (onboarded flag, per-install rate-limit id, cached Reflect letter) — lives in one on-device `expo-sqlite` database, `knowme.db`. No accounts, no cloud storage, no sync, no analytics.
+
+The Patterns sample data shown before your first log is generated in memory and never saved. Demo moments loaded from **Me** are flagged `is_demo` so clearing them never touches real data.
+
+Nothing is saved anywhere else. The one time anything leaves the phone is when you tap **Reflect**: only the anonymous summary described above is sent, the proxy stores nothing (it logs token counts and errors only), and the returned letter is cached back into the same local database. A guard test, `src/db/localOnly.test.ts`, fails the suite if any other network or storage path is added.
 
 ## Deploy the proxy
 

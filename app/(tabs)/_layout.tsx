@@ -9,6 +9,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
+        tabBarHideOnKeyboard: true,
         tabBarStyle: { backgroundColor: colors.bg, borderTopWidth: 0 },
         sceneStyle: { backgroundColor: colors.bg },
       }}
