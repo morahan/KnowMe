@@ -112,6 +112,19 @@ export const motion = {
   easing: 'ease-out', // use Easing.out(Easing.cubic) in Reanimated
 } as const;
 
+// Translucent amber discs: quiet depth without shadows or gradients. The
+// outer layers travel less than the center, like a soft envelope of light.
+// Pairs are [exhaled, inhaled]; every layer follows the same breath clock.
+export const breath = {
+  widthRatio: 0.6,
+  layers: [
+    { name: 'atmosphere', scale: [0.96, 1.26], opacity: [0.025, 0.045] },
+    { name: 'halo', scale: [0.8, 1.13], opacity: [0.055, 0.075] },
+    { name: 'circle', scale: [0.62, 1], opacity: [0.18, 0.24] },
+    { name: 'heart', scale: [0.5, 0.84], opacity: [0.045, 0.065] },
+  ],
+} as const;
+
 // ─── Theme object + hook ──────────────────────────────────────────
 export type Theme = {
   colors: Colors;

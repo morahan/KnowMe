@@ -1,6 +1,7 @@
 # TODO.md
 
 ## Verify on a real device / account
+- [ ] Visually check the softened layered BreathCircle through full cycles on iOS and Android in dark/light mode, with Reduce Motion and large text; agent device access was disabled during this polish pass (2026-11-03).
 - [x] Proxy live on DeepInfra Llama 3.3 70B; a live letter returns 200 (2026-11-03).
 - [ ] Check the largest Dynamic Type sizes on device (text scales by default; simulator pass was at default size).
 - [ ] Android nav bar color in both schemes (status bar is themed via `expo-status-bar`; nav bar needs a device check).
