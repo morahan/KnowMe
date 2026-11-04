@@ -121,4 +121,10 @@ describe('classifyResponse (SAFETY.md: CRISIS output shows the card)', () => {
     expect(r.kind).toBe('letter');
     if (r.kind === 'letter') expect(r.lines).toHaveLength(3);
   });
+
+  it('keeps decimals inside one line', () => {
+    const r = classifyResponse({ crisis: false, text: 'Average intensity was 5.6 this week. What helped most?' });
+    if (r.kind === 'letter') expect(r.lines).toEqual(['Average intensity was 5.6 this week.', 'What helped most?']);
+    else throw new Error('expected a letter');
+  });
 });

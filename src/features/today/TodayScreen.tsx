@@ -35,7 +35,11 @@ export function TodayScreen() {
   );
 
   return (
-    <Screen footer={<PrimaryButton label={copy.imInIt} onPress={() => router.push('/in-it')} />}>
+    <Screen
+      scroll
+      scrollTopKey="index"
+      footer={<PrimaryButton label={copy.imInIt} onPress={() => router.push('/in-it')} />}
+    >
       <Image
         source={require('../../../assets/logo.png')}
         style={styles.logo}

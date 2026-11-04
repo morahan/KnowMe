@@ -90,7 +90,12 @@ export function classifyResponse(data: ProxyResponse): Classified {
   if (data.crisis === true) return { kind: 'crisis' };
   if (data.crisis !== false || typeof data.text !== 'string' || !data.text.trim()) throw new Error('bad reply');
   if (/\bcrisis\b/i.test(data.text) || isCrisis(data.text)) return { kind: 'crisis' };
-  const lines = (data.text.match(/[^.?!]+[.?!]*/g) ?? [data.text]).map((l) => l.trim()).filter(Boolean);
+  // Break only where end punctuation meets a space, so "5.6" stays one number.
+  const lines = data.text
+    .replace(/([.?!]+)\s+/g, '$1\n')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   return { kind: 'letter', lines };
 }
 
