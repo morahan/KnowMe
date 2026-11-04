@@ -120,6 +120,51 @@ describe('IntensityChart', () => {
     expect(getByText('Cannabis')).toBeTruthy();
   });
 
+  it('always shows the Y axis labels, gridlines, and axis line', async () => {
+    const view = await render(<IntensityChart points={pts(2)} />);
+    expect(view.getByText('10')).toBeTruthy();
+    expect(view.getByText('5')).toBeTruthy();
+    expect(view.getByText('1')).toBeTruthy();
+    const flat = flatten(view.toJSON() as JsonNode | null);
+    // Three horizontal gridlines, one per Y tick.
+    expect(flat.filter((e) => e.type === 'RNSVGLine')).toHaveLength(3);
+    // The fixed vertical axis line spans tick 10 down to tick 1.
+    const axisLine = flat.find((e) => {
+      const s = e.props.style as { width?: number; height?: number }[] | undefined;
+      return Array.isArray(s) && s.some((x) => x.width === 1) && s.some((x) => (x.height ?? 0) > 0);
+    });
+    expect(axisLine).toBeTruthy();
+    // Each tick keeps a real height so native cannot clip the label away.
+    const ticks = flat.filter((e) => {
+      const s = e.props.style as { height?: number; position?: string }[] | undefined;
+      return Array.isArray(s) && s.some((x) => x.position === 'absolute' && x.height === 20);
+    });
+    expect(ticks.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('shows the Y axis with no data and with no points at all', async () => {
+    const noData: DayPoint[] = [
+      { date: '2026-11-01', avg: null, count: 0 },
+      { date: '2026-11-02', avg: null, count: 0 },
+    ];
+    const empty = await render(<IntensityChart points={noData} />);
+    expect(empty.getByText('10')).toBeTruthy();
+    expect(empty.getByText('5')).toBeTruthy();
+    expect(empty.getByText('1')).toBeTruthy();
+
+    const none = await render(<IntensityChart points={[]} />);
+    expect(none.getByText('10')).toBeTruthy();
+    expect(none.getByText('5')).toBeTruthy();
+    expect(none.getByText('1')).toBeTruthy();
+  });
+
+  it('keeps the Y axis when the plot scrolls past a month', async () => {
+    const view = await render(<IntensityChart points={pts(45)} />);
+    expect(view.getByText('10')).toBeTruthy();
+    expect(view.getByText('5')).toBeTruthy();
+    expect(view.getByText('1')).toBeTruthy();
+  });
+
   it('shows no legend with a single behavior', async () => {
     const { queryByText } = await render(<IntensityChart points={pts(2)} />);
     expect(queryByText('Nicotine')).toBeNull();

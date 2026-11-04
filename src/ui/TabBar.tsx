@@ -3,6 +3,7 @@ import { Animated, Easing, Image, Pressable, StyleSheet, View } from 'react-nati
 import type { BottomTabBarProps } from 'expo-router/build/layouts/Tabs';
 import { motion, radius, space, touch, type, useTheme } from '@/theme';
 import { LogIcon, MeIcon, PatternsIcon } from './TabIcons';
+import { requestScrollToTop } from './scrollToTop';
 import { useKeyboardVisible } from './Screen';
 import { useReduceMotion } from './useReduceMotion';
 
@@ -139,7 +140,11 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: B
         const label = options.title ?? route.name;
         const onPress = () => {
           const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigateToTab(route.key);
+          if (event.defaultPrevented) return;
+          // Always land at the top: scroll before switching so the page is
+          // already at the top on its first visible frame.
+          requestScrollToTop(route.name);
+          if (!focused) navigateToTab(route.key);
         };
         const onLongPress = () => emitter.emit({ type: 'tabLongPress', target: route.key });
         const itemProps: TabItemProps = { label, focused, onPress, onLongPress };

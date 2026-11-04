@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { gutter, layout, space, useTheme } from '@/theme';
+import { registerScrollToTop } from './scrollToTop';
+import { useReduceMotion } from './useReduceMotion';
 
 /** True while the software keyboard is open. iOS fires Will* before the
  * animation; Android only reliably fires Did*, so use both. */
@@ -28,11 +30,22 @@ type Props = {
   /** Keep `footer` visible and tappable above the keyboard, e.g. Save while typing a note. */
   footerVisibleWithKeyboard?: boolean;
   scroll?: boolean;
+  /** Tab route name (e.g. `patterns`). Tapping that footer tab scrolls this page to the top. */
+  scrollTopKey?: string;
 };
 
-export function Screen({ children, footer, footerVisibleWithKeyboard = false, scroll = false }: Props) {
+export function Screen({ children, footer, footerVisibleWithKeyboard = false, scroll = false, scrollTopKey }: Props) {
   const { colors } = useTheme();
   const keyboardVisible = useKeyboardVisible();
+  const reduceMotion = useReduceMotion();
+  const scrollRef = useRef<ScrollViewInstance>(null);
+
+  useEffect(() => {
+    if (!scroll || !scrollTopKey) return;
+    return registerScrollToTop(scrollTopKey, () => {
+      scrollRef.current?.scrollTo({ y: 0, animated: !reduceMotion });
+    });
+  }, [scroll, scrollTopKey, reduceMotion]);
   return (
     <SafeAreaView
       style={[styles.root, { backgroundColor: colors.bg }]}
@@ -44,6 +57,7 @@ export function Screen({ children, footer, footerVisibleWithKeyboard = false, sc
       >
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
             style={[styles.body, styles.column]}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"

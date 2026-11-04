@@ -18,6 +18,9 @@ const CHART_H = space.xxl * 2 + space.md;
 const PLOT_PAD = space.sm;
 // Inset so the first/last dots (r=5 plus stroke) never sit on the plot edge.
 const EDGE_INSET = space.md;
+// Y axis is always drawn: these ticks, their gridlines, and the axis line,
+// whether or not any day has data yet.
+const Y_TICKS = [10, 5, 1] as const;
 
 /**
  * Intensity over time: one line per tracked behavior, dots on logged days.
@@ -32,17 +35,86 @@ const EDGE_INSET = space.md;
  * only on days with logs; each line joins its own dots straight across
  * skipped days. At most 30 days show at once — past that the plot scrolls
  * sideways inside its fixed-width frame, opening on the newest end.
+ * The Y axis (1/5/10 labels, gridlines, and axis line) is fixed outside
+ * that scroll frame and always shows, even with no data yet.
  */
+/**
+ * The color-code labels for every chart on the page, lifted to the top of
+ * Patterns (below the title, before any graph) by PatternsScreen. Habit
+ * names use `type.body` — one step up from the chart's `type.label` axis
+ * text — so the key reads first. With more than three behaviors the labels
+ * become the toggles that choose which three are shown everywhere.
+ */
+export function HabitLegend({
+  series,
+  visibleIds,
+  onToggleHabit,
+}: {
+  series: IntensitySeries[];
+  visibleIds: string[];
+  onToggleHabit: (habitId: string) => void;
+}) {
+  const { colors, habitColors } = useTheme();
+  const colorFor = (habitId: string) => habitColors[Math.max(0, visibleIds.indexOf(habitId)) % habitColors.length]!;
+  if (series.length <= 1) return null;
+  const canToggle = series.length > MAX_VISIBLE_HABITS;
+  if (!canToggle) {
+    return (
+      <View style={styles.legend} accessibilityLabel="Color key">
+        {series
+          .filter((s) => visibleIds.includes(s.habitId))
+          .map((s) => (
+            <View key={s.habitId} style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: colorFor(s.habitId) }]} />
+              <Text style={[type.body, { color: colors.text }]}>{s.label}</Text>
+            </View>
+          ))}
+      </View>
+    );
+  }
+  return (
+    <View style={styles.toggleGroup}>
+      <Label>{copy.showingThree}</Label>
+      <View style={styles.legend}>
+        {series.map((s) => {
+          const on = visibleIds.includes(s.habitId);
+          return (
+            <Pressable
+              key={s.habitId}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+              accessibilityLabel={s.label}
+              onPress={() => onToggleHabit(s.habitId)}
+              style={({ pressed }) => [styles.toggleItem, pressed && styles.pressed]}
+            >
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: on ? colorFor(s.habitId) : colors.border },
+                ]}
+              />
+              <Text style={[type.body, { color: on ? colors.text : colors.muted }]}>{s.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export function IntensityChart({
   points,
   series,
   visibleIds: visibleIdsProp,
   onToggleHabit,
+  hideLegend = false,
 }: {
   points: DayPoint[];
   series?: IntensitySeries[];
   visibleIds?: string[];
   onToggleHabit?: (habitId: string) => void;
+  /** PatternsScreen lifts the legend to the top of the page via `HabitLegend`. */
+  hideLegend?: boolean;
 }) {
   const { colors, habitColors } = useTheme();
   const [picked, setPicked] = useState<string[] | null>(null);
@@ -74,24 +146,35 @@ export function IntensityChart({
   const showNewest = useCallback(() => {
     scrollRef.current?.scrollToEnd({ animated: false });
   }, []);
-  if (drawnWithData.every((s) => s.withData.length === 0)) return null;
+  // No early return for empty data: the Y axis (labels, gridlines, axis
+  // line) renders even with no dots, so the scale is always readable.
   const x = (i: number) => intensityPointX(i, points.length, contentWidth, EDGE_INSET);
   const y = (v: number) => CHART_H - ((v - 1) / 9) * (CHART_H - PLOT_PAD * 2) - PLOT_PAD;
-  const first = points[0]!;
-  const last = points[points.length - 1]!;
+  const first = points[0];
+  const last = points[points.length - 1];
   // Colors follow the visible order, so the three lines on screen are
   // always the three brand colors — amber, sage, muted — in that order.
   const colorFor = (habitId: string) => habitColors[Math.max(0, visibleIds.indexOf(habitId)) % habitColors.length]!;
   return (
     <View style={styles.chart}>
       <View style={styles.chartRow}>
+        {/* Fixed outside the horizontal ScrollView, so the Y axis never
+            scrolls away and shows even before any dot is drawn. */}
         <View style={[styles.yLabels, { height: CHART_H }]}>
-          {/* Each label is centered on its own gridline, at any text size. */}
-          {[10, 5, 1].map((v) => (
-            <View key={v} style={[styles.yTick, { top: y(v) }]}>
+          {/* Each label is centered on its own gridline. The tick keeps a
+              real height (type.label.lineHeight) — a zero-height tick can
+              be clipped away on native, taking the label with it. */}
+          {Y_TICKS.map((v) => (
+            <View key={v} style={[styles.yTick, { top: y(v) - type.label.lineHeight / 2 }]}>
               <Label>{v}</Label>
             </View>
           ))}
+          <View
+            style={[
+              styles.yAxisLine,
+              { top: y(10), height: y(1) - y(10), backgroundColor: colors.border },
+            ]}
+          />
         </View>
         <ScrollView
           ref={scrollRef}
@@ -104,7 +187,7 @@ export function IntensityChart({
         >
           <View style={{ width: contentWidth }}>
             <Svg width={contentWidth} height={CHART_H} accessibilityLabel={copy.intensityChartAlt}>
-              {[10, 5, 1].map((v) => (
+              {Y_TICKS.map((v) => (
                 <Line key={v} x1={0} x2={contentWidth} y1={y(v)} y2={y(v)} stroke={colors.border} strokeWidth={1} />
               ))}
               {drawnWithData.map((s) => {
@@ -121,14 +204,16 @@ export function IntensityChart({
                 ));
               })}
             </Svg>
-            <View style={[styles.axisRow, { paddingHorizontal: EDGE_INSET }]}>
-              <Label>{formatDayLabel(first.date)}</Label>
-              {points.length > 1 ? <Label>{formatDayLabel(last.date)}</Label> : null}
-            </View>
+            {first && last ? (
+              <View style={[styles.axisRow, { paddingHorizontal: EDGE_INSET }]}>
+                <Label>{formatDayLabel(first.date)}</Label>
+                {points.length > 1 ? <Label>{formatDayLabel(last.date)}</Label> : null}
+              </View>
+            ) : null}
           </View>
         </ScrollView>
       </View>
-      {drawn.length > 1 && !canToggle ? (
+      {!hideLegend && drawn.length > 1 && !canToggle ? (
         <View style={styles.legend}>
           {visible.map((s) => (
             <View key={s.habitId} style={styles.legendItem}>
@@ -138,7 +223,7 @@ export function IntensityChart({
           ))}
         </View>
       ) : null}
-      {canToggle ? (
+      {!hideLegend && canToggle ? (
         <View style={styles.toggleGroup}>
           <Label>{copy.showingThree}</Label>
           <View style={styles.legend}>
@@ -300,7 +385,13 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   legendDot: { width: space.sm + space.xs, height: space.sm + space.xs, borderRadius: space.xs },
   yLabels: { width: space.lg },
-  yTick: { position: 'absolute', right: 0, height: 0, justifyContent: 'center' },
+  yTick: {
+    position: 'absolute',
+    right: space.xs,
+    height: type.label.lineHeight,
+    justifyContent: 'center',
+  },
+  yAxisLine: { position: 'absolute', right: 0, width: 1 },
   hourTick: { flex: 1 },
   axisRow: { flexDirection: 'row', justifyContent: 'space-between' },
   list: { gap: space.md },

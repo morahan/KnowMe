@@ -9,7 +9,7 @@ import { SectionTitle } from '@/ui/SectionTitle';
 import { Stat } from '@/ui/Stat';
 import { Title } from '@/ui/Title';
 import { habitLabel } from '@/lib/habits';
-import { BarList, HourChart, IntensityChart } from './components/Charts';
+import { BarList, HabitLegend, HourChart, IntensityChart } from './components/Charts';
 import { copy } from './copy';
 import { usePatterns } from './hooks';
 import {
@@ -33,7 +33,7 @@ export function PatternsScreen({ footer }: Props) {
 
   if (moments === null) {
     return (
-      <Screen scroll>
+      <Screen scroll scrollTopKey="patterns">
         <Title>{copy.title}</Title>
         <Body muted>{copy.loading}</Body>
       </Screen>
@@ -42,7 +42,7 @@ export function PatternsScreen({ footer }: Props) {
 
   if (moments.length === 0) {
     return (
-      <Screen scroll>
+      <Screen scroll scrollTopKey="patterns">
         <Title>{copy.title}</Title>
         <Body muted>{copy.empty}</Body>
         {footer}
@@ -74,9 +74,16 @@ export function PatternsScreen({ footer }: Props) {
   const trend = intensityInsight(points);
 
   return (
-    <Screen scroll>
+    <Screen scroll scrollTopKey="patterns">
       <Title>{isSample ? copy.titleSample : copy.title}</Title>
       {isSample ? <Body>{copy.sampleNotice}</Body> : null}
+      {multi && series ? (
+        <HabitLegend
+          series={series}
+          visibleIds={visibleIds}
+          onToggleHabit={(id) => setPicked(toggleVisibleHabitId(visibleIds, id, allIds))}
+        />
+      ) : null}
 
       <View style={styles.section}>
         <SectionTitle>{copy.intensityTitle}</SectionTitle>
@@ -86,6 +93,7 @@ export function PatternsScreen({ footer }: Props) {
           series={series}
           visibleIds={multi ? visibleIds : undefined}
           onToggleHabit={multi ? (id) => setPicked(toggleVisibleHabitId(visibleIds, id, allIds)) : undefined}
+          hideLegend={multi}
         />
       </View>
 

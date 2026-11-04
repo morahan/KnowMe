@@ -97,7 +97,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   };
 
   return (
-    <Screen scroll>
+    <Screen scroll scrollTopKey="me">
       <Title>{copy.habitsTitle}</Title>
       <View style={styles.chips}>
         {PRESET_HABITS.map((p) => (

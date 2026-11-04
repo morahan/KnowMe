@@ -234,6 +234,7 @@ export function LogMomentScreen() {
   return (
     <Screen
       scroll
+      scrollTopKey="log"
       footerVisibleWithKeyboard
       footer={
         <PrimaryButton label={copy.save} disabled={!isReady(draft) || saving} onPress={() => void save()} />

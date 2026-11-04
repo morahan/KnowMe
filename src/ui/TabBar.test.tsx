@@ -1,8 +1,9 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import type { BottomTabBarProps } from 'expo-router/build/layouts/Tabs';
+import { registerScrollToTop } from './scrollToTop';
 import { TabBar } from './TabBar';
 
-function makeProps(index = 0): BottomTabBarProps {
+function makeProps(index = 0, defaultPrevented = false): BottomTabBarProps {
   const routes = [
     { key: 'index-key', name: 'index' },
     { key: 'log-key', name: 'log' },
@@ -33,7 +34,7 @@ function makeProps(index = 0): BottomTabBarProps {
     },
     descriptors: descriptors as BottomTabBarProps['descriptors'],
     emitter: {
-      emit: jest.fn(() => ({ defaultPrevented: false })),
+      emit: jest.fn(() => ({ defaultPrevented })),
       addListener: jest.fn(() => ({ remove: jest.fn() })),
     } as unknown as BottomTabBarProps['emitter'],
     navigateToTab: jest.fn(),
@@ -63,6 +64,43 @@ describe('TabBar', () => {
       canPreventDefault: true,
     });
     expect(props.navigateToTab).toHaveBeenCalledWith('patterns-key');
+  });
+
+  it('scrolls to the top when an unfocused tab is pressed', async () => {
+    const onScrollTop = jest.fn();
+    const unregister = registerScrollToTop('patterns', onScrollTop);
+    const props = makeProps(0);
+    const utils = await render(<TabBar {...props} />);
+    fireEvent.press(utils.getByLabelText('Patterns'));
+    expect(onScrollTop).toHaveBeenCalledTimes(1);
+    expect(props.navigateToTab).toHaveBeenCalledWith('patterns-key');
+    // Scroll happens before the switch, so the page is at the top when shown.
+    expect(onScrollTop.mock.invocationCallOrder[0]!).toBeLessThan(
+      (props.navigateToTab as jest.Mock).mock.invocationCallOrder[0]!,
+    );
+    unregister();
+  });
+
+  it('scrolls to the top when the focused tab is pressed again', async () => {
+    const onScrollTop = jest.fn();
+    const unregister = registerScrollToTop('index', onScrollTop);
+    const props = makeProps(0);
+    const utils = await render(<TabBar {...props} />);
+    fireEvent.press(utils.getByLabelText('Today'));
+    expect(onScrollTop).toHaveBeenCalledTimes(1);
+    expect(props.navigateToTab).not.toHaveBeenCalled();
+    unregister();
+  });
+
+  it('neither scrolls nor navigates when tabPress is prevented', async () => {
+    const onScrollTop = jest.fn();
+    const unregister = registerScrollToTop('patterns', onScrollTop);
+    const props = makeProps(0, true);
+    const utils = await render(<TabBar {...props} />);
+    fireEvent.press(utils.getByLabelText('Patterns'));
+    expect(onScrollTop).not.toHaveBeenCalled();
+    expect(props.navigateToTab).not.toHaveBeenCalled();
+    unregister();
   });
 
   it('does not navigate when the focused tab is pressed', async () => {

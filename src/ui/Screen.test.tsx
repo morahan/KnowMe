@@ -1,7 +1,8 @@
 import { act, render } from '@testing-library/react-native';
-import { DeviceEventEmitter, KeyboardAvoidingView, Platform, Text, TextInput } from 'react-native';
+import { DeviceEventEmitter, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Screen } from './Screen';
+import { requestScrollToTop } from './scrollToTop';
 
 const metrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -37,6 +38,31 @@ describe('Screen wide-window layout', () => {
     expect(flat.some((s) => s.maxWidth === 560 && s.alignSelf === 'center' && s.width === '100%')).toBe(true);
     const footerText = utils.getByText('ScreenFooter');
     expect(footerText).toBeTruthy();
+  });
+});
+
+describe('Screen scroll-to-top', () => {
+  it('scrolls to y=0 when its scrollTopKey is requested, and stops after unmount', async () => {
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo').mockImplementation(() => {});
+    try {
+      const utils = await render(
+        <SafeAreaProvider initialMetrics={metrics}>
+          <Screen scroll scrollTopKey="patterns">
+            <Text>Body</Text>
+          </Screen>
+        </SafeAreaProvider>,
+      );
+      await act(async () => {
+        requestScrollToTop('patterns');
+      });
+      expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
+      await utils.unmount();
+      scrollTo.mockClear();
+      requestScrollToTop('patterns');
+      expect(scrollTo).not.toHaveBeenCalled();
+    } finally {
+      scrollTo.mockRestore();
+    }
   });
 });
 
