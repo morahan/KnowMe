@@ -46,7 +46,9 @@ export function OnboardingScreen() {
   const last = isLast(index, TOTAL);
 
   return (
+    // Scrolls: the tab map slide and larger text sizes run taller than a small phone.
     <Screen
+      scroll
       footer={
         <View style={styles.footer}>
           <PrimaryButton

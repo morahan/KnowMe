@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { DeviceEventEmitter, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Screen } from './Screen';
@@ -140,5 +140,34 @@ describe('Screen keyboard handling', () => {
       DeviceEventEmitter.emit(hideEvent, keyboardEvent);
     });
     expect(utils.getByText('ScreenFooter')).toBeTruthy();
+  });
+
+  it('scrolls the focused input clear of a pinned footer when the keyboard opens', async () => {
+    type Box = (x: number, y: number, w: number, h: number) => void;
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo').mockImplementation(() => {});
+    // The scroller still reports full height (avoiding view not settled yet).
+    const scrollerBox = jest
+      .spyOn(ScrollView.prototype, 'measureInWindow')
+      .mockImplementation((...args: unknown[]) => (args[0] as Box)(0, 0, 390, 844));
+    const focused = jest.spyOn(TextInput.State, 'currentlyFocusedInput').mockReturnValue({
+      measureInWindow: (cb: Box) => cb(0, 450, 390, 50),
+    } as unknown as ReturnType<typeof TextInput.State.currentlyFocusedInput>);
+    try {
+      const utils = await renderScreen(true);
+      const footer = utils.getByText('ScreenFooter').parent!;
+      await act(async () => {
+        fireEvent(footer, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 60 } } });
+      });
+      await act(async () => {
+        DeviceEventEmitter.emit('keyboardDidShow', keyboardEvent);
+      });
+      // Keyboard top 500 minus a 60px footer leaves 440 visible; the input
+      // ends at 500, plus space.md (16) breathing room: scroll by 76.
+      expect(scrollTo).toHaveBeenCalledWith({ y: 76, animated: true });
+    } finally {
+      scrollTo.mockRestore();
+      scrollerBox.mockRestore();
+      focused.mockRestore();
+    }
   });
 });
