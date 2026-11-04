@@ -9,10 +9,13 @@ import { DeviceEventEmitter, Platform } from 'react-native';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { LogMomentScreen } from './LogMomentScreen';
 
+let mockRefocus: (() => void) | null = null;
+
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
   useFocusEffect: (cb: () => void) => {
     const { useEffect } = jest.requireActual('react');
+    mockRefocus = cb;
     useEffect(cb, [cb]);
   },
 }));
@@ -22,10 +25,10 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success' },
 }));
 
+let mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
+
 jest.mock('@/db/repos/habits', () => ({
-  listHabits: jest.fn(async () => [
-    { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
-  ]),
+  listHabits: jest.fn(async () => mockHabits),
 }));
 
 jest.mock('@/db/repos/moments', () => ({
@@ -48,6 +51,7 @@ const mockSetSetting = setSetting as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
 });
 
 async function renderLog() {
@@ -118,6 +122,34 @@ describe('LogMomentScreen what-is-going-on quick tag', () => {
     await fireEvent.press(utils.getByText('Save'));
     await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ feelings: ['wired all morning'] }));
+  });
+});
+
+describe('LogMomentScreen gambling question', () => {
+  it('asks the plain outcome question for Gambling, so it matches "Rode it out" / "Used"', async () => {
+    mockHabits = [{ id: 'h-gambling', name: 'Gambling', kind: 'gambling', created_at: '2026-11-01T00:00:00.000Z' }];
+    const utils = await renderLog();
+    expect(utils.getByText('How did it go?')).toBeTruthy();
+  });
+});
+
+describe('LogMomentScreen habit removed elsewhere', () => {
+  it('drops a picked habit that was removed in Me, so the moment never points at a gone habit', async () => {
+    mockHabits = [
+      { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-02T00:00:00.000Z' },
+    ];
+    const utils = await renderLog();
+    await fireEvent.press(utils.getByText('Nicotine'));
+    // Nicotine is removed on Me; Log is focused again.
+    mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
+    await act(async () => {
+      mockRefocus?.();
+    });
+    await waitFor(() => expect(utils.queryByText('Nicotine')).toBeNull());
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ habit_id: 'h1' }));
   });
 });
 

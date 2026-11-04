@@ -35,6 +35,7 @@ These rules override every other doc. If a feature conflicts with one, the featu
 The **Get support** section on the Me tab is always one tap away:
 - 988 Suicide & Crisis Lifeline (call or text)
 - SAMHSA National Helpline: 1-800-662-4357 (free, 24/7)
+- National Problem Gambling Helpline: 1-800-MY-RESET (1-800-697-3738) (call or text, 24/7)
 - 1-800-QUIT-NOW (nicotine)
 - "Tell someone you trust" with a share sheet that drafts a short, plain message
 

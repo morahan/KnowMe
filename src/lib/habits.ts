@@ -1,12 +1,26 @@
 import type { Habit, HabitKind } from '@/db/schema';
 
+/** Whether a preset is a substance or a behavior. Gambling is the one behavioral preset. */
+export type HabitCategory = 'substance' | 'behavior';
+
+export type PresetHabit = {
+  kind: Exclude<HabitKind, 'custom'>;
+  label: string;
+  category: HabitCategory;
+};
+
 /** The named habits offered as one-tap picks. Anything else is `custom`. */
-export const PRESET_HABITS: { kind: Exclude<HabitKind, 'custom'>; label: string }[] = [
-  { kind: 'alcohol', label: 'Alcohol' },
-  { kind: 'cannabis', label: 'Cannabis' },
-  { kind: 'nicotine', label: 'Nicotine' },
-  { kind: 'scrolling', label: 'Scrolling' },
+export const PRESET_HABITS: PresetHabit[] = [
+  { kind: 'alcohol', label: 'Alcohol', category: 'substance' },
+  { kind: 'cannabis', label: 'Cannabis', category: 'substance' },
+  { kind: 'gambling', label: 'Gambling', category: 'behavior' },
+  { kind: 'nicotine', label: 'Nicotine', category: 'substance' },
 ];
+
+/** The preset for a habit kind, or undefined for customs. */
+export function presetForKind(kind: HabitKind): PresetHabit | undefined {
+  return PRESET_HABITS.find((p) => p.kind === kind);
+}
 
 /** Long enough for a person's own words, short enough to stay a chip. Matches Setup's custom cap. */
 export const MAX_HABIT_NAME_CHARS = 20;

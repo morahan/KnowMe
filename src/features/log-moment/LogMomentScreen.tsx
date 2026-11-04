@@ -1,13 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { listHabits } from '@/db/repos/habits';
 import { insertMoment } from '@/db/repos/moments';
 import { getSetting, setSetting } from '@/db/repos/settings';
 import { CONTEXTS, FEELINGS, HELPERS, type Habit } from '@/db/schema';
 import { useSafety } from '@/features/safety';
-import { habitLabel } from '@/lib/habits';
+import { habitLabel, resolveHabitId } from '@/lib/habits';
 import { radius, space, touch, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Chip } from '@/ui/Chip';
@@ -230,6 +230,8 @@ export function LogMomentScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [draft, setDraft] = useState<LogDraft>(emptyDraft);
   const [saving, setSaving] = useState(false);
+  // Blocks a second tap landing before the disabled Save has rendered.
+  const savingRef = useRef(false);
   // Other stays tappable at the custom-tag max; only Add pauses until one is removed.
   const [otherOpen, setOtherOpen] = useState({ feelings: false, helpers: false });
   const [otherText, setOtherText] = useState({ feelings: '', helpers: '' });
@@ -314,7 +316,8 @@ export function LogMomentScreen() {
     useCallback(() => {
       void listHabits().then((hs) => {
         setHabits(hs);
-        if (hs[0]) setDraft((d) => ({ ...d, habitId: d.habitId ?? hs[0]!.id }));
+        // A habit removed on Me must not stay picked here.
+        setDraft((d) => ({ ...d, habitId: resolveHabitId(hs, d.habitId) }));
       });
       void Promise.all([getSetting(FEELING_TAGS_SETTING), getSetting(HELPER_TAGS_SETTING)])
         .then(([feelings, helpers]) => {
@@ -328,6 +331,8 @@ export function LogMomentScreen() {
     if (!isReady(draft)) return;
     // Crisis check before anything is saved (SAFETY.md §1).
     if (guard(draft.note, ...draft.feelings, ...draft.helpers)) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       await insertMoment(toNewMoment(draft));
@@ -341,6 +346,7 @@ export function LogMomentScreen() {
       setEditingTags({ feelings: false, helpers: false });
       router.replace('/(tabs)');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }, [draft, guard]);

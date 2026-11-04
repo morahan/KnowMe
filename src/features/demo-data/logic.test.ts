@@ -35,6 +35,21 @@ describe('generateDemoMoments', () => {
     expect(used).toBeLessThanOrEqual(8);
   });
 
+  it('adds a few gambling moments on weekend evenings, social and bored', () => {
+    const gambling = moments.filter((m) => m.habitKind === 'gambling');
+    expect(gambling.length).toBeGreaterThanOrEqual(3);
+    expect(gambling.length).toBeLessThanOrEqual(6);
+    for (const m of gambling) {
+      const at = new Date(m.created_at);
+      expect([0, 6]).toContain(at.getDay());
+      expect(at.getHours()).toBeGreaterThanOrEqual(19);
+      expect(m.context).toBe('social');
+      expect(m.feelings).toEqual(['bored']);
+    }
+    // The primary habit keeps the daily rhythm the gambling moments stand apart from.
+    expect(moments.filter((m) => m.habitKind === null).length).toBeGreaterThan(gambling.length);
+  });
+
   it('makes tea and walk the top helpers', () => {
     const counts = new Map<string, number>();
     for (const m of moments) for (const h of m.helpers) counts.set(h, (counts.get(h) ?? 0) + 1);

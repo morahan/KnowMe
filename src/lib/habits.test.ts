@@ -1,9 +1,10 @@
 import { PRESET_HABITS, cleanCustomHabitNames, cleanHabitName, habitLabel, isTrackedKind, isTrackedName, renamedHabitName, resolveHabitId } from './habits';
 
 describe('PRESET_HABITS', () => {
-  it('offers the three substances plus Scrolling as the one behavioral preset', () => {
-    expect(PRESET_HABITS.map((p) => p.label)).toEqual(['Alcohol', 'Cannabis', 'Nicotine', 'Scrolling']);
-    expect(PRESET_HABITS.map((p) => p.kind)).toEqual(['alcohol', 'cannabis', 'nicotine', 'scrolling']);
+  it('offers the three substances plus Gambling as the one behavioral preset', () => {
+    expect(PRESET_HABITS.map((p) => p.label)).toEqual(['Alcohol', 'Cannabis', 'Gambling', 'Nicotine']);
+    expect(PRESET_HABITS.map((p) => p.kind)).toEqual(['alcohol', 'cannabis', 'gambling', 'nicotine']);
+    expect(PRESET_HABITS.map((p) => p.category)).toEqual(['substance', 'substance', 'behavior', 'substance']);
   });
 });
 
@@ -12,7 +13,7 @@ describe('habitLabel', () => {
     expect(habitLabel({ name: 'cannabis', kind: 'cannabis' })).toBe('Cannabis');
     expect(habitLabel({ name: 'nicotine', kind: 'nicotine' })).toBe('Nicotine');
     expect(habitLabel({ name: 'alcohol', kind: 'alcohol' })).toBe('Alcohol');
-    expect(habitLabel({ name: 'scrolling', kind: 'scrolling' })).toBe('Scrolling');
+    expect(habitLabel({ name: 'gambling', kind: 'gambling' })).toBe('Gambling');
   });
   it('shows a cleaned custom name in its own casing', () => {
     expect(habitLabel({ name: '  late night   scrolling ', kind: 'custom' })).toBe('late night scrolling');
@@ -21,20 +22,20 @@ describe('habitLabel', () => {
   it('shows a renamed preset in the new words, everywhere', () => {
     expect(habitLabel({ name: 'Vaping', kind: 'nicotine' })).toBe('Vaping');
     expect(habitLabel({ name: 'Beer', kind: 'alcohol' })).toBe('Beer');
-    expect(habitLabel({ name: 'Scrolling', kind: 'scrolling' })).toBe('Scrolling');
+    expect(habitLabel({ name: 'Gambling', kind: 'gambling' })).toBe('Gambling');
   });
 });
 
 describe('renamedHabitName', () => {
   const tracked = [
     { id: 'h1', name: 'Nicotine', kind: 'nicotine' as const },
-    { id: 'h2', name: 'Scrolling', kind: 'scrolling' as const },
+    { id: 'h2', name: 'Gambling', kind: 'gambling' as const },
     { id: 'h3', name: 'Sugar', kind: 'custom' as const },
   ];
   it('cleans the new name', () => {
     expect(renamedHabitName('  Vaping  ', tracked, 'h1')).toBe('Vaping');
     expect(renamedHabitName('Nicotine', tracked, 'h1')).toBe('Nicotine');
-    expect(renamedHabitName('Scrolling', tracked, 'h1')).toBeNull();
+    expect(renamedHabitName('Gambling', tracked, 'h1')).toBeNull();
   });
   it('rejects empty, another tracked name, and another preset label', () => {
     expect(renamedHabitName('   ', tracked, 'h1')).toBeNull();

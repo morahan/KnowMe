@@ -4,7 +4,7 @@ export const CONTEXTS = ['car', 'home', 'social', 'work', 'other'] as const;
 export const OUTCOMES = ['rode_it_out', 'used'] as const;
 export const FEELINGS = ['bored', 'celebrating', 'lonely', 'restless', 'stressed', 'tired', 'other'] as const;
 export const HELPERS = ['call someone', 'food', 'game', 'music', 'shower', 'tea', 'walk', 'other'] as const;
-export const HABIT_KINDS = ['alcohol', 'cannabis', 'custom', 'nicotine', 'scrolling'] as const;
+export const HABIT_KINDS = ['alcohol', 'cannabis', 'custom', 'gambling', 'nicotine'] as const;
 export const MAX_REASONS = 8;
 
 export type Context = (typeof CONTEXTS)[number];
@@ -69,4 +69,11 @@ export const MIGRATIONS: readonly string[] = [
   // habit cascades its tagged reasons, like its moments.
   `ALTER TABLE reasons ADD COLUMN habit_id TEXT REFERENCES habits(id) ON DELETE CASCADE;
    CREATE INDEX reasons_habit_id ON reasons(habit_id);`,
+  // Scrolling is no longer a preset (Gambling replaced it). Keep any tracked
+  // Scrolling habit, with its moments and reasons, as the person's own custom
+  // habit, named the way it was shown.
+  `UPDATE habits
+     SET name = CASE WHEN lower(trim(name)) = 'scrolling' THEN 'Scrolling' ELSE name END,
+         kind = 'custom'
+   WHERE kind = 'scrolling';`,
 ];
