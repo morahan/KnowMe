@@ -8,7 +8,7 @@ KnowMe is used in hard moments, often in the evening, often mid-craving. The des
 ## Rules
 1. **One thing per screen.** One primary action, clearly the biggest thing on the screen.
 2. **Fewer choices.** If a screen needs instructions, it has too much on it.
-3. **Space is the decoration.** Generous padding, no borders, no dividers, no cards-in-cards.
+3. **Space is the decoration.** Generous padding, no borders, no cards-in-cards. The one divider is the small centered section break (two short hairlines around a lamp-amber dot) between major sections; never full-width rules or lines between rows.
 4. **No red.** Nothing in the app signals failure. "Used" is neutral gray, not red.
 5. **Motion is slow and soft.** Nothing bounces, flashes, or shakes.
 6. **Thumb-first.** Primary actions sit in the bottom third. Touch targets ≥ 48pt.

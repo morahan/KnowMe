@@ -97,6 +97,9 @@ export const touch = { min: 48 } as const; // minimum tap target (pt)
 // Wide windows (iPhone Duo open, iPad, landscape): keep one calm, thumb-first
 // column instead of stretching content edge to edge.
 export const layout = { maxContentWidth: 560, breathMaxDiameter: 360 } as const;
+// The one section break: two short hairlines around a small lamp-amber dot,
+// centered, like a pause between chapters.
+export const divider = { line: space.lg, dot: space.xs + 2, stroke: 1, gap: space.sm } as const;
 
 // ─── Motion ───────────────────────────────────────────────────────
 // Slow and soft. Nothing bounces.
@@ -148,5 +151,6 @@ export function useTheme(): Theme {
 // 2. No red, ever. "Used" is `muted`, not a warning color.
 // 3. Primary button = accent fill + onAccent text. Secondary = text only, no border.
 // 4. Chips: off = border outline + text; on = accent fill + onAccent text.
-// 5. No shadows, no gradients, no dividers. Space separates things.
+// 5. No shadows, no gradients. Space separates things. The only divider is `SectionSeparator`
+//    (see `divider`) between major sections: never full-width rules, borders, or lines between rows.
 // 6. Status bar and navigation bar match `bg`.
