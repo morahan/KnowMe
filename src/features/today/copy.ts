@@ -3,7 +3,7 @@ export const copy = {
   logoAlt: 'KnowMe gnome holding a lantern',
   imInIt: "I'm in it",
   daysSince: (n: number) => (n === 1 ? 'day' : 'days'),
-  today: 'Today',
+  today: "Today's Activity",
   intensityWord: 'intensity',
   rodeItOut: 'rode it out',
   used: 'used',
