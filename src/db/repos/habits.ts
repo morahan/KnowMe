@@ -15,6 +15,11 @@ export async function addHabit(name: string, kind: HabitKind): Promise<Habit> {
   return habit;
 }
 
+/** Rename in place: kind, moments, and reasons keep pointing at the same habit. */
+export async function renameHabit(id: string, name: string): Promise<void> {
+  await db.runAsync('UPDATE habits SET name = ? WHERE id = ?', name, id);
+}
+
 export async function removeHabit(id: string): Promise<void> {
   await db.runAsync('DELETE FROM habits WHERE id = ?', id);
 }

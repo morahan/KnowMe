@@ -13,12 +13,22 @@ export const MAX_HABIT_NAME_CHARS = 20;
 
 /**
  * The one label for a habit, everywhere it is shown (Me, Log, Today,
- * I'm in it, Setup). Presets always show their named label, even for rows
- * stored lowercase before this existed; customs show their cleaned name.
+ * I'm in it, Setup). A preset shows its named label — even for rows stored
+ * lowercase before this existed — unless it was renamed, in which case the
+ * person's own words win. Customs show their cleaned name.
  */
 export function habitLabel(habit: Pick<Habit, 'name' | 'kind'>): string {
   const preset = PRESET_HABITS.find((p) => p.kind === habit.kind);
-  return preset ? preset.label : cleanHabitName(habit.name);
+  if (!preset) return cleanHabitName(habit.name);
+  const cleaned = cleanHabitName(habit.name);
+  if (
+    cleaned &&
+    habitNameKey(cleaned) !== habitNameKey(preset.label) &&
+    habitNameKey(cleaned) !== habitNameKey(preset.kind)
+  ) {
+    return cleaned;
+  }
+  return preset.label;
 }
 
 /** Trim and collapse spaces, the way a habit name is stored and shown. */
@@ -34,6 +44,26 @@ export function habitNameKey(name: string): string {
 export function isTrackedName(name: string, existing: readonly Pick<Habit, 'name'>[]): boolean {
   const key = habitNameKey(name);
   return key !== '' && existing.some((h) => habitNameKey(h.name) === key);
+}
+
+/**
+ * The cleaned name a tracked habit can be renamed to, or null when it is
+ * empty, already used by another tracked habit, or another preset's label
+ * (which would make two tags read as the same thing).
+ */
+export function renamedHabitName(
+  raw: string,
+  existing: readonly Pick<Habit, 'id' | 'name' | 'kind'>[],
+  selfId: string,
+): string | null {
+  const name = cleanHabitName(raw);
+  const key = habitNameKey(name);
+  if (!key) return null;
+  const self = existing.find((h) => h.id === selfId);
+  if (!self) return null;
+  if (existing.some((h) => h.id !== selfId && habitNameKey(habitLabel(h)) === key)) return null;
+  if (PRESET_HABITS.some((p) => p.kind !== self.kind && habitNameKey(p.label) === key)) return null;
+  return name;
 }
 
 export function isTrackedKind(kind: HabitKind, existing: readonly Pick<Habit, 'kind'>[]): boolean {

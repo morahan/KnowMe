@@ -17,6 +17,7 @@ let mockHabits = [habit('h1', 'Nicotine')];
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => mockHabits),
   addHabit: jest.fn(async () => habit('hx', 'x')),
+  renameHabit: jest.fn(async () => undefined),
   removeHabit: jest.fn(async () => undefined),
 }));
 
@@ -28,11 +29,13 @@ jest.mock('@/db/repos/reasons', () => ({
   replaceReasons: jest.fn(async () => undefined),
 }));
 
-import { addHabit } from '@/db/repos/habits';
+import { addHabit, removeHabit, renameHabit } from '@/db/repos/habits';
 import { replaceReasons } from '@/db/repos/reasons';
 
 const mockReplace = replaceReasons as jest.Mock;
 const mockAddHabit = addHabit as jest.Mock;
+const mockRenameHabit = renameHabit as jest.Mock;
+const mockRemoveHabit = removeHabit as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -63,6 +66,29 @@ describe('MeScreen tracking tags', () => {
     await fireEvent.press(getByText('Add'));
     await waitFor(() => expect(mockAddHabit).toHaveBeenCalledWith('Nicotine', 'nicotine'));
     expect(mockAddHabit).not.toHaveBeenCalledWith(expect.anything(), 'custom');
+  });
+});
+
+describe('MeScreen edit tracked tags', () => {
+  it('renames a tracked preset in its own words', async () => {
+    mockHabits = [habit('h1', 'nicotine', 'nicotine')];
+    const { findByText, getByText, getByPlaceholderText } = await renderMe();
+    await findByText('Nicotine');
+    await fireEvent.press(getByText('Edit tags'));
+    await fireEvent.press(getByText('Nicotine'));
+    await fireEvent.changeText(getByPlaceholderText('Tag name'), 'Vaping');
+    await fireEvent.press(getByText('Save tag'));
+    await waitFor(() => expect(mockRenameHabit).toHaveBeenCalledWith('h1', 'Vaping'));
+  });
+
+  it('removes a tracked item from the edit view', async () => {
+    mockHabits = [habit('h1', 'nicotine', 'nicotine'), habit('h2', 'Sugar')];
+    const { findByText, getByText } = await renderMe();
+    await findByText('Sugar ×');
+    await fireEvent.press(getByText('Edit tags'));
+    await fireEvent.press(getByText('Sugar'));
+    await fireEvent.press(getByText('Remove tag'));
+    await waitFor(() => expect(mockRemoveHabit).toHaveBeenCalledWith('h2'));
   });
 });
 

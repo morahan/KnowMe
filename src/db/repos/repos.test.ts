@@ -17,6 +17,9 @@ const fakeDb = {
     const s = sql.replace(/\s+/g, ' ').trim();
     if (s.startsWith('INSERT INTO habits')) {
       tables.habits!.push({ id: args[0], name: args[1], kind: args[2], created_at: args[3] });
+    } else if (s.startsWith('UPDATE habits')) {
+      const row = tables.habits!.find((r) => r.id === args[1]);
+      if (row) row.name = args[0];
     } else if (s.startsWith('DELETE FROM habits')) {
       tables.habits = tables.habits!.filter((r) => r.id !== args[0]);
       tables.moments = tables.moments!.filter((r) => r.habit_id !== args[0]); // ON DELETE CASCADE
@@ -96,7 +99,7 @@ const byStr = (key: string) => (a: Row, b: Row) => String(a[key]).localeCompare(
 
 jest.mock('@/db/client', () => ({ db: fakeDb, migrate: () => undefined }));
 
-import { addHabit, listHabits, removeHabit } from './habits';
+import { addHabit, listHabits, removeHabit, renameHabit } from './habits';
 import { countMoments, deleteDemoMoments, hasDemoMoments, insertMoment, lastUsedAt, listMomentsSince } from './moments';
 import { listAllReasons, listReasons, listReasonsForHabit, replaceReasons } from './reasons';
 import { getInstallId, getSetting, setSetting } from './settings';
@@ -115,6 +118,15 @@ describe('habits repo', () => {
     const all = await listHabits();
     expect(all.map((h) => h.name)).toEqual(['cannabis', 'Evening walks']);
     expect(all[0]!.id).toBe(a.id);
+  });
+
+  it('renames a habit in place, keeping its moments', async () => {
+    const a = await addHabit('nicotine', 'nicotine');
+    await insertMoment({ ...base, habit_id: a.id });
+    await renameHabit(a.id, 'Vaping');
+    const [renamed] = await listHabits();
+    expect(renamed).toMatchObject({ id: a.id, name: 'Vaping', kind: 'nicotine' });
+    expect(await countMoments()).toBe(1);
   });
 
   it('removes a habit and cascades its moments', async () => {

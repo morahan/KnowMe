@@ -27,6 +27,7 @@ export function SetupScreen() {
   const [picked, setPicked] = useState<Set<HabitKind>>(new Set());
   const [custom, setCustom] = useState('');
   const [customHabits, setCustomHabits] = useState<Habit[]>([]);
+  const [trackedHabits, setTrackedHabits] = useState<Habit[]>([]);
   const [reasons, setReasons] = useState<string[]>(['']);
   const [specific, setSpecific] = useState<Record<string, string[]>>({});
   const [showSpecific, setShowSpecific] = useState(false);
@@ -37,6 +38,7 @@ export function SetupScreen() {
     void (async () => {
       const [habits, saved] = await Promise.all([listHabits(), listAllReasons()]);
       if (habits.length > 0) setPicked(new Set(habits.map((h) => h.kind)));
+      setTrackedHabits(habits);
       setCustomHabits(habits.filter((h) => h.kind === 'custom'));
       const universal = reasonTextsFor(saved, null);
       if (universal.length > 0) setReasons(universal);
@@ -52,10 +54,10 @@ export function SetupScreen() {
 
   /** What is being tracked right now: picked presets, saved customs, and a typed-but-unsaved custom. */
   const trackedList = (): { key: string; label: string }[] => {
-    const list: { key: string; label: string }[] = PRESETS.filter((p) => picked.has(p.kind)).map((p) => ({
-      key: p.kind,
-      label: p.label,
-    }));
+    const list: { key: string; label: string }[] = PRESETS.filter((p) => picked.has(p.kind)).map((p) => {
+      const tracked = trackedHabits.find((h) => h.kind === p.kind);
+      return { key: p.kind, label: tracked ? habitLabel(tracked) : p.label };
+    });
     for (const h of customHabits) list.push({ key: h.id, label: habitLabel(h) });
     const pending = cleanCustomHabit(custom);
     if (
@@ -171,9 +173,12 @@ export function SetupScreen() {
       <Title>{copy.title}</Title>
       <Body muted>{copy.body}</Body>
       <View style={styles.chips}>
-        {PRESETS.map((p) => (
-          <Chip key={p.kind} label={p.label} selected={picked.has(p.kind)} onPress={() => toggle(p.kind)} />
-        ))}
+        {PRESETS.map((p) => {
+          const tracked = trackedHabits.find((h) => h.kind === p.kind);
+          return (
+            <Chip key={p.kind} label={tracked ? habitLabel(tracked) : p.label} selected={picked.has(p.kind)} onPress={() => toggle(p.kind)} />
+          );
+        })}
         <Chip label={copy.somethingElse} selected={picked.has('custom')} onPress={() => toggle('custom')} />
         {customHabits.map((h) => (
           <Chip key={h.id} label={`${habitLabel(h)} ×`} selected onPress={() => removeCustom(h)} />

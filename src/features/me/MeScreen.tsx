@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Share, StyleSheet, TextInput, View } from 'react-native';
-import { addHabit, listHabits, removeHabit } from '@/db/repos/habits';
+import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { addHabit, listHabits, removeHabit, renameHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import type { Habit } from '@/db/schema';
 import { openPhone, useSafety } from '@/features/safety';
 import {
-  MAX_HABIT_NAME_CHARS, PRESET_HABITS, cleanHabitName, habitLabel, habitNameKey, isTrackedName,
+  MAX_HABIT_NAME_CHARS, PRESET_HABITS, cleanHabitName, habitLabel, habitNameKey, isTrackedName, renamedHabitName,
 } from '@/lib/habits';
 import { reasonTextsFor } from '@/lib/reasons';
 import { radius, space, touch, type, useTheme } from '@/theme';
@@ -34,6 +34,9 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   const [perHabit, setPerHabit] = useState<Record<string, string[]>>({});
   const [showSpecific, setShowSpecific] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [editingTags, setEditingTags] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
 
   const load = useCallback(async () => {
     const [hs, rs] = await Promise.all([listHabits(), listAllReasons()]);
@@ -97,35 +100,117 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
     void addHabit(preset ? preset.label : name, preset ? preset.kind : 'custom').then(load);
   };
 
+  const editingHabit = habits.find((h) => h.id === editingId) ?? null;
+  const saveTagEdit = () => {
+    if (!editingHabit) return;
+    const name = renamedHabitName(editText, habits, editingHabit.id);
+    if (!name || guard(name)) return;
+    setEditingId(null);
+    void renameHabit(editingHabit.id, name).then(load);
+  };
+  const removeTagEdit = () => {
+    if (!editingHabit) return;
+    const id = editingHabit.id;
+    setEditingId(null);
+    void removeHabit(id).then(load);
+  };
+
   return (
     <Screen scroll scrollTopKey="me">
       <Title>{copy.habitsTitle}</Title>
-      <View style={styles.chips}>
-        {PRESET_HABITS.map((p) => (
-          <Chip key={p.kind} label={p.label} selected={Boolean(presetHabit(p.kind))} onPress={() => togglePreset(p)} />
-        ))}
-        {customHabits.map((h) => (
-          <Chip
-            key={h.id}
-            label={`${habitLabel(h)} ×`}
-            selected
-            onPress={() => {
-              void removeHabit(h.id).then(load);
-            }}
+      {editingTags ? (
+        <>
+          <View style={styles.chips}>
+            {habits.map((h) => (
+              <Chip
+                key={h.id}
+                label={habitLabel(h)}
+                selected={editingId === h.id}
+                onPress={() => {
+                  setEditingId(h.id);
+                  setEditText(habitLabel(h));
+                }}
+              />
+            ))}
+          </View>
+          <Label>{copy.editTagsHint}</Label>
+          {editingHabit ? (
+            <View style={styles.editBox}>
+              <View style={styles.editRow}>
+                <TextInput
+                  accessibilityLabel={copy.editTagPlaceholder}
+                  placeholder={copy.editTagPlaceholder}
+                  placeholderTextColor={colors.muted}
+                  value={editText}
+                  onChangeText={setEditText}
+                  maxLength={MAX_HABIT_NAME_CHARS}
+                  autoCapitalize="none"
+                  returnKeyType="done"
+                  onSubmitEditing={saveTagEdit}
+                  style={[inputStyle, styles.editInput]}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={saveTagEdit}
+                  style={({ pressed }) => [styles.saveTagButton, { borderColor: colors.border }, pressed && styles.pressed]}
+                >
+                  <Text style={[type.label, { color: colors.text }]}>{copy.saveTag}</Text>
+                </Pressable>
+              </View>
+              <View style={styles.editActions}>
+                <QuietLink label={copy.removeTag} onPress={removeTagEdit} />
+                <QuietLink label={copy.cancel} onPress={() => setEditingId(null)} />
+              </View>
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <View style={styles.chips}>
+            {PRESET_HABITS.map((p) => {
+              const tracked = presetHabit(p.kind);
+              return (
+                <Chip
+                  key={p.kind}
+                  label={tracked ? habitLabel(tracked) : p.label}
+                  selected={Boolean(tracked)}
+                  onPress={() => togglePreset(p)}
+                />
+              );
+            })}
+            {customHabits.map((h) => (
+              <Chip
+                key={h.id}
+                label={`${habitLabel(h)} ×`}
+                selected
+                onPress={() => {
+                  void removeHabit(h.id).then(load);
+                }}
+              />
+            ))}
+          </View>
+          {customHabits.length > 0 ? <Label>{copy.removeCustomHint}</Label> : null}
+          <TextInput
+            accessibilityLabel={copy.addHabitPlaceholder}
+            placeholder={copy.addHabitPlaceholder}
+            placeholderTextColor={colors.muted}
+            value={newHabit}
+            onChangeText={setNewHabit}
+            maxLength={MAX_HABIT_NAME_CHARS}
+            style={inputStyle}
           />
-        ))}
-      </View>
-      {customHabits.length > 0 ? <Label>{copy.removeCustomHint}</Label> : null}
-      <TextInput
-        accessibilityLabel={copy.addHabitPlaceholder}
-        placeholder={copy.addHabitPlaceholder}
-        placeholderTextColor={colors.muted}
-        value={newHabit}
-        onChangeText={setNewHabit}
-        maxLength={MAX_HABIT_NAME_CHARS}
-        style={inputStyle}
-      />
-      <QuietLink label={copy.add} onPress={addOwn} />
+          <QuietLink label={copy.add} onPress={addOwn} />
+        </>
+      )}
+      {habits.length > 0 ? (
+        <QuietLink
+          label={editingTags ? copy.doneEditingTags : copy.editTags}
+          onPress={() => {
+            setEditingId(null);
+            setEditingTags((x) => !x);
+          }}
+        />
+      ) : null}
 
       <Title>{copy.reasonsTitle}</Title>
       <Body muted>{copy.reasonsBody}</Body>
@@ -224,6 +309,18 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
 const styles = StyleSheet.create({
   list: { gap: space.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  editBox: { gap: space.sm },
+  editRow: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
+  editInput: { flex: 1 },
+  editActions: { flexDirection: 'row', gap: space.md },
+  pressed: { opacity: 0.7 },
+  saveTagButton: {
+    minHeight: touch.min,
+    paddingHorizontal: space.md,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderRadius: radius.md,
+    justifyContent: 'center',
+  },
   input: {
     ...type.body,
     minHeight: touch.min,
