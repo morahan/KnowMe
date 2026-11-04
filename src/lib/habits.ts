@@ -2,9 +2,9 @@ import type { Habit, HabitKind } from '@/db/schema';
 
 /** The named habits offered as one-tap picks. Anything else is `custom`. */
 export const PRESET_HABITS: { kind: Exclude<HabitKind, 'custom'>; label: string }[] = [
+  { kind: 'alcohol', label: 'Alcohol' },
   { kind: 'cannabis', label: 'Cannabis' },
   { kind: 'nicotine', label: 'Nicotine' },
-  { kind: 'alcohol', label: 'Alcohol' },
   { kind: 'scrolling', label: 'Scrolling' },
 ];
 

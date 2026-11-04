@@ -1,7 +1,7 @@
 # PRODUCT.md — KnowMe
 
 ## What it is
-A private journal for people changing a habit (cannabis, nicotine, alcohol, scrolling, or their own). You log the moments a craving shows up. KnowMe shows you your own patterns. **It never tells you what to do.**
+A private journal for people changing a habit (alcohol, cannabis, nicotine, scrolling, or their own). You log the moments a craving shows up. KnowMe shows you your own patterns. **It never tells you what to do.**
 
 > Know thyself. The data is yours, the conclusions are yours.
 
@@ -33,10 +33,10 @@ Accounts, cloud sync, payments, notifications, social features, the GuideMe chat
 - `habits(id, name, kind, created_at)`
 - `reasons(id, habit_id, text, sort_order)` — `habit_id` null means universal (applies to every habit); a habit id means that reason belongs to that habit only. Per-habit reasons are optional and only offered when tracking 2+ habits.
 - `moments(id, habit_id, created_at, intensity, context, feelings[], outcome, helpers[], note)`
-  - `context`: home | car | work | social | other
+  - `context`: car | home | social | work | other
   - `outcome`: rode_it_out | used
-  - `feelings`: bored, stressed, tired, restless, celebrating, lonely, other
-  - `helpers`: tea, walk, music, game, shower, call someone, food, other
+  - `feelings`: bored, celebrating, lonely, restless, stressed, tired, other
+  - `helpers`: call someone, food, game, music, shower, tea, walk, other
 
 ## The demo story (3 minutes)
 1. Open the app: calm, almost empty.

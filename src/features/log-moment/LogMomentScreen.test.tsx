@@ -132,7 +132,7 @@ describe('LogMomentScreen preset tags', () => {
     expect(utils.queryByText('bored')).toBeNull();
     expect(mockSetSetting).toHaveBeenCalledWith(
       'tag_presets.feelings',
-      JSON.stringify(['flat', 'stressed', 'tired', 'restless', 'celebrating', 'lonely']),
+      JSON.stringify(['flat', 'celebrating', 'lonely', 'restless', 'stressed', 'tired']),
     );
     await fireEvent.press(utils.getAllByText('Done editing')[0]!);
     await fireEvent.press(utils.getByText('flat'));

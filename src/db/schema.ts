@@ -1,9 +1,10 @@
 // Data model from PRODUCT.md. Arrays are stored as JSON text.
-export const CONTEXTS = ['home', 'car', 'work', 'social', 'other'] as const;
+// Preset lists are alphabetical, with `other` last: it opens the custom input, not a real tag.
+export const CONTEXTS = ['car', 'home', 'social', 'work', 'other'] as const;
 export const OUTCOMES = ['rode_it_out', 'used'] as const;
-export const FEELINGS = ['bored', 'stressed', 'tired', 'restless', 'celebrating', 'lonely', 'other'] as const;
-export const HELPERS = ['tea', 'walk', 'music', 'game', 'shower', 'call someone', 'food', 'other'] as const;
-export const HABIT_KINDS = ['cannabis', 'nicotine', 'alcohol', 'scrolling', 'custom'] as const;
+export const FEELINGS = ['bored', 'celebrating', 'lonely', 'restless', 'stressed', 'tired', 'other'] as const;
+export const HELPERS = ['call someone', 'food', 'game', 'music', 'shower', 'tea', 'walk', 'other'] as const;
+export const HABIT_KINDS = ['alcohol', 'cannabis', 'custom', 'nicotine', 'scrolling'] as const;
 export const MAX_REASONS = 8;
 
 export type Context = (typeof CONTEXTS)[number];

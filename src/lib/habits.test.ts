@@ -2,8 +2,8 @@ import { PRESET_HABITS, cleanCustomHabitNames, cleanHabitName, habitLabel, isTra
 
 describe('PRESET_HABITS', () => {
   it('offers the three substances plus Scrolling as the one behavioral preset', () => {
-    expect(PRESET_HABITS.map((p) => p.label)).toEqual(['Cannabis', 'Nicotine', 'Alcohol', 'Scrolling']);
-    expect(PRESET_HABITS.map((p) => p.kind)).toEqual(['cannabis', 'nicotine', 'alcohol', 'scrolling']);
+    expect(PRESET_HABITS.map((p) => p.label)).toEqual(['Alcohol', 'Cannabis', 'Nicotine', 'Scrolling']);
+    expect(PRESET_HABITS.map((p) => p.kind)).toEqual(['alcohol', 'cannabis', 'nicotine', 'scrolling']);
   });
 });
 

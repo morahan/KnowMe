@@ -74,8 +74,8 @@ describe('custom tags', () => {
 
 describe('preset tags', () => {
   it('defaults to the presets without the Other entry', () => {
-    expect(defaultTags(FEELINGS)).toEqual(['bored', 'stressed', 'tired', 'restless', 'celebrating', 'lonely']);
-    expect(defaultTags(HELPERS)).toContain('tea');
+    expect(defaultTags(FEELINGS)).toEqual(['bored', 'celebrating', 'lonely', 'restless', 'stressed', 'tired']);
+    expect(defaultTags(HELPERS)).toEqual(['call someone', 'food', 'game', 'music', 'shower', 'tea', 'walk']);
     expect(defaultTags(HELPERS)).not.toContain('other');
   });
 
