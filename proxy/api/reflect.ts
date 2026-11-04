@@ -8,6 +8,7 @@ import { screenForCrisis } from '../lib/screen';
 const BASE_URL = process.env.LLAMA_BASE_URL ?? 'https://api.llama.com/compat/v1';
 const MODEL = process.env.LLAMA_MODEL ?? 'Llama-4-Maverick-17B-128E-Instruct-FP8';
 const MAX_BODY_BYTES = 8_000;
+const MAX_INSTALL_ID = 100;
 
 type ChatResponse = {
   choices?: { message?: { content?: string } }[];
@@ -23,11 +24,10 @@ const crisis = (by: 'keyword' | 'screen' | 'output') => {
 };
 
 export async function POST(req: Request): Promise<Response> {
-  const apiKey = process.env.LLAMA_API_KEY;
-  if (!apiKey) return json({ error: 'not configured' }, 500);
-
+  // Refuse by header before reading; then count real bytes, not UTF-16 units.
+  if (Number(req.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) return json({ error: 'too large' }, 413);
   const raw = await req.text();
-  if (raw.length > MAX_BODY_BYTES) return json({ error: 'too large' }, 413);
+  if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) return json({ error: 'too large' }, 413);
 
   let body: { installId?: unknown; summary?: unknown };
   try {
@@ -35,13 +35,22 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return json({ error: 'bad json' }, 400);
   }
-  const { installId, summary } = body;
-  if (typeof installId !== 'string' || !installId || typeof summary !== 'object' || summary === null) {
+  const { installId, summary } = body ?? {}; // "null" is valid JSON
+  if (
+    typeof installId !== 'string' ||
+    !installId ||
+    installId.length > MAX_INSTALL_ID ||
+    typeof summary !== 'object' ||
+    summary === null ||
+    Array.isArray(summary)
+  ) {
     return json({ error: 'installId and summary required' }, 400);
   }
 
   // Crisis first, before rate limits or network.
   if (inputIsCrisis(summary)) return crisis('keyword');
+  const apiKey = process.env.LLAMA_API_KEY;
+  if (!apiKey) return json({ error: 'not configured' }, 500);
   if (!allow(installId)) return json({ error: 'slow down' }, 429);
 
   // Model screen before writing anything. If the screen can't run, fail closed: no reflection.

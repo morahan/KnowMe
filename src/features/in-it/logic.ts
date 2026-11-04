@@ -34,3 +34,8 @@ export function formatCountdown(totalSeconds: number): string {
   const ss = s % 60;
   return `${mm}:${String(ss).padStart(2, '0')}`;
 }
+
+/** Whole seconds left until `endsAt` (ms), rounded up so 20:00 shows for the first second. Never negative. */
+export function secondsUntil(endsAt: number, now: number): number {
+  return Math.max(0, Math.ceil((endsAt - now) / 1000));
+}

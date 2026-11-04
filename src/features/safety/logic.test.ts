@@ -36,3 +36,28 @@ describe('normalize', () => {
     expect(normalize("Don't — self-harm!")).toBe('dont self harm');
   });
 });
+
+describe('isCrisis resists simple evasion', () => {
+  it.each([
+    'I don‘t want to live', // left single quote
+    'I donʼt want to be here', // modifier apostrophe
+    'I don`t want to live', // backtick
+    'thinking about suïcide', // diacritic
+    'ｓｕｉｃｉｄｅ', // fullwidth
+    'sui​cide', // zero-width space
+    'sui­cide', // soft hyphen
+    'k1ll mys3lf',
+    'ki11 myself',
+    '5uicide',
+    'I w4nt to d1e',
+    'I OD’d last night',
+    'I OD\'d last night',
+    'I want\nto die', // multi-line
+  ])('flags %p', (text) => {
+    expect(isCrisis(text)).toBe(true);
+  });
+
+  it.each(['7 drinks at 10pm', 'odd day, tea at 3', 'I don’t want to drink tonight'])('still ignores %p', (text) => {
+    expect(isCrisis(text)).toBe(false);
+  });
+});

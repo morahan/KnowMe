@@ -8,7 +8,7 @@ import { Alert, Linking } from 'react-native';
 import { CrisisScreen } from './CrisisScreen';
 
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => true) },
 }));
 
 import { router } from 'expo-router';
@@ -47,5 +47,13 @@ describe('CrisisScreen without a Phone app', () => {
     await fireEvent.press(getByText('Call 988'));
     await new Promise((r) => setImmediate(r));
     expect(alert).toHaveBeenCalledWith("This device can't place calls", 'You can reach them at 988 from any phone.');
+  });
+
+  it('Back goes home when there is nothing to go back to (opened by link)', async () => {
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    const { getByText } = await render(<CrisisScreen />);
+    await fireEvent.press(getByText('Back'));
+    expect(router.back).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith('/');
   });
 });

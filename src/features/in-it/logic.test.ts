@@ -1,5 +1,5 @@
 import type { Habit, Moment } from '@/db/schema';
-import { formatCountdown, needsHabitPick, resolveHabit, topHelpers, topHelpersForHabit } from './logic';
+import { formatCountdown, needsHabitPick, resolveHabit, secondsUntil, topHelpers, topHelpersForHabit } from './logic';
 
 const m = (outcome: Moment['outcome'], helpers: Moment['helpers']): Moment => ({
   id: 'x', habit_id: 'h1', created_at: '2026-11-01T20:00:00.000Z', intensity: 6, context: 'home',
@@ -69,5 +69,15 @@ describe('formatCountdown', () => {
     expect(formatCountdown(20 * 60)).toBe('20:00');
     expect(formatCountdown(65)).toBe('1:05');
     expect(formatCountdown(-5)).toBe('0:00');
+  });
+});
+
+describe('secondsUntil', () => {
+  it('rounds up, and stops at zero', () => {
+    expect(secondsUntil(10_000, 0)).toBe(10);
+    expect(secondsUntil(10_000, 1)).toBe(10);
+    expect(secondsUntil(10_000, 1000)).toBe(9);
+    expect(secondsUntil(10_000, 10_000)).toBe(0);
+    expect(secondsUntil(10_000, 99_000)).toBe(0);
   });
 });

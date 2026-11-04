@@ -18,7 +18,7 @@ export function CrisisScreen() {
           <PrimaryButton label={copy.call988} onPress={() => openPhone('tel:988', '988')} />
           <QuietLink label={copy.text988} onPress={() => openPhone('sms:988', '988')} />
           <QuietLink label={copy.call911} onPress={() => openPhone('tel:911', '911')} />
-          <QuietLink label={copy.back} onPress={() => router.back()} />
+          <QuietLink label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
         </View>
       }
     >

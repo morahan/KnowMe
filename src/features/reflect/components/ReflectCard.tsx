@@ -36,22 +36,25 @@ export function ReflectCard() {
     <View style={styles.wrap}>
       <Title>{copy.title}</Title>
 
-      {lines ? (
-        <Letter lines={lines} />
-      ) : loading ? (
+      {loading ? (
         <FadeIn>
           <ThinkingGnome />
         </FadeIn>
       ) : (
-        // Keyed by status so returning from an error fades in too.
-        <FadeIn key={state.status} style={styles.idle}>
-          <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
-          <View style={styles.toggle}>
-            <Chip label={copy.includeNotes} selected={includeNotes} onPress={() => setIncludeNotes((v) => !v)} />
-            <Label>{copy.includeNotesHint}</Label>
-          </View>
-          <PrimaryButton label={copy.button} onPress={() => reflect(includeNotes)} />
-        </FadeIn>
+        <>
+          {lines ? <Letter lines={lines} /> : null}
+          {/* Keyed by status so returning from an error fades in too. A cached letter can still be refreshed. */}
+          <FadeIn key={state.status} style={styles.idle}>
+            {state.status === 'error' || !lines ? (
+              <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
+            ) : null}
+            <View style={styles.toggle}>
+              <Chip label={copy.includeNotes} selected={includeNotes} onPress={() => setIncludeNotes((v) => !v)} />
+              <Label>{copy.includeNotesHint}</Label>
+            </View>
+            <PrimaryButton label={copy.button} onPress={() => void reflect(includeNotes)} />
+          </FadeIn>
+        </>
       )}
     </View>
   );

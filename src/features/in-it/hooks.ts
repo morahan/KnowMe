@@ -10,14 +10,10 @@ export type InItData = { habits: Habit[]; reasons: Reason[]; moments: Moment[] }
 export function useInIt() {
   const [data, setData] = useState<InItData | null>(null);
   useEffect(() => {
-    void (async () => {
-      const [habits, reasons, moments] = await Promise.all([
-        listHabits(),
-        listAllReasons(),
-        listMomentsSince(daysAgo(90).toISOString()),
-      ]);
-      setData({ habits, reasons, moments });
-    })();
+    Promise.all([listHabits(), listAllReasons(), listMomentsSince(daysAgo(90).toISOString())])
+      .then(([habits, reasons, moments]) => setData({ habits, reasons, moments }))
+      // Breathing must still work if the data can't load: empty, never stuck on "A moment…".
+      .catch(() => setData({ habits: [], reasons: [], moments: [] }));
   }, []);
   return data;
 }

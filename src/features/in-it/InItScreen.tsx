@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
 import { habitLabel } from '@/lib/habits';
@@ -18,7 +18,7 @@ import { Screen } from '@/ui/Screen';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
 import { useInIt } from './hooks';
-import { SESSION_SECONDS, formatCountdown, needsHabitPick, resolveHabit, topHelpersForHabit } from './logic';
+import { SESSION_SECONDS, formatCountdown, needsHabitPick, resolveHabit, secondsUntil, topHelpersForHabit } from './logic';
 
 export function InItScreen() {
   const data = useInIt();
@@ -27,6 +27,7 @@ export function InItScreen() {
   const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
   const [manualCheck, setManualCheck] = useState(false);
   const [intensity, setIntensity] = useState<number | null>(null);
+  const saving = useRef(false);
 
   const habits = data?.habits ?? [];
   const habit = data ? resolveHabit(habits, selectedHabitId) : null;
@@ -35,27 +36,37 @@ export function InItScreen() {
   const helpers = data ? topHelpersForHabit(data.moments, habit?.id ?? null) : [];
   const shownReasons = data ? visibleReasons(data.reasons, habit?.id ?? null, habits.length) : [];
 
-  // The 20 minutes only run once we know what this moment is about.
+  // The 20 minutes only run once we know what this moment is about. Counted
+  // against the clock, not by ticks, so time in the background still counts.
   useEffect(() => {
     if (data === null || picking || checking) return;
-    const id = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
+    const endsAt = Date.now() + SESSION_SECONDS * 1000;
+    const id = setInterval(() => setSecondsLeft(secondsUntil(endsAt, Date.now())), 1000);
     return () => clearInterval(id);
   }, [data, picking, checking]);
 
   const save = async () => {
-    if (habit && intensity !== null) {
-      await insertMoment({
-        habit_id: habit.id,
-        intensity,
-        context: 'home',
-        feelings: [],
-        outcome: 'rode_it_out',
-        helpers: [],
-        note: null,
-      });
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (saving.current) return;
+    saving.current = true;
+    try {
+      if (habit && intensity !== null) {
+        await insertMoment({
+          habit_id: habit.id,
+          intensity,
+          context: 'home',
+          feelings: [],
+          outcome: 'rode_it_out',
+          helpers: [],
+          note: null,
+        });
+        // A missing haptic engine must not keep the person here.
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      }
+    } catch {
+      // A failed write still lets them leave; the urge passing matters more than the log.
+    } finally {
+      router.back();
     }
-    router.back();
   };
 
   if (data === null) {

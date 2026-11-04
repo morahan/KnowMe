@@ -1,4 +1,6 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
+// The pure matcher only: logic.ts stays free of React and the router.
+import { isCrisis } from '@/features/safety/logic';
 import { formatWindow, hourBuckets, peakWindow } from '@/lib/hours';
 import { allReasonTexts } from '@/lib/reasons';
 import { countBy, mean, topN } from '@/lib/stats';
@@ -64,17 +66,30 @@ export function buildSummary({ habits, reasons, moments, days, includeNotes }: I
   return summary;
 }
 
-/** Every free-text string in the summary, for the local crisis guard. */
+/** Every free-text string in the summary, for the local crisis guard. Custom feelings and helpers are typed words too. */
 export function freeText(summary: ReflectionSummary): string[] {
-  return [...summary.habits, ...summary.reasons, ...(summary.notes ?? [])];
+  return [
+    ...summary.habits,
+    ...summary.reasons,
+    ...summary.topContexts,
+    ...summary.topFeelings,
+    ...summary.topHelpers,
+    ...(summary.notes ?? []),
+  ];
 }
 
 export type ProxyResponse = { crisis: true } | { crisis: false; text: string };
 export type Classified = { kind: 'crisis' } | { kind: 'letter'; lines: string[] };
 
-/** SAFETY.md: a crisis flag from the proxy always wins; the letter is never shown instead. */
+/**
+ * SAFETY.md: a crisis flag from the proxy always wins; the letter is never shown instead.
+ * The letter is screened here too (CRISIS token or crisis words), so an older or
+ * misbehaving proxy can't put one on screen. Anything malformed throws -> calm error.
+ */
 export function classifyResponse(data: ProxyResponse): Classified {
-  if (data.crisis) return { kind: 'crisis' };
+  if (data.crisis === true) return { kind: 'crisis' };
+  if (data.crisis !== false || typeof data.text !== 'string' || !data.text.trim()) throw new Error('bad reply');
+  if (/\bcrisis\b/i.test(data.text) || isCrisis(data.text)) return { kind: 'crisis' };
   const lines = (data.text.match(/[^.?!]+[.?!]*/g) ?? [data.text]).map((l) => l.trim()).filter(Boolean);
   return { kind: 'letter', lines };
 }

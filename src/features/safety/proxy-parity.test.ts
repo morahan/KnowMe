@@ -1,4 +1,5 @@
 import { CRISIS_TERMS } from './crisisTerms';
+import { isCrisis as appIsCrisis } from './logic';
 // The proxy deploys separately and keeps its own copy (DECISIONS.md).
 // This test is the guard that the two copies never drift apart.
 import { inputIsCrisis, isCrisis as proxyIsCrisis, outputIsCrisis } from '../../../proxy/lib/crisis';
@@ -9,6 +10,20 @@ describe('proxy crisis parity', () => {
     for (const term of CRISIS_TERMS) {
       expect(proxyIsCrisis(`feeling like ${term} today`)).toBe(true);
     }
+  });
+
+  it.each([
+    'I don‘t want to live',
+    'thinking about suïcide',
+    'ｓｕｉｃｉｄｅ',
+    'sui\u200bcide',
+    'k1ll mys3lf',
+    'ki11 myself',
+    "I OD'd last night",
+    '7 drinks at 10pm',
+    'I don’t want to drink tonight',
+  ])('matches the app on %p', (text) => {
+    expect(proxyIsCrisis(text)).toBe(appIsCrisis(text));
   });
 
   it('does not flag ordinary text', () => {
@@ -22,6 +37,7 @@ describe('proxy crisis parity', () => {
 
   it('flags the CRISIS token and crisis language in model output', () => {
     expect(outputIsCrisis('CRISIS')).toBe(true);
+    expect(outputIsCrisis('Crisis.')).toBe(true);
     expect(outputIsCrisis('You mentioned you want to die last week.')).toBe(true);
     expect(outputIsCrisis('Evenings look hardest. What helps then?')).toBe(false);
   });

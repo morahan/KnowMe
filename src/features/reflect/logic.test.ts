@@ -58,7 +58,7 @@ describe('buildSummary', () => {
 
   it('exposes every free-text field to the crisis guard', () => {
     const s = buildSummary({ habits: [habit], reasons, moments, days: 7, includeNotes: true });
-    expect(freeText(s)).toEqual(['cannabis', 'Sleep better', SECRET, SECRET]);
+    expect(freeText(s)).toEqual(['cannabis', 'Sleep better', 'home', 'bored', 'tea', SECRET, SECRET]);
   });
 });
 
@@ -67,6 +67,17 @@ describe('buildSummary', () => {
 describe('classifyResponse (SAFETY.md: CRISIS output shows the card)', () => {
   it('classifies a crisis response as crisis, never as a letter', () => {
     expect(classifyResponse({ crisis: true })).toEqual({ kind: 'crisis' });
+  });
+
+  it('screens the letter itself: a CRISIS token or crisis words never render', () => {
+    expect(classifyResponse({ crisis: false, text: 'CRISIS' })).toEqual({ kind: 'crisis' });
+    expect(classifyResponse({ crisis: false, text: 'Crisis.' })).toEqual({ kind: 'crisis' });
+    expect(classifyResponse({ crisis: false, text: 'You wrote that you want to die. What helps?' })).toEqual({ kind: 'crisis' });
+  });
+
+  it('treats a malformed reply as an error, not a letter', () => {
+    expect(() => classifyResponse({} as never)).toThrow();
+    expect(() => classifyResponse({ crisis: false, text: '' })).toThrow();
   });
 
   it('splits a normal letter into lines', () => {
