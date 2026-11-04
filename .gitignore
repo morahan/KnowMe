@@ -10,3 +10,4 @@ proxy/.vercel/
 proxy/.env
 coverage/
 tempScratchPad
+*.apk
