@@ -246,7 +246,7 @@ export function BarList({
   habitOrder,
 }: {
   rows: BarRow[];
-  suffix?: string;
+  suffix?: (count: number) => string;
   habitOrder?: readonly string[];
 }) {
   const { colors, habitColors } = useTheme();
@@ -263,7 +263,7 @@ export function BarList({
         <View key={r.name} style={styles.row}>
           <View style={styles.label}>
             <Body>{r.name}</Body>
-            <Body muted>{suffix ? `${r.count} ${suffix}` : String(r.count)}</Body>
+            <Body muted>{suffix ? suffix(r.count) : String(r.count)}</Body>
           </View>
           <View style={[styles.track, { backgroundColor: colors.border }]}>
             {r.byHabit && r.byHabit.length > 0 ? (

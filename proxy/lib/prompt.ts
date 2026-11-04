@@ -23,7 +23,8 @@ const FIELD_GUIDE = `Field guide:
 - topContexts / topFeelings: where they were and how they felt during moments
 - topHelpers: things that helped them ride it out
 - reasons: their own reasons for wanting to change this habit (not reasons for using)
-- notes: their own short notes, only if they chose to share them`;
+- notes: their own short notes, only if they chose to share them
+Never name these fields in your reply. Say it in plain words (e.g. "in the evening", not "byHour").`;
 
 export function userMessage(summary: unknown): string {
   return `Here is my private summary for the last week, as JSON:\n${JSON.stringify(summary)}\n\n${FIELD_GUIDE}`;
