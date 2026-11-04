@@ -34,6 +34,10 @@ export function SetupScreen() {
   const [saving, setSaving] = useState(false);
   const [savingCustom, setSavingCustom] = useState(false);
 
+  // Leaving by Android Back or the iOS back swipe counts as "Skip for now":
+  // otherwise Today reopens Setup on every launch, even after habits are set on Me.
+  useEffect(() => () => void setSetting('onboarded', '1'), []);
+
   useEffect(() => {
     void (async () => {
       const [habits, saved] = await Promise.all([listHabits(), listAllReasons()]);
