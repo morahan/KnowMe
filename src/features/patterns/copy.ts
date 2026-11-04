@@ -12,7 +12,6 @@ export const copy = {
   helpersTitle: 'What helps',
   rodeRate: 'rode it out',
   times: (n: number) => (n === 1 ? '1 time' : `${n} times`),
-  percentRode: (n: number) => `${n}% rode out`,
   showingThree: 'Showing three at a time. Tap one to swap it out.',
   intensityChartAlt: 'Intensity over time chart',
   hourChartAlt: 'Cravings by hour of day chart',

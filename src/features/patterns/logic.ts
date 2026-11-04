@@ -1,6 +1,7 @@
 import type { Moment } from '@/db/schema';
 import { daysBetween, toISODate } from '@/lib/dates';
 import { generateDemoMoments } from '@/lib/demoMoments';
+import { formatHour, hourBuckets, peakWindow } from '@/lib/hours';
 import { countBy, mean, topN } from '@/lib/stats';
 
 export type DayPoint = { date: string; avg: number | null; count: number };
@@ -168,9 +169,7 @@ export function intensityPointX(index: number, pointCount: number, contentWidth:
 
 /** 24 buckets by local hour. */
 export function byHour(moments: Moment[]): number[] {
-  const out = Array.from({ length: 24 }, () => 0);
-  for (const m of moments) out[new Date(m.created_at).getHours()]! += 1;
-  return out;
+  return hourBuckets(moments.map((m) => m.created_at));
 }
 
 /** One behavior's share of a bar: which habit contributed how much. */
@@ -269,27 +268,16 @@ export function helperRodeByHabit(
 }
 
 export function peakHourLabel(moments: Moment[]): string | null {
-  if (moments.length === 0) return null;
-  const hours = byHour(moments);
-  // Busiest 3-hour window, so a single stray hour cannot win on a tie.
-  let best = 0;
-  let bestSum = -1;
-  for (let h = 0; h < 24; h++) {
-    const sum = hours[h]! + hours[(h + 1) % 24]! + hours[(h + 2) % 24]!;
-    if (sum > bestSum) {
-      bestSum = sum;
-      best = h;
-    }
-  }
-  const end = (best + 3) % 24;
-  return `Most of your cravings land between ${formatHour(best)} and ${formatHour(end)}.`;
+  const w = peakWindow(byHour(moments));
+  if (!w) return null;
+  // "Most" only when the window really holds more than half of them.
+  const span = `between ${formatHour(w.start)} and ${formatHour(w.end)}`;
+  return w.count * 2 > w.total
+    ? `Most of your cravings land ${span}.`
+    : `Your cravings show up most ${span}.`;
 }
 
-export function formatHour(h: number): string {
-  if (h === 0) return '12am';
-  if (h === 12) return '12pm';
-  return h < 12 ? `${h}am` : `${h - 12}pm`;
-}
+export { formatHour };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -317,28 +305,31 @@ export function rideOutRate(moments: Moment[]): number | null {
   return moments.filter((m) => m.outcome === 'rode_it_out').length / moments.length;
 }
 
-/** Share of moments with each helper that were rode out. Only helpers seen 2+ times. */
-export function helperSuccess(moments: Moment[]): { name: string; rate: number; count: number }[] {
-  const totals = countBy(moments.flatMap((m) => m.helpers));
+/**
+ * Helpers on moments the person rode out, most used first. Log only offers
+ * helpers on "Rode it out", so a per-helper success rate would always be 100%;
+ * how often each one came up is the honest number.
+ */
+export function topHelpers(moments: Moment[]): { name: string; count: number }[] {
   const rode = countBy(moments.filter((m) => m.outcome === 'rode_it_out').flatMap((m) => m.helpers));
-  return Object.entries(totals)
-    .filter(([, n]) => n >= 2)
-    .map(([name, count]) => ({ name, count, rate: (rode[name] ?? 0) / count }))
-    .sort((a, b) => b.rate - a.rate || b.count - a.count)
+  return Object.entries(rode)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 }
 
 export function intensityInsight(points: DayPoint[]): string | null {
   const withData = points.filter((p) => p.avg !== null);
   if (withData.length < 2) return null;
-  const first = withData[0]!.avg!;
-  const last = withData[withData.length - 1]!.avg!;
+  // Whole numbers: the 1-10 scale is whole, and "9 toward 4.8" reads oddly.
+  const first = Math.round(withData[0]!.avg!);
+  const last = Math.round(withData[withData.length - 1]!.avg!);
   if (last < first) return `Intensity is drifting down, from around ${first} toward ${last}.`;
   if (last > first) return `Intensity is up a little lately, from around ${first} toward ${last}.`;
   return `Intensity is holding steady around ${last}.`;
 }
 
-export function helpersInsight(rows: { name: string; rate: number }[]): string | null {
+export function helpersInsight(rows: { name: string }[]): string | null {
   const top = rows[0];
   if (!top) return null;
   return `${cap(top.name)} shows up most on the moments you rode out.`;

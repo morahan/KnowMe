@@ -20,6 +20,7 @@ const FIELD_GUIDE = `Field guide:
 - used: moments that ended in using
 - averageIntensity: average urge strength, 1-10
 - byHour: moments per hour of the day, index 0 = midnight
+- peakHours: their busiest stretch of the day, already worked out (null when there is too little to say). Use this for timing; do not re-derive it from byHour
 - topContexts / topFeelings: where they were and how they felt during moments
 - topHelpers: things that helped them ride it out
 - reasons: their own reasons for wanting to change this habit (not reasons for using)

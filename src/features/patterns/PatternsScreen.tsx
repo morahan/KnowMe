@@ -13,7 +13,7 @@ import { BarList, HabitLegend, HourChart, IntensityChart } from './components/Ch
 import { copy } from './copy';
 import { usePatterns } from './hooks';
 import {
-  byHour, byHourByHabit, helperRodeByHabit, helperSuccess, helpersInsight, intensityByDay, intensityByDayByHabit, intensityInsight, peakHourLabel, resolveVisibleHabitIds, rideOutRate, toggleVisibleHabitId, topContexts, topContextsByHabit, topFeelings, topFeelingsByHabit,
+  byHour, byHourByHabit, helperRodeByHabit, helpersInsight, intensityByDay, intensityByDayByHabit, intensityInsight, peakHourLabel, resolveVisibleHabitIds, rideOutRate, toggleVisibleHabitId, topHelpers, topContexts, topContextsByHabit, topFeelings, topFeelingsByHabit,
 } from './logic';
 
 type Props = { footer?: ReactNode };
@@ -69,7 +69,7 @@ export function PatternsScreen({ footer }: Props) {
     : undefined;
   const rodeByHabit = helperRodeByHabit(visibleMoments, visibleIds);
   const rate = rideOutRate(visibleMoments);
-  const helpers = helperSuccess(visibleMoments);
+  const helpers = topHelpers(visibleMoments);
   const peak = peakHourLabel(visibleMoments);
   const trend = intensityInsight(points);
 
@@ -136,10 +136,10 @@ export function PatternsScreen({ footer }: Props) {
         <BarList
           rows={helpers.map((h) => ({
             name: h.name,
-            count: Math.round(h.rate * 100),
+            count: h.count,
             byHabit: multi ? (rodeByHabit[h.name] ?? []) : undefined,
           }))}
-          suffix={copy.percentRode}
+          suffix={copy.times}
           habitOrder={multi ? visibleIds : undefined}
         />
       </View>

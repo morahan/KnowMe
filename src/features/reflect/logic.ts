@@ -1,4 +1,5 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
+import { formatWindow, hourBuckets, peakWindow } from '@/lib/hours';
 import { allReasonTexts } from '@/lib/reasons';
 import { countBy, mean, topN } from '@/lib/stats';
 
@@ -12,6 +13,13 @@ export type ReflectionSummary = {
   averageIntensity: number | null;
   /** 24 buckets, local hour of day. */
   byHour: number[];
+  /**
+   * The busiest 3-hour window in plain words ("8pm to 11pm"), the same one
+   * Patterns names, or null with too few moments. Derived from byHour, so no
+   * new information leaves the device (SAFETY §4: hours). The model misread
+   * the raw array on its own.
+   */
+  peakHours: string | null;
   topContexts: string[];
   topFeelings: string[];
   /** Helpers on moments the user rode out. */
@@ -30,8 +38,8 @@ type Input = {
 };
 
 export function buildSummary({ habits, reasons, moments, days, includeNotes }: Input): ReflectionSummary {
-  const byHour = Array.from({ length: 24 }, () => 0);
-  for (const m of moments) byHour[new Date(m.created_at).getHours()]! += 1;
+  const byHour = hourBuckets(moments.map((m) => m.created_at));
+  const peak = peakWindow(byHour);
 
   const summary: ReflectionSummary = {
     days,
@@ -41,6 +49,7 @@ export function buildSummary({ habits, reasons, moments, days, includeNotes }: I
     used: moments.filter((m) => m.outcome === 'used').length,
     averageIntensity: roundOrNull(mean(moments.map((m) => m.intensity))),
     byHour,
+    peakHours: peak ? formatWindow(peak) : null,
     topContexts: topN(countBy(moments.map((m) => m.context)), 3),
     topFeelings: topN(countBy(moments.flatMap((m) => m.feelings)), 3),
     topHelpers: topN(countBy(moments.filter((m) => m.outcome === 'rode_it_out').flatMap((m) => m.helpers)), 3),

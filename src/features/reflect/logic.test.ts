@@ -34,6 +34,16 @@ describe('buildSummary', () => {
     expect(s.averageIntensity).toBe(7);
     expect(s.topHelpers).toEqual(['tea']);
     expect(s.reasons).toEqual(['Sleep better']);
+    // Two moments are too few to name a busiest stretch.
+    expect(s.peakHours).toBeNull();
+  });
+
+  it('names the busiest stretch in plain words, as Patterns does', () => {
+    const evening = [20, 21, 21, 22, 9].map((h, i) =>
+      moment({ id: `e${i}`, created_at: new Date(2026, 10, 2 + i, h, 0).toISOString() }),
+    );
+    const s = buildSummary({ habits: [habit], reasons, moments: evening, days: 7, includeNotes: false });
+    expect(s.peakHours).toBe('8pm to 11pm');
   });
 
   it('includes per-habit reasons once, alongside the universal ones', () => {

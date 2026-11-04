@@ -1,6 +1,6 @@
 import type { Moment } from '@/db/schema';
 import {
-  MAX_VISIBLE_HABITS, byHour, byHourByHabit, displayMoments, formatDayLabel, helperRodeByHabit, helperSuccess, intensityByDay, intensityByDayByHabit, intensityChartContentWidth, intensityInsight, intensityPointX, peakHourLabel, resolveVisibleHabitIds, rideOutRate, sampleMoments, toggleVisibleHabitId, topContextsByHabit, topFeelingsByHabit,
+  MAX_VISIBLE_HABITS, byHour, byHourByHabit, displayMoments, formatDayLabel, helperRodeByHabit, intensityByDay, intensityByDayByHabit, intensityChartContentWidth, intensityInsight, intensityPointX, peakHourLabel, resolveVisibleHabitIds, rideOutRate, sampleMoments, toggleVisibleHabitId, topContextsByHabit, topHelpers, topFeelingsByHabit,
 } from './logic';
 
 const m = (over: Partial<Moment>): Moment => ({
@@ -166,16 +166,25 @@ describe('intensity chart geometry', () => {
 });
 
 describe('byHour / peakHourLabel', () => {
-  it('finds the evening peak', () => {
-    const moments = [at(1, 20), at(2, 21), at(3, 8)];
+  it('finds the evening peak once there are enough moments', () => {
+    const moments = [at(1, 20), at(2, 21), at(3, 21), at(4, 22), at(5, 8)];
     expect(byHour(moments)[20]).toBe(1);
-    expect(peakHourLabel(moments)).toBe('Most of your cravings land between 7pm and 10pm.');
+    expect(peakHourLabel(moments)).toBe('Most of your cravings land between 8pm and 11pm.');
     expect(peakHourLabel([])).toBeNull();
+  });
+
+  it('says nothing about hours from only a couple of moments', () => {
+    expect(peakHourLabel([at(1, 23), at(1, 23)])).toBeNull();
+  });
+
+  it('does not say "most" when the busiest window holds half or less', () => {
+    const moments = [at(1, 8), at(2, 9), at(3, 13), at(4, 16), at(5, 20), at(6, 22)];
+    expect(peakHourLabel(moments)).toMatch(/^Your cravings show up most between /);
   });
 });
 
-describe('rideOutRate / helperSuccess', () => {
-  it('computes the rate and per-helper success', () => {
+describe('rideOutRate / topHelpers', () => {
+  it('computes the rate and counts helpers on rode-out moments', () => {
     const moments = [
       m({ outcome: 'rode_it_out', helpers: ['tea'] }),
       m({ outcome: 'rode_it_out', helpers: ['tea', 'walk'] }),
@@ -184,8 +193,11 @@ describe('rideOutRate / helperSuccess', () => {
     ];
     expect(rideOutRate(moments)).toBe(0.5);
     expect(rideOutRate([])).toBeNull();
-    // walk seen once -> excluded; tea 2 of 3 rode out
-    expect(helperSuccess(moments)).toEqual([{ name: 'tea', rate: 2 / 3, count: 3 }]);
+    // Only rode-out moments count; the used moment's tea is not a helper.
+    expect(topHelpers(moments)).toEqual([
+      { name: 'tea', count: 2 },
+      { name: 'walk', count: 1 },
+    ]);
   });
 });
 
@@ -234,5 +246,14 @@ describe('intensityInsight', () => {
   it('describes a downward drift in plain words', () => {
     const pts = intensityByDay([at(1, 20, { intensity: 8 }), at(9, 20, { intensity: 5 })], 10, new Date(2026, 10, 10, 12));
     expect(intensityInsight(pts)).toContain('drifting down');
+  });
+
+  it('uses whole numbers at both ends', () => {
+    const pts = intensityByDay(
+      [at(1, 20, { intensity: 9 }), at(9, 20, { intensity: 5 }), at(9, 21, { intensity: 4 }), at(9, 22, { intensity: 5 })],
+      10,
+      new Date(2026, 10, 10, 12),
+    );
+    expect(intensityInsight(pts)).toBe('Intensity is drifting down, from around 9 toward 5.');
   });
 });
