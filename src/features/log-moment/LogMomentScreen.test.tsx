@@ -165,7 +165,7 @@ describe('LogMomentScreen what-helped quick tag', () => {
     await waitFor(() => expect(utils.getByText('Save for quick tagging')).toBeTruthy());
     await fireEvent.press(utils.getByText('Save for quick tagging'));
     // Auto-filled with the first 20 characters, then customized.
-    await waitFor(() => expect(utils.getByDisplayValue('Sat on the porch wit')).toBeTruthy());
+    await waitFor(() => expect(utils.getByDisplayValue('Sat on the porch')).toBeTruthy());
     await fireEvent.changeText(utils.getByPlaceholderText('Quick tag'), 'porch + sister');
     await fireEvent.press(utils.getByText('Add'));
     await waitFor(() => expect(utils.getByText('porch + sister ×')).toBeTruthy());

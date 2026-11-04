@@ -54,7 +54,7 @@ export function TodayScreen() {
         <View style={styles.block}>
           {data.habits.map(({ habit, daysSince }) => (
             <View key={habit.id} style={styles.habit}>
-              <Stat value={daysSince} label={`${copy.daysSince} · ${habitLabel(habit)}`} />
+              <Stat value={daysSince} label={`${copy.daysSince(daysSince)} · ${habitLabel(habit)}`} />
             </View>
           ))}
         </View>

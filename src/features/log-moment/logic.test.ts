@@ -34,8 +34,11 @@ describe('custom tags', () => {
     expect(MAX_TAG_CHARS).toBe(20);
     expect(CUSTOM_INPUT_MAX_CHARS).toBeGreaterThan(MAX_TAG_CHARS);
     expect(normalizeTag('  watching   the sunset with friends  ')).toBe('watching the sunset');
-    expect(normalizeTag('a very long custom tag here')).toBe('a very long custom t');
-    expect(normalizeTag('a very long custom tag here').length).toBe(MAX_TAG_CHARS);
+    // Cut at the last whole word, never mid-word.
+    expect(normalizeTag('a very long custom tag here')).toBe('a very long custom');
+    expect(normalizeTag('a very long custom tag here').length).toBeLessThanOrEqual(MAX_TAG_CHARS);
+    // A single word longer than a tag is cut as is.
+    expect(normalizeTag('supercalifragilisticexpialidocious')).toBe('supercalifragilistic');
   });
 
   it('adds a typed word as a custom tag', () => {
@@ -118,15 +121,15 @@ describe('what helped long input', () => {
   });
 
   it('auto-fills the first 20 characters as the quick tag', () => {
-    expect(quickTagDraft(longHelper)).toBe('Sat on the porch wit');
-    expect(quickTagDraft(longHelper).length).toBe(MAX_TAG_CHARS);
+    expect(quickTagDraft(longHelper)).toBe('Sat on the porch');
+    expect(quickTagDraft(longHelper).length).toBeLessThanOrEqual(MAX_TAG_CHARS);
   });
 
   it('uses the customized quick tag when saving for quick tagging', () => {
-    expect(resolveCustomTag(longHelper, false, 'porch + sister')).toBe('Sat on the porch wit');
+    expect(resolveCustomTag(longHelper, false, 'porch + sister')).toBe('Sat on the porch');
     expect(resolveCustomTag(longHelper, true, 'porch + sister')).toBe('porch + sister');
     expect(resolveCustomTag(longHelper, true, '  porch   +  sister call  ')).toBe('porch + sister call');
-    expect(resolveCustomTag(longHelper, true, 'a very long custom tag here')).toBe('a very long custom t');
+    expect(resolveCustomTag(longHelper, true, 'a very long custom tag here')).toBe('a very long custom');
   });
 
   it('adds the customized quick tag, not the long text, to helpers', () => {

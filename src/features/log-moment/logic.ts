@@ -29,7 +29,14 @@ export function isReady(d: LogDraft): boolean {
 
 /** Trim, collapse spaces, and cap a typed word at tag length. */
 export function normalizeTag(raw: string): string {
-  return raw.trim().replace(/\s+/g, ' ').slice(0, MAX_TAG_CHARS).trim();
+  const clean = raw.trim().replace(/\s+/g, ' ');
+  if (clean.length <= MAX_TAG_CHARS) return clean;
+  const cut = clean.slice(0, MAX_TAG_CHARS);
+  // Never end on half a word ("a deadline at work t"): back up to the last
+  // whole word when there is one; a single long word is cut as is.
+  const lastSpace = cut.lastIndexOf(' ');
+  if (clean[MAX_TAG_CHARS] !== ' ' && lastSpace > 0) return cut.slice(0, lastSpace).trim();
+  return cut.trim();
 }
 
 /** True when typed text is longer than a tag, so a quick tag is worth offering. */
