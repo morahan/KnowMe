@@ -1,4 +1,4 @@
-import { canAddReason, canSaveCustomHabit, cleanCustomHabit, cleanReasons, MAX_CUSTOM_HABIT_CHARS } from './logic';
+import { canAddReason, canSaveCustomHabit, cleanCustomHabit, cleanReasons, MAX_CUSTOM_HABIT_CHARS, presetKindForName } from './logic';
 
 describe('cleanReasons', () => {
   it('trims and drops empties', () => {
@@ -34,5 +34,19 @@ describe('canAddReason', () => {
   it('is false at 8 real reasons', () => {
     expect(canAddReason(['1', '2', '3', '4', '5', '6', '7', '8'])).toBe(false);
     expect(canAddReason(['1', '2'])).toBe(true);
+  });
+});
+
+describe('presetKindForName', () => {
+  it('maps a preset label, any casing, to its preset', () => {
+    expect(presetKindForName('alcohol', [])).toBe('alcohol');
+    expect(presetKindForName(' GAMBLING ', [])).toBe('gambling');
+  });
+  it('maps a tracked preset by its renamed label', () => {
+    expect(presetKindForName('vaping', [{ name: 'Vaping', kind: 'nicotine' }])).toBe('nicotine');
+  });
+  it('leaves new names and tracked customs alone', () => {
+    expect(presetKindForName('Sugar', [{ name: 'Sugar', kind: 'custom' }])).toBeNull();
+    expect(presetKindForName('', [])).toBeNull();
   });
 });

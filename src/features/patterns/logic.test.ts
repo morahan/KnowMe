@@ -244,13 +244,22 @@ describe('formatDayLabel', () => {
 
 describe('intensityInsight', () => {
   it('describes a downward drift in plain words', () => {
-    const pts = intensityByDay([at(1, 20, { intensity: 8 }), at(9, 20, { intensity: 5 })], 10, new Date(2026, 10, 10, 12));
+    const pts = intensityByDay(
+      [at(1, 20, { intensity: 8 }), at(5, 20, { intensity: 7 }), at(9, 20, { intensity: 5 })],
+      10,
+      new Date(2026, 10, 10, 12),
+    );
     expect(intensityInsight(pts)).toContain('drifting down');
+  });
+
+  it('claims no trend from only two logged days', () => {
+    const pts = intensityByDay([at(1, 20, { intensity: 8 }), at(9, 20, { intensity: 5 })], 10, new Date(2026, 10, 10, 12));
+    expect(intensityInsight(pts)).toBeNull();
   });
 
   it('uses whole numbers at both ends', () => {
     const pts = intensityByDay(
-      [at(1, 20, { intensity: 9 }), at(9, 20, { intensity: 5 }), at(9, 21, { intensity: 4 }), at(9, 22, { intensity: 5 })],
+      [at(1, 20, { intensity: 9 }), at(5, 20, { intensity: 7 }), at(9, 20, { intensity: 5 }), at(9, 21, { intensity: 4 }), at(9, 22, { intensity: 5 })],
       10,
       new Date(2026, 10, 10, 12),
     );

@@ -128,4 +128,24 @@ describe('PatternsScreen sample data', () => {
     expect(view.getByLabelText('Sugar').props.accessibilityState.checked).toBe(true);
     expect(view.getByLabelText('Nicotine').props.accessibilityState.checked).toBe(false);
   });
+
+  it('bases the intensity sentence on the shown behaviors only, like every other sentence', async () => {
+    mockHabits = [
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h3', name: 'Alcohol', kind: 'alcohol', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h4', name: 'Sugar', kind: 'custom', created_at: '2026-11-01T00:00:00.000Z' },
+    ];
+    const day = (d: number) => new Date(2026, 10, d, 20).toISOString();
+    const steady = ['h1', 'h2', 'h3'].flatMap((habit_id) =>
+      [1, 2, 3].map((d) => ({ ...realMoment, id: `${habit_id}-${d}`, habit_id, created_at: day(d), intensity: 5 })),
+    );
+    // The hidden fourth behavior climbs hard on the last day.
+    const hidden = { ...realMoment, id: 'h4-3', habit_id: 'h4', created_at: day(3), intensity: 10 };
+    mockList.mockResolvedValue([...steady, hidden]);
+    const view = await render(<PatternsScreen />);
+    await waitFor(() => expect(view.getByText(/Showing three at a time/)).toBeTruthy());
+    expect(view.getByLabelText('Sugar').props.accessibilityState.checked).toBe(false);
+    expect(view.getByText('Intensity is holding steady around 5.')).toBeTruthy();
+  });
 });

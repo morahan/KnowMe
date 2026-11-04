@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type ScrollViewInstance } from 'react-native';
 import Svg, { Circle, Line, Polyline, Rect } from 'react-native-svg';
-import { chartColors, gutter, space, touch, type, useTheme } from '@/theme';
+import { chartColors, gutter, layout, space, touch, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { Label } from '@/ui/Label';
 import { copy } from '../copy';
@@ -21,6 +21,11 @@ const EDGE_INSET = space.md;
 // Y axis is always drawn: these ticks, their gridlines, and the axis line,
 // whether or not any day has data yet.
 const Y_TICKS = [10, 5, 1] as const;
+
+/** Width inside Screen's centered column: never wider than it on iPad or landscape. */
+function useColumnWidth(): number {
+  return Math.min(useWindowDimensions().width, layout.maxContentWidth) - gutter * 2;
+}
 
 /**
  * Intensity over time: one line per tracked behavior, dots on logged days.
@@ -119,7 +124,7 @@ export function IntensityChart({
   const { colors, habitColors } = useTheme();
   const [picked, setPicked] = useState<string[] | null>(null);
   const scrollRef = useRef<ScrollViewInstance>(null);
-  const totalWidth = useWindowDimensions().width - gutter * 2;
+  const totalWidth = useColumnWidth();
   const viewportWidth = totalWidth - space.lg - space.sm;
   const contentWidth = intensityChartContentWidth(points.length, viewportWidth, EDGE_INSET);
   const scrollable = contentWidth > viewportWidth;
@@ -264,7 +269,7 @@ export function IntensityChart({
 export function HourChart({ buckets, series }: { buckets: number[]; series?: HourSeries[] }) {
   const { colors, habitColors } = useTheme();
   const [accent] = chartColors(colors);
-  const width = useWindowDimensions().width - gutter * 2;
+  const width = useColumnWidth();
   const max = Math.max(1, ...buckets);
   const bw = width / 24;
   const plotH = CHART_H - PLOT_PAD;

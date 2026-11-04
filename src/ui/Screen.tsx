@@ -2,11 +2,11 @@ import type { ReactNode } from 'react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-
-const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
 import { gutter, layout, space, useTheme } from '@/theme';
 import { registerScrollToTop } from './scrollToTop';
 import { useReduceMotion } from './useReduceMotion';
+
+const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
 
 /** True while the software keyboard is open. iOS fires Will* before the
  * animation; Android only reliably fires Did*, so use both. */

@@ -32,6 +32,14 @@
 - [ ] With Reduce Motion on, the breath circle is still and shows no in/out word. Decide on device whether a static word would help or just add noise.
 - [ ] `Chip` and other toggles announce as checkboxes; check VoiceOver/TalkBack reading order on device.
 
+## Bug-hunt leftovers (2026-11-04)
+- [ ] Device walk of the 2026-11-04 fixes (Me remove confirm, Reflect button under a saved letter, crisis card Back with no history, Setup preset-name dedupe); the iOS sim was held by another session during the bug hunt.
+- [ ] `router.replace('/(tabs)')` from Setup / Onboarding replay / Log save may stack a second tabs copy; check Android Back on device.
+- [ ] Clearing demo data leaves the Cannabis/Gambling habits and demo reasons it added on an empty install.
+- [ ] I'm in it saves every moment as `context: 'home'`, which skews Patterns places.
+- [ ] Crisis card can stack on repeated matches (`SafetyProvider`).
+- [ ] Me rename rejects empty or duplicate names silently; the custom habit chip reads "Sugar times" to screen readers; chart Y labels may clip at the largest font sizes.
+
 ## If this ships beyond the demo
 - [ ] Crisis eval (`proxy/eval/crisisEval.ts`) is ~70 English phrases written by us, not a clinical validation. Grow it with real-world phrasing (and other languages) and have someone with crisis-line experience review the screen prompt.
 - [ ] Clef (Cloudflare decision model on DeepInfra) scored 91–96% recall vs the Llama screen's 96% and missed "standing at the edge of the balcony"; revisit if latency or cost matters.

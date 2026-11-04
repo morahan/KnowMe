@@ -1,5 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
-import { darkTheme, lightTheme } from '@/theme';
+import { darkTheme, gutter, layout, lightTheme } from '@/theme';
 import type { DayPoint } from '../logic';
 import { BarList, HourChart, IntensityChart, type HourSeries, type IntensitySeries } from './Charts';
 
@@ -264,5 +264,19 @@ describe('IntensityChart', () => {
     const two = await render(<IntensityChart points={axis2} series={manySeries(2)} />);
     expect(two.queryByText(/Showing three at a time/)).toBeNull();
     expect(two.queryAllByRole('checkbox')).toHaveLength(0);
+  });
+});
+
+describe('chart width on a wide window', () => {
+  it('fits the centered content column, not the whole window (iPad, landscape)', async () => {
+    const rn = jest.requireActual<typeof import('react-native')>('react-native');
+    const spy = jest.spyOn(rn, 'useWindowDimensions').mockReturnValue({ width: 1024, height: 768, scale: 2, fontScale: 1 });
+    try {
+      const { toJSON } = await render(<HourChart buckets={Array.from({ length: 24 }, () => 1)} />);
+      const svg = flatten(toJSON() as JsonNode | null).find((e) => e.type === 'RNSVGSvgView');
+      expect(Number(svg?.props.width)).toBeLessThanOrEqual(layout.maxContentWidth - gutter * 2);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

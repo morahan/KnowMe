@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addHabit, listHabits, removeHabit, renameHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import type { Habit } from '@/db/schema';
@@ -52,9 +52,10 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
     if (Object.keys(tagged).length > 0) setShowSpecific(true);
   }, []);
 
+  // Reload when demo data comes or goes: seeding can add habits and reasons.
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, demoOn]);
 
   const inputStyle = [
     styles.input,
@@ -83,10 +84,18 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   const customHabits = habits.filter(
     (h) => h.kind === 'custom' && !PRESET_HABITS.some((p) => habitNameKey(p.label) === habitNameKey(h.name)),
   );
+  // Removing a habit cascades its moments and reasons, so it always asks first.
+  const confirmRemove = (habit: Habit) => {
+    Alert.alert(copy.removeConfirmTitle(habitLabel(habit)), copy.removeConfirmBody, [
+      { text: copy.removeConfirmKeep, style: 'cancel' },
+      // Default style, not 'destructive': no red, ever (theme rule 2).
+      { text: copy.removeConfirmRemove, onPress: () => void removeHabit(habit.id).then(load) },
+    ]);
+  };
   const togglePreset = (preset: (typeof PRESET_HABITS)[number]) => {
     const existing = presetHabit(preset.kind);
     if (existing) {
-      void removeHabit(existing.id).then(load);
+      confirmRemove(existing);
     } else if (!guard(preset.label)) {
       void addHabit(preset.label, preset.kind).then(load);
     }
@@ -97,6 +106,8 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
     setNewHabit('');
     if (isTrackedName(name, habits)) return;
     const preset = PRESET_HABITS.find((p) => habitNameKey(p.label) === habitNameKey(name));
+    // A renamed preset is still that preset: never track it twice.
+    if (preset && presetHabit(preset.kind)) return;
     void addHabit(preset ? preset.label : name, preset ? preset.kind : 'custom').then(load);
   };
 
@@ -110,9 +121,8 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   };
   const removeTagEdit = () => {
     if (!editingHabit) return;
-    const id = editingHabit.id;
     setEditingId(null);
-    void removeHabit(id).then(load);
+    confirmRemove(editingHabit);
   };
 
   return (
@@ -183,9 +193,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
                 key={h.id}
                 label={`${habitLabel(h)} ×`}
                 selected
-                onPress={() => {
-                  void removeHabit(h.id).then(load);
-                }}
+                onPress={() => confirmRemove(h)}
               />
             ))}
           </View>
@@ -230,7 +238,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
           />
         ))}
       </View>
-      {reasons.filter((r) => r.trim()).length < MAX_REASONS ? (
+      {reasons.length < MAX_REASONS ? (
         <QuietLink label={copy.addReason} onPress={() => setReasons((prev) => [...prev, ''])} />
       ) : null}
       {habits.length > 1 ? (
@@ -260,7 +268,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
                       style={inputStyle}
                     />
                   ))}
-                  {list.filter((r) => r.trim()).length < MAX_REASONS ? (
+                  {list.length < MAX_REASONS ? (
                     <QuietLink
                       label={copy.addReason}
                       onPress={() =>
@@ -295,6 +303,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
       <View style={styles.list}>
         <QuietLink label={copy.lifeline} onPress={() => openPhone('tel:988', '988')} />
         <QuietLink label={copy.samhsa} onPress={() => openPhone('tel:18006624357', '1-800-662-4357')} />
+        <QuietLink label={copy.gamblingHelpline} onPress={() => openPhone('tel:18006973738', '1-800-697-3738')} />
         <QuietLink label={copy.quitNow} onPress={() => openPhone('tel:18007848669', '1-800-784-8669')} />
         <QuietLink label={copy.tellSomeone} onPress={() => Share.share({ message: copy.tellSomeoneMessage })} />
       </View>

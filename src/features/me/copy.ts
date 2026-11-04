@@ -11,6 +11,10 @@ export const copy = {
   saveTag: 'Save tag',
   removeTag: 'Remove tag',
   cancel: 'Cancel',
+  removeConfirmTitle: (name: string) => `Stop tracking ${name}?`,
+  removeConfirmBody: "Its moments and its own reasons go too. This can't be undone.",
+  removeConfirmKeep: 'Keep it',
+  removeConfirmRemove: 'Remove',
   reasonsTitle: 'Your reasons',
   reasonsBody: 'These are the words that show up when it gets hard.',
   reasonPlaceholder: 'A reason, in your own words',
@@ -29,6 +33,7 @@ export const copy = {
   supportTitle: 'Get support',
   lifeline: '988 Suicide & Crisis Lifeline — call or text',
   samhsa: 'SAMHSA National Helpline — 1-800-662-4357, free, 24/7',
+  gamblingHelpline: 'National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), call or text, 24/7',
   quitNow: '1-800-QUIT-NOW — for nicotine',
   tellSomeone: 'Tell someone you trust',
   tellSomeoneMessage:

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { getSetting, setSetting } from '@/db/repos/settings';
 import { radius, space, touch, type, useTheme } from '@/theme';
@@ -28,17 +28,12 @@ const TOTAL = copy.slides.length;
 export function OnboardingScreen() {
   const { colors } = useTheme();
   const [index, setIndex] = useState(0);
-  const alreadyOnboarded = useRef(false);
 
-  useEffect(() => {
-    void getSetting('onboarded').then((v) => {
-      alreadyOnboarded.current = Boolean(v);
-    });
-  }, []);
-
+  // Read at tap time, not on mount: a quick Skip on a replay must never
+  // land an onboarded person in Setup.
   const finish = useCallback(async () => {
-    await setSetting('onboarding_seen', '1');
-    if (alreadyOnboarded.current) router.replace('/(tabs)');
+    const [alreadyOnboarded] = await Promise.all([getSetting('onboarded'), setSetting('onboarding_seen', '1')]);
+    if (alreadyOnboarded) router.replace('/(tabs)');
     else router.replace('/setup');
   }, []);
 

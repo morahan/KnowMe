@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addHabit, listHabits, removeHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
@@ -17,7 +17,7 @@ import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
-import { MAX_CUSTOM_HABIT_CHARS, canAddReason, canSaveCustomHabit, cleanCustomHabit, cleanReasons } from './logic';
+import { MAX_CUSTOM_HABIT_CHARS, canAddReason, canSaveCustomHabit, cleanCustomHabit, cleanReasons, presetKindForName } from './logic';
 
 const PRESETS = PRESET_HABITS;
 
@@ -33,6 +33,10 @@ export function SetupScreen() {
   const [showSpecific, setShowSpecific] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingCustom, setSavingCustom] = useState(false);
+  // Block a second tap landing before the disabled state has rendered: two
+  // runs would each add the same habits.
+  const savingRef = useRef(false);
+  const savingCustomRef = useRef(false);
 
   // Leaving by Android Back or the iOS back swipe counts as "Skip for now":
   // otherwise Today reopens Setup on every launch, even after habits are set on Me.
@@ -78,21 +82,29 @@ export function SetupScreen() {
   // open, so the typed word needs its own save right beside the input.
   const saveCustom = useCallback(async () => {
     const name = cleanCustomHabit(custom);
-    if (!name || savingCustom) return;
+    if (!name || savingCustomRef.current) return;
     if (guard(name)) return;
+    const presetKind = presetKindForName(name, trackedHabits);
+    if (presetKind) {
+      setPicked((prev) => new Set(prev).add(presetKind));
+      setCustom('');
+      return;
+    }
     if (customHabits.some((h) => h.name.toLowerCase() === name.toLowerCase())) {
       setCustom('');
       return;
     }
+    savingCustomRef.current = true;
     setSavingCustom(true);
     try {
       const habit = await addHabit(name, 'custom');
       setCustomHabits((prev) => [...prev, habit]);
       setCustom('');
     } finally {
+      savingCustomRef.current = false;
       setSavingCustom(false);
     }
-  }, [custom, customHabits, guard, savingCustom]);
+  }, [custom, customHabits, guard, trackedHabits]);
 
   const removeCustom = useCallback((habit: Habit) => {
     void removeHabit(habit.id).then(() => {
@@ -106,20 +118,27 @@ export function SetupScreen() {
     const specificCleaned = trackedAtSave.map((t) => ({ key: t.key, texts: cleanReasons(specific[t.key] ?? []) }));
     // Crisis check before anything is saved (SAFETY.md §1).
     if (guard(...cleaned, custom, ...specificCleaned.flatMap((s) => s.texts))) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       const existing = await listHabits();
       const existingKinds = new Set(existing.map((h) => h.kind));
       const habitIdByKey = new Map<string, string>();
       for (const h of existing) habitIdByKey.set(h.kind === 'custom' ? h.id : h.kind, h.id);
+      const pendingCustom = cleanCustomHabit(custom);
+      // A typed-but-unsaved preset name ("alcohol") picks that preset.
+      const pendingPreset = picked.has('custom') && pendingCustom ? presetKindForName(pendingCustom, existing) : null;
       for (const p of PRESETS) {
-        if (picked.has(p.kind) && !existingKinds.has(p.kind)) {
+        if ((picked.has(p.kind) || pendingPreset === p.kind) && !existingKinds.has(p.kind)) {
           const habit = await addHabit(p.label, p.kind);
           habitIdByKey.set(p.kind, habit.id);
         }
       }
-      const pendingCustom = cleanCustomHabit(custom);
-      if (picked.has('custom') && pendingCustom) {
+      if (pendingPreset) {
+        const id = habitIdByKey.get(pendingPreset);
+        if (id) habitIdByKey.set(`pending:${pendingCustom.toLowerCase()}`, id);
+      } else if (picked.has('custom') && pendingCustom) {
         const match = existing.find((h) => h.name.toLowerCase() === pendingCustom.toLowerCase());
         if (match) {
           habitIdByKey.set(`pending:${pendingCustom.toLowerCase()}`, match.id);
@@ -140,6 +159,7 @@ export function SetupScreen() {
       await setSetting('onboarded', '1');
       router.replace('/(tabs)');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
     // trackedList reads picked/customHabits/custom/specific state.

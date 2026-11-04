@@ -5,10 +5,11 @@
  * behavior the option stays hidden entirely.
  */
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Alert, type AlertButton } from 'react-native';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { MeScreen } from './MeScreen';
 
-const habit = (id: string, name: string, kind: 'custom' | 'cannabis' | 'nicotine' = 'custom') => ({
+const habit = (id: string, name: string, kind: 'custom' | 'cannabis' | 'gambling' | 'nicotine' = 'custom') => ({
   id, name, kind, created_at: '2026-11-01T00:00:00.000Z',
 });
 
@@ -36,11 +37,24 @@ const mockReplace = replaceReasons as jest.Mock;
 const mockAddHabit = addHabit as jest.Mock;
 const mockRenameHabit = renameHabit as jest.Mock;
 const mockRemoveHabit = removeHabit as jest.Mock;
+const mockListHabits = jest.requireMock<{ listHabits: jest.Mock }>('@/db/repos/habits').listHabits;
+let alertSpy: jest.SpyInstance;
+
+/** Press a button on the most recent native confirm, by its label. */
+function answerAlert(label: string) {
+  const buttons = (alertSpy.mock.calls.at(-1)?.[2] ?? []) as AlertButton[];
+  const button = buttons.find((b) => b.text === label);
+  if (!button) throw new Error(`No "${label}" button on the alert`);
+  button.onPress?.();
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockHabits = [habit('h1', 'Nicotine')];
+  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 });
+
+afterEach(() => alertSpy.mockRestore());
 
 async function renderMe() {
   return render(
@@ -88,11 +102,89 @@ describe('MeScreen edit tracked tags', () => {
     await fireEvent.press(getByText('Edit tags'));
     await fireEvent.press(getByText('Sugar'));
     await fireEvent.press(getByText('Remove tag'));
+    expect(mockRemoveHabit).not.toHaveBeenCalled();
+    answerAlert('Remove');
     await waitFor(() => expect(mockRemoveHabit).toHaveBeenCalledWith('h2'));
+  });
+
+  it('asks before a preset chip tap removes a habit and all its moments', async () => {
+    mockHabits = [habit('h1', 'nicotine', 'nicotine')];
+    const { findByText } = await renderMe();
+    await fireEvent.press(await findByText('Nicotine'));
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    answerAlert('Keep it');
+    expect(mockRemoveHabit).not.toHaveBeenCalled();
+    answerAlert('Remove');
+    await waitFor(() => expect(mockRemoveHabit).toHaveBeenCalledWith('h1'));
+  });
+
+  it('asks before a custom chip tap removes it', async () => {
+    mockHabits = [habit('h2', 'Sugar')];
+    const { findByText } = await renderMe();
+    await fireEvent.press(await findByText('Sugar ×'));
+    expect(mockRemoveHabit).not.toHaveBeenCalled();
+    answerAlert('Remove');
+    await waitFor(() => expect(mockRemoveHabit).toHaveBeenCalledWith('h2'));
+  });
+
+  it('does not add a second habit for a renamed preset when its preset name is typed', async () => {
+    mockHabits = [habit('h1', 'Vaping', 'nicotine')];
+    const { findByText, getByLabelText, getByText } = await renderMe();
+    await findByText('Vaping');
+    await fireEvent.changeText(getByLabelText('Add your own'), 'Nicotine');
+    await fireEvent.press(getByText('Add'));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockAddHabit).not.toHaveBeenCalled();
+  });
+});
+
+describe('MeScreen demo data', () => {
+  it('reloads tracked habits after demo data is loaded', async () => {
+    const onLoad = jest.fn();
+    const onClear = jest.fn();
+    const view = await render(
+      <SafetyProvider>
+        <MeScreen demoOn={false} onLoadDemo={onLoad} onClearDemo={onClear} />
+      </SafetyProvider>,
+    );
+    await view.findByText('Demo data off');
+    mockHabits = [habit('h1', 'Nicotine'), habit('h9', 'Gambling', 'gambling')];
+    await view.rerender(
+      <SafetyProvider>
+        <MeScreen demoOn onLoadDemo={onLoad} onClearDemo={onClear} />
+      </SafetyProvider>,
+    );
+    await waitFor(() => expect(mockListHabits.mock.calls.length).toBeGreaterThan(1));
+    await waitFor(() =>
+      expect(view.getByRole('checkbox', { name: 'Gambling' }).props.accessibilityState.checked).toBe(true),
+    );
+  });
+});
+
+describe('MeScreen gambling preset and support', () => {
+  it('offers Gambling, not Scrolling, as a tracking tag', async () => {
+    const { findByText, queryByText } = await renderMe();
+    expect(await findByText('Gambling')).toBeTruthy();
+    expect(queryByText('Scrolling')).toBeNull();
+  });
+
+  it('shows the National Problem Gambling Helpline under Get support', async () => {
+    const { findByText } = await renderMe();
+    expect(
+      await findByText('National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), call or text, 24/7'),
+    ).toBeTruthy();
   });
 });
 
 describe('MeScreen reasons', () => {
+  it('stops offering another row once there are eight, filled or not', async () => {
+    const { findByText, getByText, queryByText, getAllByPlaceholderText } = await renderMe();
+    await findByText('Add another');
+    for (let i = 0; i < 7; i++) await fireEvent.press(getByText('Add another'));
+    expect(getAllByPlaceholderText('A reason, in your own words')).toHaveLength(8);
+    expect(queryByText('Add another')).toBeNull();
+  });
+
   it('shows only the universal list when tracking one behavior', async () => {
     const { findByText, queryByText, getByDisplayValue } = await renderMe();
     await findByText('Your reasons');

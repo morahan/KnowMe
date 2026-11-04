@@ -44,7 +44,7 @@ export function toggleVisibleHabitId(
 
 /** Example moments shown until the first real moment exists. In-memory only, never saved. */
 export function sampleMoments(now: Date = new Date()): Moment[] {
-  return generateDemoMoments(now).map((m, i) => ({
+  return generateDemoMoments(now).map(({ habitKind: _habitKind, ...m }, i) => ({
     ...m,
     id: `sample-${i}`,
     habit_id: 'sample',
@@ -318,9 +318,12 @@ export function topHelpers(moments: Moment[]): { name: string; count: number }[]
     .slice(0, 3);
 }
 
+/** Fewest logged days before the intensity line is worth a sentence. Two points are not a drift. */
+export const MIN_DAYS_FOR_TREND = 3;
+
 export function intensityInsight(points: DayPoint[]): string | null {
   const withData = points.filter((p) => p.avg !== null);
-  if (withData.length < 2) return null;
+  if (withData.length < MIN_DAYS_FOR_TREND) return null;
   // Whole numbers: the 1-10 scale is whole, and "9 toward 4.8" reads oddly.
   const first = Math.round(withData[0]!.avg!);
   const last = Math.round(withData[withData.length - 1]!.avg!);

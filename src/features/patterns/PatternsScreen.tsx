@@ -71,7 +71,8 @@ export function PatternsScreen({ footer }: Props) {
   const rate = rideOutRate(visibleMoments);
   const helpers = topHelpers(visibleMoments);
   const peak = peakHourLabel(visibleMoments);
-  const trend = intensityInsight(points);
+  // Like every sentence on the page, about the behaviors shown (DECISIONS 62).
+  const trend = intensityInsight(multi ? intensityByDay(visibleMoments) : points);
 
   return (
     <Screen scroll scrollTopKey="patterns">

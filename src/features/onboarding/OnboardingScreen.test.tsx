@@ -40,4 +40,14 @@ describe('OnboardingScreen', () => {
     await fireEvent.press(getByText('Skip'));
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/(tabs)'));
   });
+
+  it('replay skipped before the setting has loaded still returns to the tabs, never Setup', async () => {
+    // A slow read: still pending when Skip is tapped.
+    (getSetting as jest.Mock).mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve('1'), 50)));
+    const { getByText } = await render(<OnboardingScreen />);
+    await fireEvent.press(getByText('Skip'));
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    expect(router.replace).toHaveBeenCalledWith('/(tabs)');
+    expect(router.replace).not.toHaveBeenCalledWith('/setup');
+  });
 });
