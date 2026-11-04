@@ -5,14 +5,15 @@ import { getSetting } from '@/db/repos/settings';
 import { habitLabel } from '@/lib/habits';
 import { space } from '@/theme';
 import { Body } from '@/ui/Body';
-import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
+import { SectionTitle } from '@/ui/SectionTitle';
 import { Stat } from '@/ui/Stat';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
 import { useToday } from './hooks';
+import { momentHabitLabel } from './logic';
 
 export function TodayScreen() {
   const { data, reload } = useToday();
@@ -61,15 +62,19 @@ export function TodayScreen() {
       )}
 
       <View style={styles.block}>
-        <Label>{copy.today}</Label>
+        <SectionTitle>{copy.today}</SectionTitle>
         {data && data.today.length > 0 ? (
-          data.today.map((m) => (
-            <Body key={m.id} muted>
-              {`${formatTime(m.created_at)} · ${copy.intensityWord} ${m.intensity} · ${
-                m.outcome === 'rode_it_out' ? copy.rodeItOut : copy.used
-              }`}
-            </Body>
-          ))
+          data.today.map((m) => {
+            const tagged = momentHabitLabel(
+              m,
+              data.habits.map((h) => h.habit),
+            );
+            return (
+              <Body key={m.id} muted>
+                {`${formatTime(m.created_at)}${tagged ? ` · ${tagged}` : ''} · ${copy.intensityWord} ${m.intensity}`}
+              </Body>
+            );
+          })
         ) : (
           <Body muted>{copy.empty}</Body>
         )}

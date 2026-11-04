@@ -14,17 +14,17 @@ export type LogDraft = {
   intensity: number | null;
   context: Context;
   feelings: string[];
-  outcome: Outcome;
+  outcome: Outcome | null;
   helpers: string[];
   note: string;
 };
 
 export const emptyDraft: LogDraft = {
-  habitId: null, intensity: null, context: 'home', feelings: [], outcome: 'rode_it_out', helpers: [], note: '',
+  habitId: null, intensity: null, context: 'home', feelings: [], outcome: null, helpers: [], note: '',
 };
 
 export function isReady(d: LogDraft): boolean {
-  return d.habitId !== null && d.intensity !== null;
+  return d.habitId !== null && d.intensity !== null && d.outcome !== null;
 }
 
 /** Trim, collapse spaces, and cap a typed word at tag length. */
@@ -139,7 +139,7 @@ export function toNewMoment(d: LogDraft): NewMoment {
     intensity: d.intensity!,
     context: d.context,
     feelings: d.feelings,
-    outcome: d.outcome,
+    outcome: d.outcome!,
     helpers: d.outcome === 'rode_it_out' ? d.helpers : [],
     note: d.note.trim() ? d.note.trim() : null,
   };

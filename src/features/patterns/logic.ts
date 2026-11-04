@@ -335,7 +335,7 @@ export function intensityInsight(points: DayPoint[]): string | null {
 export function helpersInsight(rows: { name: string }[]): string | null {
   const top = rows[0];
   if (!top) return null;
-  return `${cap(top.name)} shows up most on the moments you rode out.`;
+  return `${cap(top.name)} shows up most on the times it passed.`;
 }
 
 function cap(s: string): string {

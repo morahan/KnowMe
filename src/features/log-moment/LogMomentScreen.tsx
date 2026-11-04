@@ -442,10 +442,26 @@ export function LogMomentScreen() {
       <SectionSeparator />
 
       <View style={styles.group}>
-        <SectionTitle>{copy.outcome}</SectionTitle>
-        <View style={styles.chips}>
-          <Chip label={copy.rodeItOut} selected={draft.outcome === 'rode_it_out'} onPress={() => setDraft((d) => ({ ...d, outcome: 'rode_it_out' }))} />
-          <Chip label={copy.used} selected={draft.outcome === 'used'} onPress={() => setDraft((d) => ({ ...d, outcome: 'used' }))} />
+        <SectionTitle>{copy.outcome(habits.find((habit) => habit.id === draft.habitId) ?? habits[0]!)}</SectionTitle>
+        <View style={styles.answers}>
+          {(['used', 'rode_it_out'] as const).map((outcome) => (
+            <Pressable
+              key={outcome}
+              accessibilityRole="button"
+              accessibilityState={{ selected: draft.outcome === outcome }}
+              onPress={() => setDraft((previous) => ({ ...previous, outcome }))}
+              style={({ pressed }) => [
+                styles.answer,
+                { borderColor: draft.outcome === outcome ? colors.accent : colors.border,
+                  backgroundColor: draft.outcome === outcome ? colors.accent : colors.bg },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[type.body, { color: draft.outcome === outcome ? colors.onAccent : colors.text }]}>
+                {outcome === 'used' ? copy.yes : copy.no}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
@@ -502,6 +518,8 @@ export function LogMomentScreen() {
 }
 
 const styles = StyleSheet.create({
+  answers: { flexDirection: 'row', gap: space.sm },
+  answer: { flex: 1, minHeight: touch.min, padding: space.md, borderWidth: StyleSheet.hairlineWidth * 2, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   group: { gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   pressed: { opacity: 0.7 },

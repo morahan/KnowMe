@@ -1,7 +1,7 @@
 /* eslint-disable import/first -- jest.mock must precede the imports it mocks */
 import { seedDemoData } from './hooks';
 
-let mockHabits: { id: string; name: string; kind: string; created_at: string }[] = [];
+let mockHabits: { id: string; name: string; kind: string; question: string | null; created_at: string }[] = [];
 
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => mockHabits),
@@ -9,6 +9,7 @@ jest.mock('@/db/repos/habits', () => ({
     id: `id-${kind}`,
     name,
     kind,
+    question: null,
     created_at: '2026-11-01T00:00:00.000Z',
   })),
 }));
@@ -53,8 +54,8 @@ describe('seedDemoData', () => {
 
   it('keeps an already tracked habit as primary and does not duplicate Gambling', async () => {
     mockHabits = [
-      { id: 'h-nic', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h-gambling', name: 'Gambling', kind: 'gambling', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h-nic', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h-gambling', name: 'Gambling', kind: 'gambling', question: null, created_at: '2026-11-01T00:00:00.000Z' },
     ];
     await seedDemoData();
     expect(mockAddHabit).not.toHaveBeenCalled();
@@ -64,7 +65,7 @@ describe('seedDemoData', () => {
   });
 
   it('never adds Gambling to someone tracking other habits: clearing the demo would leave it behind', async () => {
-    mockHabits = [{ id: 'h-nic', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' }];
+    mockHabits = [{ id: 'h-nic', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' }];
     await seedDemoData();
     expect(mockAddHabit).not.toHaveBeenCalled();
     const calls = mockInsert.mock.calls.map((c: unknown[]) => c[0] as { habit_id: string });

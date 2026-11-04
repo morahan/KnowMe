@@ -5,7 +5,8 @@
  * the real SafetyProvider and crisis matcher run.
  */
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { DeviceEventEmitter, Platform } from 'react-native';
+import { DeviceEventEmitter, Platform, StyleSheet } from 'react-native';
+import type { Habit, HabitKind } from '@/db/schema';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { LogMomentScreen } from './LogMomentScreen';
 
@@ -25,7 +26,7 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success' },
 }));
 
-let mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
+let mockHabits: Habit[] = [{ id: 'h1', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' }];
 
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => mockHabits),
@@ -51,7 +52,7 @@ const mockSetSetting = setSetting as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
+  mockHabits = [{ id: 'h1', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' }];
 });
 
 async function renderLog() {
@@ -63,8 +64,48 @@ async function renderLog() {
   // Habit loads on focus; intensity enables Save.
   await waitFor(() => expect(utils.getByText('Save')).toBeTruthy());
   await fireEvent.press(utils.getByLabelText('8 of 10'));
+  await fireEvent.press(utils.getByText('No'));
   return utils;
 }
+
+describe('habit-specific neutral answers', () => {
+  it.each<[HabitKind, string, string | null, string]>([
+    ['cannabis', 'Cannabis', null, 'Did you use cannabis?'],
+    ['nicotine', 'Nicotine', null, 'Did you use nicotine?'],
+    ['alcohol', 'Alcohol', null, 'Did you have a drink?'],
+    ['gambling', 'Gambling', null, 'Did you gamble?'],
+    ['custom', 'Sugar', 'eat sweets', 'Did you eat sweets?'],
+    ['custom', 'Sugar', null, 'Did you sugar?'],
+  ])('asks the %s question', async (kind, name, question, expected) => {
+    mockHabits = [{ id: 'h1', name, kind, question, created_at: '2026-11-01T00:00:00.000Z' }];
+    const utils = await renderLog();
+    expect(utils.getByText(expected)).toBeTruthy();
+  });
+
+  it.each([['Yes', 'used'], ['No', 'rode_it_out']])('maps %s to the existing %s value', async (label, outcome) => {
+    const utils = await renderLog();
+    await fireEvent.press(utils.getByRole('button', { name: label }));
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ outcome })));
+  });
+
+  it('requires an answer and gives both buttons equal selected styling', async () => {
+    const utils = await render(<SafetyProvider><LogMomentScreen /></SafetyProvider>);
+    await utils.findByText('Did you use cannabis?');
+    await fireEvent.press(utils.getByLabelText('8 of 10'));
+    expect(utils.getByRole('button', { name: 'Save' }).props.accessibilityState.disabled).toBe(true);
+    expect(utils.getByRole('button', { name: 'Yes' }).props.accessibilityState.selected).toBe(false);
+    expect(utils.getByRole('button', { name: 'No' }).props.accessibilityState.selected).toBe(false);
+    await fireEvent.press(utils.getByText('Yes'));
+    const yesStyle = StyleSheet.flatten(utils.getByRole('button', { name: 'Yes' }).props.style);
+    expect(utils.queryByText('What helped?')).toBeNull();
+    await fireEvent.press(utils.getByText('No'));
+    const noStyle = StyleSheet.flatten(utils.getByRole('button', { name: 'No' }).props.style);
+    expect(yesStyle).toEqual(noStyle);
+    expect(noStyle.flex).toBe(1);
+    expect(utils.getByText('What helped?')).toBeTruthy();
+  });
+});
 
 describe('LogMomentScreen crisis guard (SAFETY.md case 1)', () => {
   it('shows the crisis card and persists nothing for a crisis note', async () => {
@@ -125,24 +166,16 @@ describe('LogMomentScreen what-is-going-on quick tag', () => {
   });
 });
 
-describe('LogMomentScreen gambling question', () => {
-  it('asks the plain outcome question for Gambling, so it matches "Rode it out" / "Used"', async () => {
-    mockHabits = [{ id: 'h-gambling', name: 'Gambling', kind: 'gambling', created_at: '2026-11-01T00:00:00.000Z' }];
-    const utils = await renderLog();
-    expect(utils.getByText('How did it go?')).toBeTruthy();
-  });
-});
-
 describe('LogMomentScreen habit removed elsewhere', () => {
   it('drops a picked habit that was removed in Me, so the moment never points at a gone habit', async () => {
     mockHabits = [
-      { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h2', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-02T00:00:00.000Z' },
+      { id: 'h1', name: 'cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-02T00:00:00.000Z' },
     ];
     const utils = await renderLog();
     await fireEvent.press(utils.getByText('Nicotine'));
     // Nicotine is removed on Me; Log is focused again.
-    mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' }];
+    mockHabits = [{ id: 'h1', name: 'cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' }];
     await act(async () => {
       mockRefocus?.();
     });

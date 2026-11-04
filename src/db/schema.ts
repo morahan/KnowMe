@@ -13,7 +13,7 @@ export type Feeling = (typeof FEELINGS)[number];
 export type Helper = (typeof HELPERS)[number];
 export type HabitKind = (typeof HABIT_KINDS)[number];
 
-export type Habit = { id: string; name: string; kind: HabitKind; created_at: string };
+export type Habit = { id: string; name: string; kind: HabitKind; question: string | null; created_at: string };
 /** A reason with `habit_id: null` is universal (applies to every tracked habit). Otherwise it belongs to that one habit. */
 export type Reason = { id: string; habit_id: string | null; text: string; sort_order: number };
 export type Moment = {
@@ -69,6 +69,7 @@ export const MIGRATIONS: readonly string[] = [
   // habit cascades its tagged reasons, like its moments.
   `ALTER TABLE reasons ADD COLUMN habit_id TEXT REFERENCES habits(id) ON DELETE CASCADE;
    CREATE INDEX reasons_habit_id ON reasons(habit_id);`,
+  `ALTER TABLE habits ADD COLUMN question TEXT;`,
   // Scrolling is no longer a preset (Gambling replaced it). Keep any tracked
   // Scrolling habit, with its moments and reasons, as the person's own custom
   // habit, named the way it was shown.

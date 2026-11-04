@@ -1,4 +1,17 @@
-import { PRESET_HABITS, cleanCustomHabitNames, cleanHabitName, habitLabel, isTrackedKind, isTrackedName, renamedHabitName, resolveHabitId } from './habits';
+import { MAX_HABIT_QUESTION_CHARS, PRESET_HABITS, cleanCustomHabitNames, cleanHabitName, cleanHabitQuestion, habitLabel, habitQuestionPhrase, isTrackedKind, isTrackedName, renamedHabitName, resolveHabitId } from './habits';
+
+describe('habitQuestionPhrase', () => {
+  it('cleans phrases and caps their length', () => {
+    expect(cleanHabitQuestion('  eat   sweets  ')).toBe('eat sweets');
+    expect(cleanHabitQuestion('a'.repeat(100))).toHaveLength(MAX_HABIT_QUESTION_CHARS);
+    expect(habitQuestionPhrase({ name: 'Sugar', question: ' eat sweets ' })).toBe('eat sweets');
+  });
+
+  it('falls back to the lowercase name for legacy or blank phrases', () => {
+    expect(habitQuestionPhrase({ name: '  Sugar ', question: null })).toBe('sugar');
+    expect(habitQuestionPhrase({ name: 'Gaming', question: '  ' })).toBe('gaming');
+  });
+});
 
 describe('PRESET_HABITS', () => {
   it('offers the three substances plus Gambling as the one behavioral preset', () => {

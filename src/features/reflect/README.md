@@ -3,6 +3,7 @@
 The AI mirror. Lives inside the Patterns tab (no route of its own).
 
 - `logic.ts` — `buildSummary()`: pure. Counts, hours, intensities, tags, the user's reasons. Raw notes only if `includeNotes`.
+- Counts use `timesItPassed` / `timesYouDid` with unchanged `rode_it_out` / `used` semantics. Custom question phrases never enter the summary, even with notes enabled; the proxy validates the same contract.
 - `hooks.ts` — `useReflection()`: loads data via repos, runs the local crisis guard, POSTs to `${EXPO_PUBLIC_PROXY_URL}/api/reflect`.
 - `components/ReflectCard.tsx` — the button, "Include my notes" toggle, and the letter.
 

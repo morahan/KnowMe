@@ -30,8 +30,8 @@ yarn typecheck && yarn lint && yarn test
 
 | Tab | What it does |
 |---|---|
-| Today | Days since last "used" per habit, today's moments, the big **I'm in it** button |
-| Log | One screen, under 10 seconds: intensity, context, feelings, rode it out / used, helpers, note |
+| Today | Days since last time per habit, today's activity without outcome labels, the big **I'm in it** button |
+| Log | One screen, under 10 seconds: intensity, context, feelings, habit-specific Yes / No question, helpers, note |
 | Patterns | Local charts only (no AI): intensity over time, cravings by hour, top contexts/feelings, what helps |
 | Me | Edit habits and reasons, Get support (988 · SAMHSA · QUIT-NOW), privacy note, demo-data switch |
 

@@ -1,6 +1,8 @@
 # TODO.md
 
 ## Verify on a real device / account
+- [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.
+- [ ] Deploy the neutral-count app/proxy contract together and verify a live reflection uses "times it passed" / "times you did"; deployment and live verification remain pending (2026-11-04).
 - [ ] Visually check the softened layered BreathCircle through full cycles on iOS and Android in dark/light mode, with Reduce Motion and large text; agent device access was disabled during this polish pass (2026-11-03).
 - [x] Proxy live on DeepInfra Llama 3.3 70B; a live letter returns 200 (2026-11-03).
 - [ ] Check the largest Dynamic Type sizes on device (text scales by default; simulator pass was at default size).

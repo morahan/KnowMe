@@ -6,7 +6,7 @@ import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons'
 import { setSetting } from '@/db/repos/settings';
 import type { Habit, HabitKind } from '@/db/schema';
 import { useSafety } from '@/features/safety';
-import { PRESET_HABITS, habitLabel } from '@/lib/habits';
+import { MAX_HABIT_QUESTION_CHARS, PRESET_HABITS, cleanHabitQuestion, habitLabel } from '@/lib/habits';
 import { reasonTextsFor } from '@/lib/reasons';
 import { radius, space, touch, type, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
@@ -26,6 +26,7 @@ export function SetupScreen() {
   const { guard } = useSafety();
   const [picked, setPicked] = useState<Set<HabitKind>>(new Set());
   const [custom, setCustom] = useState('');
+  const [question, setQuestion] = useState<string | null>(null);
   const [customHabits, setCustomHabits] = useState<Habit[]>([]);
   const [trackedHabits, setTrackedHabits] = useState<Habit[]>([]);
   const [reasons, setReasons] = useState<string[]>(['']);
@@ -83,28 +84,31 @@ export function SetupScreen() {
   const saveCustom = useCallback(async () => {
     const name = cleanCustomHabit(custom);
     if (!name || savingCustomRef.current) return;
-    if (guard(name)) return;
+    if (guard(custom, question ?? '')) return;
     const presetKind = presetKindForName(name, trackedHabits);
     if (presetKind) {
       setPicked((prev) => new Set(prev).add(presetKind));
       setCustom('');
+      setQuestion(null);
       return;
     }
     if (customHabits.some((h) => h.name.toLowerCase() === name.toLowerCase())) {
       setCustom('');
+      setQuestion(null);
       return;
     }
     savingCustomRef.current = true;
     setSavingCustom(true);
     try {
-      const habit = await addHabit(name, 'custom');
+      const habit = await addHabit(name, 'custom', cleanHabitQuestion(question ?? name.toLowerCase()) || null);
       setCustomHabits((prev) => [...prev, habit]);
       setCustom('');
+      setQuestion(null);
     } finally {
       savingCustomRef.current = false;
       setSavingCustom(false);
     }
-  }, [custom, customHabits, guard, trackedHabits]);
+  }, [custom, question, customHabits, guard, trackedHabits]);
 
   const removeCustom = useCallback((habit: Habit) => {
     void removeHabit(habit.id).then(() => {
@@ -117,7 +121,7 @@ export function SetupScreen() {
     const trackedAtSave = trackedList();
     const specificCleaned = trackedAtSave.map((t) => ({ key: t.key, texts: cleanReasons(specific[t.key] ?? []) }));
     // Crisis check before anything is saved (SAFETY.md §1).
-    if (guard(...cleaned, custom, ...specificCleaned.flatMap((s) => s.texts))) return;
+    if (guard(...cleaned, custom, question ?? '', ...specificCleaned.flatMap((s) => s.texts))) return;
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
@@ -143,7 +147,7 @@ export function SetupScreen() {
         if (match) {
           habitIdByKey.set(`pending:${pendingCustom.toLowerCase()}`, match.id);
         } else {
-          const habit = await addHabit(pendingCustom, 'custom');
+          const habit = await addHabit(pendingCustom, 'custom', cleanHabitQuestion(question ?? pendingCustom.toLowerCase()) || null);
           habitIdByKey.set(`pending:${pendingCustom.toLowerCase()}`, habit.id);
         }
       }
@@ -164,7 +168,7 @@ export function SetupScreen() {
     }
     // trackedList reads picked/customHabits/custom/specific state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [custom, customHabits, guard, picked, reasons, specific]);
+  }, [custom, question, customHabits, guard, picked, reasons, specific]);
 
   const toggle = (kind: HabitKind) =>
     setPicked((prev) => {
@@ -241,6 +245,18 @@ export function SetupScreen() {
             </Pressable>
           </View>
           <Label>{`${custom.length}/${MAX_CUSTOM_HABIT_CHARS}`}</Label>
+          <Label>{copy.questionPrompt}</Label>
+          <TextInput
+            accessibilityLabel={copy.questionPhrase}
+            placeholder={copy.questionPhrase}
+            placeholderTextColor={colors.muted}
+            value={question ?? cleanCustomHabit(custom).toLowerCase()}
+            onChangeText={setQuestion}
+            maxLength={MAX_HABIT_QUESTION_CHARS}
+            autoCapitalize="none"
+            style={inputStyle}
+          />
+          <Label>{copy.questionPreview(cleanHabitQuestion(question ?? cleanCustomHabit(custom).toLowerCase()) || cleanCustomHabit(custom).toLowerCase())}</Label>
         </View>
       ) : null}
 

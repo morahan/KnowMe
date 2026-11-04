@@ -23,7 +23,7 @@ const palette = {
   slate: '#6B6F77',     // muted text on light
   amber: '#E8B07A',     // THE accent — the lamp
   amberDeep: '#9A5B24', // accent as text on light bg
-  sage: '#7FB3A6',      // calm / rode it out
+  sage: '#7FB3A6',      // calm trends
   sageDeep: '#3F7A6C',  // calm as text on light bg
 } as const;
 
@@ -33,11 +33,11 @@ export type Colors = {
   surface: string;     // raised areas (sparingly)
   border: string;      // chip outlines, pressed states
   text: string;        // primary text
-  muted: string;       // secondary text, "used" state
+  muted: string;       // secondary text
   accent: string;      // primary button fill, breath circle, highlights
   onAccent: string;    // text/icons on an accent fill
   accentText: string;  // accent used as text on bg
-  calm: string;        // "rode it out", positive trends
+  calm: string;        // quiet trend information
   calmText: string;    // calm used as text on bg
 };
 
@@ -159,9 +159,9 @@ export function useTheme(): Theme {
 }
 
 // ─── Rules agents must follow ─────────────────────────────────────
-// 1. One accent. Amber is the only fill color. Sage is for "rode it out" and positive trends only.
+// 1. One accent. Amber is the only fill color. Yes and No share the same accent-selected styling.
 //    Exception: `habitColors` marks behaviors on Patterns charts only (lines, dots, bar segments), never buttons or chips.
-// 2. No red, ever. "Used" is `muted`, not a warning color.
+// 2. No red, ever. Answers are neutral observations, not warning states.
 // 3. Primary button = accent fill + onAccent text. Secondary = text only, no border.
 // 4. Chips: off = border outline + text; on = accent fill + onAccent text.
 // 5. No shadows, no gradients. Space separates things. The only divider is `SectionSeparator`

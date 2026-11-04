@@ -16,7 +16,7 @@ describe('topHelpers', () => {
   });
 });
 
-const habit = (id: string, name: string): Habit => ({ id, name, kind: 'custom', created_at: '2026-11-01T00:00:00.000Z' });
+const habit = (id: string, name: string): Habit => ({ id, name, kind: 'custom', question: null, created_at: '2026-11-01T00:00:00.000Z' });
 const nicotine = habit('h-nic', 'Nicotine');
 const cannabis = habit('h-can', 'Cannabis');
 

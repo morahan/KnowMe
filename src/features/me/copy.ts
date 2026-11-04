@@ -2,6 +2,8 @@ export const copy = {
   title: 'Me',
   habitsTitle: 'What you are tracking',
   addHabitPlaceholder: 'Add your own',
+  questionPhrase: 'Question phrase',
+  questionPreview: (phrase: string) => `Did you ${phrase}?`,
   add: 'Add',
   removeCustomHint: 'Tap a saved word to remove it.',
   editTags: 'Edit tags',

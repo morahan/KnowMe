@@ -6,19 +6,23 @@
  */
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
+import { router } from 'expo-router';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { MeScreen } from './MeScreen';
 
 const habit = (id: string, name: string, kind: 'custom' | 'cannabis' | 'gambling' | 'nicotine' = 'custom') => ({
-  id, name, kind, created_at: '2026-11-01T00:00:00.000Z',
+  id, name, kind, question: null as string | null, created_at: '2026-11-01T00:00:00.000Z',
 });
 
 let mockHabits = [habit('h1', 'Nicotine')];
+
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() } }));
 
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => mockHabits),
   addHabit: jest.fn(async () => habit('hx', 'x')),
   renameHabit: jest.fn(async () => undefined),
+  editHabit: jest.fn(async () => undefined),
   removeHabit: jest.fn(async () => undefined),
 }));
 
@@ -30,7 +34,7 @@ jest.mock('@/db/repos/reasons', () => ({
   replaceReasons: jest.fn(async () => undefined),
 }));
 
-import { addHabit, removeHabit, renameHabit } from '@/db/repos/habits';
+import { addHabit, editHabit, removeHabit, renameHabit } from '@/db/repos/habits';
 import { replaceReasons } from '@/db/repos/reasons';
 
 const mockReplace = replaceReasons as jest.Mock;
@@ -65,6 +69,31 @@ async function renderMe() {
 }
 
 describe('MeScreen tracking tags', () => {
+  it('resets a discarded duplicate phrase before another custom habit', async () => {
+    mockHabits = [habit('h1', 'Sugar')];
+    const utils = await renderMe();
+    await utils.findByText('Sugar ×');
+    await fireEvent.changeText(utils.getByLabelText('Add your own'), 'Sugar');
+    await fireEvent.changeText(utils.getByLabelText('Question phrase'), 'eat sweets');
+    await fireEvent.press(utils.getByText('Add'));
+    expect(addHabit).not.toHaveBeenCalled();
+    await fireEvent.changeText(utils.getByLabelText('Add your own'), 'Gaming');
+    expect(utils.getByLabelText('Question phrase').props.value).toBe('gaming');
+  });
+
+  it.each(['eat sweets', 'want to die'])('guards and stores a new custom phrase: %s', async (phrase) => {
+    const utils = await renderMe();
+    await utils.findByText('Nicotine');
+    await fireEvent.changeText(utils.getByLabelText('Add your own'), 'Sugar');
+    expect(utils.getByLabelText('Question phrase').props.value).toBe('sugar');
+    await fireEvent.changeText(utils.getByLabelText('Question phrase'), phrase);
+    await fireEvent.press(utils.getByText('Add'));
+    if (phrase === 'want to die') {
+      expect(addHabit).not.toHaveBeenCalled();
+      expect(router.push).toHaveBeenCalledWith('/crisis');
+    }
+    else await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Sugar', 'custom', phrase));
+  });
   it('shows a preset stored lowercase with the same label as Log, Today, and I\'m in it', async () => {
     mockHabits = [habit('h1', 'cannabis', 'cannabis')];
     const { findByText, queryByText } = await renderMe();
@@ -84,6 +113,39 @@ describe('MeScreen tracking tags', () => {
 });
 
 describe('MeScreen edit tracked tags', () => {
+  it('prefills the saved custom phrase when reopening the editor', async () => {
+    mockHabits = [{ ...habit('h1', 'Sugar'), question: 'eat sweets' }];
+    const utils = await renderMe();
+    await utils.findByText('Sugar ×');
+    await fireEvent.press(utils.getByText('Edit tags'));
+    await fireEvent.press(utils.getByText('Sugar'));
+    expect(utils.getByLabelText('Question phrase').props.value).toBe('eat sweets');
+  });
+
+  it('prefills a legacy custom phrase and saves edits in place', async () => {
+    mockHabits = [habit('h1', 'Sugar')];
+    const utils = await renderMe();
+    await utils.findByText('Sugar ×');
+    await fireEvent.press(utils.getByText('Edit tags'));
+    await fireEvent.press(utils.getByText('Sugar'));
+    expect(utils.getByLabelText('Question phrase').props.value).toBe('sugar');
+    await fireEvent.changeText(utils.getByLabelText('Question phrase'), 'eat sweets');
+    await fireEvent.press(utils.getByText('Save tag'));
+    await waitFor(() => expect(editHabit).toHaveBeenCalledWith('h1', 'Sugar', 'eat sweets'));
+  });
+
+  it('does not save a crisis phrase while editing a custom habit', async () => {
+    mockHabits = [habit('h1', 'Sugar')];
+    const utils = await renderMe();
+    await utils.findByText('Sugar ×');
+    await fireEvent.press(utils.getByText('Edit tags'));
+    await fireEvent.press(utils.getByText('Sugar'));
+    await fireEvent.changeText(utils.getByLabelText('Question phrase'), 'want to die');
+    await fireEvent.press(utils.getByText('Save tag'));
+    expect(editHabit).not.toHaveBeenCalled();
+    expect(renameHabit).not.toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith('/crisis');
+  });
   it('renames a tracked preset in its own words', async () => {
     mockHabits = [habit('h1', 'nicotine', 'nicotine')];
     const { findByText, getByText, getByPlaceholderText } = await renderMe();

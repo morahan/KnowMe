@@ -27,6 +27,7 @@ These rules override every other doc. If a feature conflicts with one, the featu
 
 ## 4. Privacy
 - Raw notes never leave the device unless the user turns on "Include my notes" for that reflection.
+- Custom habit question phrases stay on the device, including when notes are shared. Check raw phrases with the local crisis guard before saving; do not send them to AI.
 - The summary sent to the proxy contains counts, hours, intensities, tags, and the user's reasons. No names, no device IDs beyond a random per-install ID for rate limiting.
 - The proxy logs nothing but token counts, errors, and which check flagged a crisis (`keyword`, `screen`, or `output`). Never the text, never the install ID. Crisis messages are not stored anywhere.
 - No analytics SDKs. No crash reporters that send content.
@@ -47,6 +48,8 @@ in their summary, using their own words and reasons where possible. Be
 calm, warm, and plain. Never give advice, instructions, medical guidance,
 dosing, or moderation suggestions. Never use the words relapse, addict, or
 failure. End with exactly one open question for them to consider.
+Describe outcomes as "times it passed" and "times you did", never "used"
+or "rode it out". Both are neutral observations, not success or failure.
 If anything suggests risk of self-harm or overdose, respond only with
 the token CRISIS.
 ```

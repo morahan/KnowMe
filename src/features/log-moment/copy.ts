@@ -1,11 +1,22 @@
+import type { Habit } from '@/db/schema';
+import { habitQuestionPhrase } from '@/lib/habits';
+
 export const copy = {
   title: 'Want to note this one?',
   intensity: 'How strong is it?',
   context: 'Where are you?',
   feelings: 'What is going on?',
-  outcome: 'How did it go?',
-  rodeItOut: 'Rode it out',
-  used: 'Used',
+  outcome: (habit: Habit) => {
+    switch (habit.kind) {
+      case 'cannabis': return 'Did you use cannabis?';
+      case 'nicotine': return 'Did you use nicotine?';
+      case 'alcohol': return 'Did you have a drink?';
+      case 'gambling': return 'Did you gamble?';
+      case 'custom': return `Did you ${habitQuestionPhrase(habit)}?`;
+    }
+  },
+  yes: 'Yes',
+  no: 'No',
   helpers: 'What helped?',
   note: 'Anything else? (optional)',
   habit: 'Which one?',
