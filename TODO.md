@@ -12,6 +12,11 @@
 - [x] Fixed on the way: unused `react-native-reanimated` broke CocoaPods; added `expo-dev-client`; moved splash to the `expo-splash-screen` plugin (Expo Doctor); Log Save stayed disabled after the first save (tabs stay mounted) — now reloads on focus; one inconsistent dedupe expectation in `habits.test.ts`.
 - [ ] Android Device-panel streaming is unavailable in this environment (host `ffmpeg` PATH); the emulator was driven over adb instead. No app issue.
 
+## Android emulator walk (2026-11-04, Pixel 7 AVD, Android 16 / API 36)
+- [x] Onboarding (Next/Back/Skip, slide 4 scrolls) → Setup incl. "Something else" custom habit → Me (habits, reasons, demo load/clear, 988 opens dialer, Tell someone opens share sheet, "How KnowMe works" replay) → I'm in it (picker, reasons, breath, re-check save) → Log (long custom feeling + quick tag, Used hides helpers, note, save; real Gboard keeps field and Save visible) → Patterns → Reflect (live letter names peakHours) → crisis note and crisis reason (card first, nothing saved, Text 988 opens Messages, hardware Back closes the card).
+- [x] Fixed on the way: leaving Setup by hardware Back kept re-opening it on every launch; "1 days"; auto tag cut mid-word ("a deadline at work t").
+- [ ] Single-select chips (Log "Which one?", I'm in it picker) still announce as checkboxes on TalkBack (see the Chip item below).
+
 ## iOS sim walk (2026-11-03, iPhone 18 Pro sim, iOS 27.2)
 - [x] Setup (incl. per-habit reasons) → Today → I'm in it (picker, per-habit reason, helpers, re-check save) → Log (custom tag, save) → Patterns (empty-ish and demo) → Reflect (live letter) → crisis note (card first, nothing saved) → Me (habits, demo load/clear) → onboarding (fresh install).
 - [x] Support links and the crisis card's call/text buttons show the number in an alert where there is no Phone app (verified on the iOS sim).
