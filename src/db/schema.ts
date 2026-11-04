@@ -3,7 +3,7 @@ export const CONTEXTS = ['home', 'car', 'work', 'social', 'other'] as const;
 export const OUTCOMES = ['rode_it_out', 'used'] as const;
 export const FEELINGS = ['bored', 'stressed', 'tired', 'restless', 'celebrating', 'lonely', 'other'] as const;
 export const HELPERS = ['tea', 'walk', 'music', 'game', 'shower', 'call someone', 'food', 'other'] as const;
-export const HABIT_KINDS = ['cannabis', 'nicotine', 'alcohol', 'custom'] as const;
+export const HABIT_KINDS = ['cannabis', 'nicotine', 'alcohol', 'scrolling', 'custom'] as const;
 export const MAX_REASONS = 8;
 
 export type Context = (typeof CONTEXTS)[number];

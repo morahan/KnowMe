@@ -1,7 +1,7 @@
 # PRODUCT.md — KnowMe
 
 ## What it is
-A private journal for people changing a habit (cannabis, nicotine, alcohol, or their own). You log the moments a craving shows up. KnowMe shows you your own patterns. **It never tells you what to do.**
+A private journal for people changing a habit (cannabis, nicotine, alcohol, scrolling, or their own). You log the moments a craving shows up. KnowMe shows you your own patterns. **It never tells you what to do.**
 
 > Know thyself. The data is yours, the conclusions are yours.
 

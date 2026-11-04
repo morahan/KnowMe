@@ -1,10 +1,18 @@
-import { cleanCustomHabitNames, cleanHabitName, habitLabel, isTrackedKind, isTrackedName, resolveHabitId } from './habits';
+import { PRESET_HABITS, cleanCustomHabitNames, cleanHabitName, habitLabel, isTrackedKind, isTrackedName, resolveHabitId } from './habits';
+
+describe('PRESET_HABITS', () => {
+  it('offers the three substances plus Scrolling as the one behavioral preset', () => {
+    expect(PRESET_HABITS.map((p) => p.label)).toEqual(['Cannabis', 'Nicotine', 'Alcohol', 'Scrolling']);
+    expect(PRESET_HABITS.map((p) => p.kind)).toEqual(['cannabis', 'nicotine', 'alcohol', 'scrolling']);
+  });
+});
 
 describe('habitLabel', () => {
   it('shows the preset label even when the stored name is lowercase', () => {
     expect(habitLabel({ name: 'cannabis', kind: 'cannabis' })).toBe('Cannabis');
     expect(habitLabel({ name: 'nicotine', kind: 'nicotine' })).toBe('Nicotine');
     expect(habitLabel({ name: 'alcohol', kind: 'alcohol' })).toBe('Alcohol');
+    expect(habitLabel({ name: 'scrolling', kind: 'scrolling' })).toBe('Scrolling');
   });
   it('shows a cleaned custom name in its own casing', () => {
     expect(habitLabel({ name: '  late night   scrolling ', kind: 'custom' })).toBe('late night scrolling');

@@ -5,6 +5,7 @@ export const PRESET_HABITS: { kind: Exclude<HabitKind, 'custom'>; label: string 
   { kind: 'cannabis', label: 'Cannabis' },
   { kind: 'nicotine', label: 'Nicotine' },
   { kind: 'alcohol', label: 'Alcohol' },
+  { kind: 'scrolling', label: 'Scrolling' },
 ];
 
 /** Long enough for a person's own words, short enough to stay a chip. Matches Setup's custom cap. */
