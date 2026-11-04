@@ -12,6 +12,15 @@
 - [x] Fixed on the way: unused `react-native-reanimated` broke CocoaPods; added `expo-dev-client`; moved splash to the `expo-splash-screen` plugin (Expo Doctor); Log Save stayed disabled after the first save (tabs stay mounted) — now reloads on focus; one inconsistent dedupe expectation in `habits.test.ts`.
 - [ ] Android Device-panel streaming is unavailable in this environment (host `ffmpeg` PATH); the emulator was driven over adb instead. No app issue.
 
+## iOS sim walk (2026-11-03, iPhone 18 Pro sim, iOS 27.2)
+- [x] Setup (incl. per-habit reasons) → Today → I'm in it (picker, per-habit reason, helpers, re-check save) → Log (custom tag, save) → Patterns (empty-ish and demo) → Reflect (live letter) → crisis note (card first, nothing saved) → Me (habits, demo load/clear) → onboarding (fresh install).
+- [ ] Support links (`tel:`) fail silently where there is no Phone app (simulator, iPad, iPod). Add a fallback (show the number) — the crisis card's Call 988 has the same gap.
+- [ ] Patterns "What helps" reads 100% rode out for every helper with real data: Log only offers helpers on "Rode it out", so the rate is always 100%. Rethink the metric or the copy.
+- [ ] Reflect letter can read the hour pattern differently from Patterns (7-day vs 90-day window, and Llama reads a raw 24-slot array). A precomputed peak-hours string would help, but the summary shape needs a SAFETY.md review first.
+- [ ] Log's "Other" input shows two counters (`10/140` and `10/20`). One is enough.
+- [ ] Intensity insight mixes precision ("from around 9 toward 4.8").
+- [ ] Hour insight says "Most of your cravings…" from as few as 2 moments; consider a minimum count.
+
 ## Review leftovers (strict pass, 2026-11-03)
 - [x] Screen-level crisis tests added with React Native Testing Library (`LogMomentScreen.test.tsx`, `CrisisScreen.test.tsx`): card renders with 988/911/Back, a crisis note persists nothing, an ordinary note saves. Device-verified on both platforms too.
 - [ ] Proxy handler integration tests (mocked Llama fetch: 8KB rejection, 429, upstream error) are not automated. Crisis, prompt, and rate-limit units are tested; the handler order (crisis before rate limit before fetch) is inspected, not executed.

@@ -10,7 +10,7 @@ export type PatternsData = { moments: Moment[]; isSample: boolean; habits: Habit
 export function usePatterns() {
   const [data, setData] = useState<PatternsData | null>(null);
   const load = useCallback(async () => {
-    // All moments, not just recent ones: one real moment anywhere ends
+    // All moments, not just recent ones: one stored moment anywhere ends
     // sample mode, even if it has aged out of the chart window below.
     const [all, habits] = await Promise.all([
       listMomentsSince(new Date(0).toISOString()),

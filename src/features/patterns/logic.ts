@@ -52,15 +52,15 @@ export function sampleMoments(now: Date = new Date()): Moment[] {
 }
 
 /**
- * What Patterns should chart. Any real (non-demo) moment replaces the
- * sample entirely, and demo rows never mix into real patterns.
+ * What Patterns should chart: every stored moment, including demo rows the
+ * user loaded on Me (Today and Reflect count them too). The in-memory sample
+ * shows only while nothing is stored at all.
  */
 export function displayMoments(
   moments: Moment[],
   now: Date = new Date(),
 ): { moments: Moment[]; isSample: boolean } {
-  const real = moments.filter((m) => !m.is_demo);
-  if (real.length > 0) return { moments: real, isSample: false };
+  if (moments.length > 0) return { moments, isSample: false };
   return { moments: sampleMoments(now), isSample: true };
 }
 

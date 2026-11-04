@@ -199,16 +199,19 @@ describe('displayMoments / sampleMoments', () => {
     expect(display.moments.every((x) => x.is_demo)).toBe(true);
   });
 
-  it('still shows sample data when only demo moments exist', () => {
-    const display = displayMoments([m({ is_demo: true })], now);
-    expect(display.isSample).toBe(true);
+  it('charts loaded demo moments instead of the sample', () => {
+    const demo = m({ id: 'demo-1', is_demo: true });
+    const display = displayMoments([demo], now);
+    expect(display.isSample).toBe(false);
+    expect(display.moments).toEqual([demo]);
   });
 
-  it('replaces sample data with real logs after the first real moment', () => {
+  it('keeps demo moments alongside real ones, as Today and Reflect do', () => {
+    const demo = m({ id: 'demo-1', is_demo: true });
     const real = m({ id: 'real-1' });
-    const display = displayMoments([m({ id: 'demo-1', is_demo: true }), real], now);
+    const display = displayMoments([demo, real], now);
     expect(display.isSample).toBe(false);
-    expect(display.moments).toEqual([real]);
+    expect(display.moments).toEqual([demo, real]);
   });
 
   it('builds deterministic sample moments with unique ids', () => {
