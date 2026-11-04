@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking, Share, StyleSheet, TextInput, View } from 'react-native';
+import { Share, StyleSheet, TextInput, View } from 'react-native';
 import { addHabit, listHabits, removeHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import type { Habit } from '@/db/schema';
-import { useSafety } from '@/features/safety';
+import { openPhone, useSafety } from '@/features/safety';
 import {
   MAX_HABIT_NAME_CHARS, PRESET_HABITS, cleanHabitName, habitLabel, habitNameKey, isTrackedName,
 } from '@/lib/habits';
@@ -208,9 +208,9 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
 
       <Title>{copy.supportTitle}</Title>
       <View style={styles.list}>
-        <QuietLink label={copy.lifeline} onPress={() => Linking.openURL('tel:988')} />
-        <QuietLink label={copy.samhsa} onPress={() => Linking.openURL('tel:18006624357')} />
-        <QuietLink label={copy.quitNow} onPress={() => Linking.openURL('tel:18007848669')} />
+        <QuietLink label={copy.lifeline} onPress={() => openPhone('tel:988', '988')} />
+        <QuietLink label={copy.samhsa} onPress={() => openPhone('tel:18006624357', '1-800-662-4357')} />
+        <QuietLink label={copy.quitNow} onPress={() => openPhone('tel:18007848669', '1-800-784-8669')} />
         <QuietLink label={copy.tellSomeone} onPress={() => Share.share({ message: copy.tellSomeoneMessage })} />
       </View>
 

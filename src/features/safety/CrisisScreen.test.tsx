@@ -4,7 +4,7 @@
  * 988 (call and text) and 911 before anything else, plus a quiet Back.
  */
 import { fireEvent, render } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { CrisisScreen } from './CrisisScreen';
 
 jest.mock('expo-router', () => ({
@@ -36,5 +36,16 @@ describe('CrisisScreen', () => {
     expect(Linking.openURL).toHaveBeenCalledWith('tel:911');
     await fireEvent.press(getByText('Back'));
     expect(router.back).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CrisisScreen without a Phone app', () => {
+  it('shows the number instead of failing silently', async () => {
+    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no phone'));
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { getByText } = await render(<CrisisScreen />);
+    await fireEvent.press(getByText('Call 988'));
+    await new Promise((r) => setImmediate(r));
+    expect(alert).toHaveBeenCalledWith("This device can't place calls", 'You can reach them at 988 from any phone.');
   });
 });
