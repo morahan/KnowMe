@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Share, StyleSheet, TextInput, View } from 'react-native';
 import { addHabit, listHabits, removeHabit } from '@/db/repos/habits';
@@ -215,6 +216,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
 
       <Title>{copy.privacyTitle}</Title>
       <Body muted>{copy.privacyBody}</Body>
+      <QuietLink label={copy.howItWorks} onPress={() => router.push('/onboarding')} />
     </Screen>
   );
 }

@@ -16,6 +16,7 @@ export default function RootLayout() {
       <SafetyProvider>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="onboarding" />
           <Stack.Screen name="setup" />
           <Stack.Screen name="in-it" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="crisis" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />

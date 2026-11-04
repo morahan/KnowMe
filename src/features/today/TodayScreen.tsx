@@ -17,10 +17,11 @@ import { useToday } from './hooks';
 export function TodayScreen() {
   const { data, reload } = useToday();
 
-  // First launch: offer setup once, until done or skipped.
+  // First launch: the short Gnome walkthrough once, then setup, until done or skipped.
   useEffect(() => {
-    void getSetting('onboarded').then((v) => {
-      if (!v) router.push('/setup');
+    void Promise.all([getSetting('onboarded'), getSetting('onboarding_seen')]).then(([done, seen]) => {
+      if (done) return;
+      router.push(seen ? '/setup' : '/onboarding');
     });
   }, []);
 

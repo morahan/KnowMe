@@ -26,6 +26,7 @@ export const copy = {
   tellSomeone: 'Tell someone you trust',
   tellSomeoneMessage:
     "Hey, I'm working on changing a habit and some moments are hard. Could I check in with you sometimes?",
+  howItWorks: 'How KnowMe works',
   privacyTitle: 'Privacy',
   privacyBody:
     'Everything you log stays on this phone. Only when you tap Reflect does a short summary leave it, without your notes unless you include them.',
