@@ -1,8 +1,8 @@
 import { FEELINGS, HELPERS } from '@/db/schema';
 import {
   CUSTOM_INPUT_MAX_CHARS, FEELING_INPUT_MAX_CHARS, HELPER_INPUT_MAX_CHARS, MAX_CUSTOM_TAGS, MAX_TAG_CHARS,
-  addCustomTag, canAddCustomTag, customTags, emptyDraft, isLongCustomText, isReady, normalizeTag, quickTagDraft,
-  removeTag, resolveCustomTag, toNewMoment,
+  addCustomTag, canAddCustomTag, customTags, defaultTags, emptyDraft, isLongCustomText, isReady, normalizeTag,
+  parseStoredTags, quickTagDraft, removeTag, renameTag, resolveCustomTag, toNewMoment,
 } from './logic';
 
 describe('log draft', () => {
@@ -69,6 +69,38 @@ describe('custom tags', () => {
   it('preset picks do not count toward the custom max', () => {
     expect(canAddCustomTag(['bored', 'stressed', 'tired', 'lonely'], FEELINGS)).toBe(true);
     expect(addCustomTag(['tea'], 'cold water', HELPERS)).toEqual(['tea', 'cold water']);
+  });
+});
+
+describe('preset tags', () => {
+  it('defaults to the presets without the Other entry', () => {
+    expect(defaultTags(FEELINGS)).toEqual(['bored', 'stressed', 'tired', 'restless', 'celebrating', 'lonely']);
+    expect(defaultTags(HELPERS)).toContain('tea');
+    expect(defaultTags(HELPERS)).not.toContain('other');
+  });
+
+  it('renames a preset in place, keeping its spot', () => {
+    expect(renameTag(['bored', 'stressed'], 'bored', '  flat  ')).toEqual(['flat', 'stressed']);
+    expect(renameTag(['tea', 'walk'], 'walk', 'short walk')).toEqual(['tea', 'short walk']);
+  });
+
+  it('will not rename to empty, other, or a tag already there', () => {
+    expect(renameTag(['bored', 'stressed'], 'bored', '   ')).toEqual(['bored', 'stressed']);
+    expect(renameTag(['bored', 'stressed'], 'bored', 'other')).toEqual(['bored', 'stressed']);
+    expect(renameTag(['bored', 'stressed'], 'bored', 'STRESSED')).toEqual(['bored', 'stressed']);
+    expect(renameTag(['bored'], 'gone', 'flat')).toEqual(['bored']);
+  });
+
+  it('removes a preset tag', () => {
+    expect(removeTag(['bored', 'tired'], 'tired')).toEqual(['bored']);
+  });
+
+  it('reads stored tags and falls back to defaults when unreadable', () => {
+    expect(parseStoredTags('["flat","stressed"]', FEELINGS)).toEqual(['flat', 'stressed']);
+    expect(parseStoredTags('[]', FEELINGS)).toEqual([]);
+    expect(parseStoredTags(null, FEELINGS)).toEqual(defaultTags(FEELINGS));
+    expect(parseStoredTags('not json', FEELINGS)).toEqual(defaultTags(FEELINGS));
+    expect(parseStoredTags('["flat","FLAT","other",""]', FEELINGS)).toEqual(['flat']);
   });
 });
 

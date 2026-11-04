@@ -32,12 +32,19 @@ jest.mock('@/db/repos/moments', () => ({
   insertMoment: jest.fn(async () => 'm1'),
 }));
 
+jest.mock('@/db/repos/settings', () => ({
+  getSetting: jest.fn(async () => null),
+  setSetting: jest.fn(async () => undefined),
+}));
+
 import { router } from 'expo-router';
 import { insertMoment } from '@/db/repos/moments';
+import { setSetting } from '@/db/repos/settings';
 
 const mockPush = router.push as jest.Mock;
 const mockReplace = router.replace as jest.Mock;
 const mockInsert = insertMoment as jest.Mock;
+const mockSetSetting = setSetting as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -111,6 +118,39 @@ describe('LogMomentScreen what-is-going-on quick tag', () => {
     await fireEvent.press(utils.getByText('Save'));
     await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ feelings: ['wired all morning'] }));
+  });
+});
+
+describe('LogMomentScreen preset tags', () => {
+  it('renames a preset feeling, saves the list, and logs the new word', async () => {
+    const utils = await renderLog();
+    await fireEvent.press(utils.getAllByText('Edit tags')[0]!);
+    await fireEvent.press(utils.getByText('bored'));
+    await fireEvent.changeText(utils.getByPlaceholderText('Tag name'), 'flat');
+    await fireEvent.press(utils.getByText('Save tag'));
+    await waitFor(() => expect(utils.getByText('flat')).toBeTruthy());
+    expect(utils.queryByText('bored')).toBeNull();
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'tag_presets.feelings',
+      JSON.stringify(['flat', 'stressed', 'tired', 'restless', 'celebrating', 'lonely']),
+    );
+    await fireEvent.press(utils.getAllByText('Done editing')[0]!);
+    await fireEvent.press(utils.getByText('flat'));
+    await fireEvent.press(utils.getByText('Save'));
+    await waitFor(() => expect(mockInsert).toHaveBeenCalledTimes(1));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ feelings: ['flat'] }));
+  });
+
+  it('removes a preset helper so it is no longer offered', async () => {
+    const utils = await renderLog();
+    // Feelings Edit tags comes first in the tree; helpers is second.
+    await fireEvent.press(utils.getAllByText('Edit tags')[1]!);
+    await fireEvent.press(utils.getByText('tea'));
+    await fireEvent.press(utils.getByText('Remove tag'));
+    await waitFor(() => expect(utils.queryByText('tea')).toBeNull());
+    const call = mockSetSetting.mock.calls.find((c: unknown[]) => c[0] === 'tag_presets.helpers');
+    expect(call).toBeTruthy();
+    expect(JSON.parse(call[1] as string)).not.toContain('tea');
   });
 });
 

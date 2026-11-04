@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { listHabits } from '@/db/repos/habits';
 import { insertMoment } from '@/db/repos/moments';
+import { getSetting, setSetting } from '@/db/repos/settings';
 import { CONTEXTS, FEELINGS, HELPERS, type Habit } from '@/db/schema';
 import { useSafety } from '@/features/safety';
 import { habitLabel } from '@/lib/habits';
@@ -13,15 +14,17 @@ import { Chip } from '@/ui/Chip';
 import { IntensityPicker } from '@/ui/IntensityPicker';
 import { Label } from '@/ui/Label';
 import { PrimaryButton } from '@/ui/PrimaryButton';
+import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
 import { SectionSeparator } from '@/ui/SectionSeparator';
 import { SectionTitle } from '@/ui/SectionTitle';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
 import {
-  CUSTOM_INPUT_MAX_CHARS, FEELING_INPUT_MAX_CHARS, HELPER_INPUT_MAX_CHARS, MAX_TAG_CHARS, addCustomTag,
-  canAddCustomTag, customTags, emptyDraft, isLongCustomText, isReady, normalizeTag, quickTagDraft, removeTag,
-  resolveCustomTag, toNewMoment, type LogDraft,
+  CUSTOM_INPUT_MAX_CHARS, FEELING_INPUT_MAX_CHARS, FEELING_TAGS_SETTING, HELPER_INPUT_MAX_CHARS,
+  HELPER_TAGS_SETTING, MAX_TAG_CHARS, addCustomTag, canAddCustomTag, customTags, defaultTags, emptyDraft,
+  isLongCustomText, isReady, normalizeTag, parseStoredTags, quickTagDraft, removeTag, renameTag, resolveCustomTag,
+  toNewMoment, type LogDraft,
 } from './logic';
 
 type TagGroupName = 'feelings' | 'helpers';
@@ -47,10 +50,19 @@ type TagGroupProps = {
   onOtherTextChange: (text: string) => void;
   onAddOther: () => void;
   onRemoveCustom: (tag: string) => void;
+  /** Preset list editing: rename or drop a preset so it is offered in the person's own words, or not at all. */
+  editing: boolean;
+  customized: boolean;
+  onToggleEditing: () => void;
+  onRenamePreset: (oldTag: string, newText: string) => boolean;
+  onRemovePreset: (tag: string) => void;
+  onRestoreDefaults: () => void;
 };
 
 function TagGroup(p: TagGroupProps) {
   const { colors } = useTheme();
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   const customs = customTags(p.selected, p.presets);
   const atMax = !canAddCustomTag(p.selected, p.presets);
   const tag = normalizeTag(p.otherText);
@@ -68,14 +80,81 @@ function TagGroup(p: TagGroupProps) {
           preset === 'other' ? (
             <Chip key={preset} label={copy.other} selected={p.otherOpen} onPress={p.onToggleOther} />
           ) : (
-            <Chip key={preset} label={preset} selected={p.selected.includes(preset)} onPress={() => p.onTogglePreset(preset)} />
+            <Chip
+              key={preset}
+              label={preset}
+              selected={p.editing ? editingTag === preset : p.selected.includes(preset)}
+              onPress={() => {
+                if (p.editing) {
+                  setEditingTag(preset);
+                  setEditText(preset);
+                } else {
+                  p.onTogglePreset(preset);
+                }
+              }}
+            />
           ),
         )}
         {customs.map((tagName) => (
           <Chip key={tagName} label={`${tagName} ×`} selected onPress={() => p.onRemoveCustom(tagName)} />
         ))}
       </View>
-      {customs.length > 0 ? <Label>{copy.removeCustomHint}</Label> : null}
+      {p.editing ? <Label>{copy.editTagsHint}</Label> : customs.length > 0 ? <Label>{copy.removeCustomHint}</Label> : null}
+      <QuietLink
+        label={p.editing ? copy.doneEditingTags : copy.editTags}
+        onPress={() => {
+          setEditingTag(null);
+          p.onToggleEditing();
+        }}
+      />
+      {p.editing && editingTag ? (
+        <View style={styles.otherBox}>
+          <View style={styles.otherRow}>
+            <TextInput
+              accessibilityLabel={copy.editTagPlaceholder}
+              placeholder={copy.editTagPlaceholder}
+              placeholderTextColor={colors.muted}
+              value={editText}
+              onChangeText={setEditText}
+              maxLength={MAX_TAG_CHARS}
+              autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={() => {
+                if (p.onRenamePreset(editingTag, editText)) setEditingTag(null);
+              }}
+              style={[styles.otherInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface }]}
+            />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                if (p.onRenamePreset(editingTag, editText)) setEditingTag(null);
+              }}
+              style={({ pressed }) => [styles.addButton, { borderColor: colors.border }, pressed && styles.pressed]}
+            >
+              <Text style={[type.label, { color: colors.text }]}>{copy.saveTag}</Text>
+            </Pressable>
+          </View>
+          <View style={styles.editActions}>
+            <QuietLink
+              label={copy.removeTag}
+              onPress={() => {
+                p.onRemovePreset(editingTag);
+                setEditingTag(null);
+              }}
+            />
+            <QuietLink label={copy.cancel} onPress={() => setEditingTag(null)} />
+          </View>
+        </View>
+      ) : null}
+      {p.editing && p.customized ? (
+        <QuietLink
+          label={copy.restoreDefaultTags}
+          onPress={() => {
+            setEditingTag(null);
+            p.onRestoreDefaults();
+          }}
+        />
+      ) : null}
       {p.otherOpen ? (
         <View style={styles.otherBox}>
           <View style={styles.otherRow}>
@@ -158,6 +237,42 @@ export function LogMomentScreen() {
   const [quickTagEnabled, setQuickTagEnabled] = useState<Record<TagGroupName, boolean>>({ feelings: false, helpers: false });
   const [quickTagText, setQuickTagText] = useState<Record<TagGroupName, string>>({ feelings: '', helpers: '' });
   const [quickTagEdited, setQuickTagEdited] = useState<Record<TagGroupName, boolean>>({ feelings: false, helpers: false });
+  // Each group's offered presets, in the person's own edited form when saved.
+  const [presetLists, setPresetLists] = useState<Record<TagGroupName, string[]>>({
+    feelings: defaultTags(FEELINGS),
+    helpers: defaultTags(HELPERS),
+  });
+  const [editingTags, setEditingTags] = useState<Record<TagGroupName, boolean>>({ feelings: false, helpers: false });
+
+  const savePresetList = (group: TagGroupName, next: string[]) => {
+    setPresetLists((prev) => ({ ...prev, [group]: next }));
+    const key = group === 'feelings' ? FEELING_TAGS_SETTING : HELPER_TAGS_SETTING;
+    void setSetting(key, JSON.stringify(next)).catch(() => undefined);
+  };
+
+  const renamePreset = (group: TagGroupName, oldTag: string, raw: string): boolean => {
+    const renamed = renameTag(presetLists[group], oldTag, raw);
+    if (renamed.join('\u0000') === presetLists[group].join('\u0000')) return false;
+    if (guard(normalizeTag(raw))) return false;
+    savePresetList(group, renamed);
+    setDraft((d) => {
+      const selected = d[group];
+      if (!selected.includes(oldTag)) return d;
+      const next = renameTag(selected, oldTag, raw);
+      // Already picked under the new word: drop the old spelling, never duplicate.
+      return { ...d, [group]: next.join('\u0000') === selected.join('\u0000') ? removeTag(selected, oldTag) : next };
+    });
+    return true;
+  };
+
+  const removePreset = (group: TagGroupName, tag: string) => {
+    savePresetList(group, removeTag(presetLists[group], tag));
+    setDraft((d) => ({ ...d, [group]: removeTag(d[group], tag) }));
+  };
+
+  const restorePresets = (group: TagGroupName, presets: readonly string[]) => {
+    savePresetList(group, defaultTags(presets));
+  };
 
   const onOtherTextChange = useCallback(
     (group: TagGroupName, t: string) => {
@@ -201,6 +316,11 @@ export function LogMomentScreen() {
         setHabits(hs);
         if (hs[0]) setDraft((d) => ({ ...d, habitId: d.habitId ?? hs[0]!.id }));
       });
+      void Promise.all([getSetting(FEELING_TAGS_SETTING), getSetting(HELPER_TAGS_SETTING)])
+        .then(([feelings, helpers]) => {
+          setPresetLists({ feelings: parseStoredTags(feelings, FEELINGS), helpers: parseStoredTags(helpers, HELPERS) });
+        })
+        .catch(() => undefined);
     }, []),
   );
 
@@ -218,6 +338,7 @@ export function LogMomentScreen() {
       setQuickTagEnabled({ feelings: false, helpers: false });
       setQuickTagText({ feelings: '', helpers: '' });
       setQuickTagEdited({ feelings: false, helpers: false });
+      setEditingTags({ feelings: false, helpers: false });
       router.replace('/(tabs)');
     } finally {
       setSaving(false);
@@ -285,7 +406,7 @@ export function LogMomentScreen() {
 
       <TagGroup
         label={copy.feelings}
-        presets={FEELINGS}
+        presets={[...presetLists.feelings, 'other']}
         selected={draft.feelings}
         otherOpen={otherOpen.feelings}
         otherText={otherText.feelings}
@@ -302,8 +423,14 @@ export function LogMomentScreen() {
         onTogglePreset={(f) => setDraft((d) => ({ ...d, feelings: toggleIn(d.feelings, f) }))}
         onToggleOther={() => setOtherOpen((o) => ({ ...o, feelings: !o.feelings }))}
         onOtherTextChange={(t) => onOtherTextChange('feelings', t)}
-        onAddOther={() => addOther('feelings', FEELINGS)}
+        onAddOther={() => addOther('feelings', presetLists.feelings)}
         onRemoveCustom={(t) => setDraft((d) => ({ ...d, feelings: removeTag(d.feelings, t) }))}
+        editing={editingTags.feelings}
+        customized={presetLists.feelings.join('\u0000') !== defaultTags(FEELINGS).join('\u0000')}
+        onToggleEditing={() => setEditingTags((x) => ({ ...x, feelings: !x.feelings }))}
+        onRenamePreset={(oldTag, text) => renamePreset('feelings', oldTag, text)}
+        onRemovePreset={(t) => removePreset('feelings', t)}
+        onRestoreDefaults={() => restorePresets('feelings', FEELINGS)}
       />
 
       <SectionSeparator />
@@ -321,7 +448,7 @@ export function LogMomentScreen() {
           <SectionSeparator />
           <TagGroup
           label={copy.helpers}
-          presets={HELPERS}
+          presets={[...presetLists.helpers, 'other']}
           selected={draft.helpers}
           otherOpen={otherOpen.helpers}
           otherText={otherText.helpers}
@@ -338,8 +465,14 @@ export function LogMomentScreen() {
           onTogglePreset={(h) => setDraft((d) => ({ ...d, helpers: toggleIn(d.helpers, h) }))}
           onToggleOther={() => setOtherOpen((o) => ({ ...o, helpers: !o.helpers }))}
           onOtherTextChange={(t) => onOtherTextChange('helpers', t)}
-          onAddOther={() => addOther('helpers', HELPERS)}
+          onAddOther={() => addOther('helpers', presetLists.helpers)}
           onRemoveCustom={(t) => setDraft((d) => ({ ...d, helpers: removeTag(d.helpers, t) }))}
+          editing={editingTags.helpers}
+          customized={presetLists.helpers.join('\u0000') !== defaultTags(HELPERS).join('\u0000')}
+          onToggleEditing={() => setEditingTags((x) => ({ ...x, helpers: !x.helpers }))}
+          onRenamePreset={(oldTag, text) => renamePreset('helpers', oldTag, text)}
+          onRemovePreset={(t) => removePreset('helpers', t)}
+          onRestoreDefaults={() => restorePresets('helpers', HELPERS)}
           />
         </>
       ) : null}
@@ -367,6 +500,7 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   pressed: { opacity: 0.7 },
   otherBox: { gap: space.sm },
+  editActions: { flexDirection: 'row', gap: space.md },
   quickTagBox: { gap: space.sm },
   otherRow: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   otherInputMultiline: { minHeight: touch.min * 2, textAlignVertical: 'top' },

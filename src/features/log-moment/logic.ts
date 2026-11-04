@@ -78,6 +78,53 @@ export function removeTag(tags: readonly string[], tag: string): string[] {
   return tags.filter((t) => t !== tag);
 }
 
+/** Settings keys holding each group's edited preset list (on-device only). */
+export const FEELING_TAGS_SETTING = 'tag_presets.feelings';
+export const HELPER_TAGS_SETTING = 'tag_presets.helpers';
+
+/** The offered tags in a preset list: every preset except the Other entry, which only opens the custom input. */
+export function defaultTags(presets: readonly string[]): string[] {
+  return presets.filter((p) => p !== 'other');
+}
+
+/**
+ * The preset list to offer: the stored list when it reads as a JSON array
+ * (an empty array means every preset was removed), otherwise the defaults.
+ * Entries are cleaned like typed tags, deduped, and never include `other`.
+ */
+export function parseStoredTags(raw: string | null, presets: readonly string[]): string[] {
+  if (raw === null) return defaultTags(presets);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return defaultTags(presets);
+  }
+  if (!Array.isArray(parsed)) return defaultTags(presets);
+  const out: string[] = [];
+  for (const entry of parsed) {
+    if (typeof entry !== 'string') continue;
+    const tag = normalizeTag(entry);
+    if (!tag || tag.toLowerCase() === 'other') continue;
+    if (out.some((t) => t.toLowerCase() === tag.toLowerCase())) continue;
+    out.push(tag);
+  }
+  return out;
+}
+
+/**
+ * Rename one tag in place, keeping its spot. Empty words, `other`, a word
+ * already in the list, and tags that are not there leave the list unchanged,
+ * so the caller can keep the editor open.
+ */
+export function renameTag(tags: readonly string[], oldTag: string, rawNew: string): string[] {
+  const next = normalizeTag(rawNew);
+  if (!next || next.toLowerCase() === 'other') return [...tags];
+  if (!tags.includes(oldTag)) return [...tags];
+  if (tags.some((t) => t !== oldTag && t.toLowerCase() === next.toLowerCase())) return [...tags];
+  return tags.map((t) => (t === oldTag ? next : t));
+}
+
 /** Assumes isReady(d). Helpers only count when the moment was rode out. */
 export function toNewMoment(d: LogDraft): NewMoment {
   return {

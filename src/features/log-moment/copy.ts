@@ -20,4 +20,12 @@ export const copy = {
   addTag: 'Add',
   removeCustomHint: 'Tap a word you added to remove it.',
   maxCustomTags: 'That is the most here. Remove one to add another.',
+  editTags: 'Edit tags',
+  doneEditingTags: 'Done editing',
+  editTagsHint: 'Tap a tag to edit or remove it.',
+  editTagPlaceholder: 'Tag name',
+  saveTag: 'Save tag',
+  removeTag: 'Remove tag',
+  cancel: 'Cancel',
+  restoreDefaultTags: 'Restore the original tags',
 } as const;
