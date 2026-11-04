@@ -73,3 +73,6 @@ One line each: `date | decision | why`
 2026-11-03 | `Screen` pads with root safe-area insets instead of a native SafeAreaView | the crisis card presented while the keyboard was up measured zero insets and drew its title under the clock; dismissing the keyboard first made the card not appear at all, so that was reverted
 2026-11-03 | `Screen` scrolls the focused input clear of a pinned footer on keyboardDidShow | Log's "Other" helper field opened behind the Save button
 2026-11-03 | Onboarding uses `<Screen scroll>` | slide 4's tab map ran under the footer on a 6.3" phone at default text size
+2026-11-03 | `openPhone` in safety shows the number in an alert when tel:/sms: cannot open (rejects on devices, resolves false on the iOS sim) | a support or crisis tap must never do nothing
+2026-11-03 | "What helps" shows counts of rode-out moments per helper instead of a rode-out rate | Log only offers helpers on "Rode it out", so the rate was always 100%
+2026-11-03 | Peak-hour math moved to `lib/hours`; Patterns needs 5 moments for an hour sentence and says "Most" only above half; Reflect sends the same window as `peakHours` | honest wording on thin data, and the letter no longer re-derives timing from a raw 24-slot array (summary review: it is "hours", already sent as byHour)

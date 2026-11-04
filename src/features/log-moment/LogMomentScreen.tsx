@@ -105,7 +105,9 @@ function TagGroup(p: TagGroupProps) {
               <Text style={[type.label, { color: !effectiveTag || atMax ? colors.muted : colors.text }]}>{copy.addTag}</Text>
             </Pressable>
           </View>
-          <Label>{`${p.otherText.length}/${inputMax}`}</Label>
+          {/* One counter at a time: short text shows the tag limit below; the
+              full-input limit only matters once the text runs long. */}
+          {isLong ? <Label>{`${p.otherText.length}/${inputMax}`}</Label> : null}
           {showQuickTag ? (
             <View style={styles.quickTagBox}>
               <View style={styles.chips}>

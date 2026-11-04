@@ -14,12 +14,12 @@
 
 ## iOS sim walk (2026-11-03, iPhone 18 Pro sim, iOS 27.2)
 - [x] Setup (incl. per-habit reasons) → Today → I'm in it (picker, per-habit reason, helpers, re-check save) → Log (custom tag, save) → Patterns (empty-ish and demo) → Reflect (live letter) → crisis note (card first, nothing saved) → Me (habits, demo load/clear) → onboarding (fresh install).
-- [ ] Support links (`tel:`) fail silently where there is no Phone app (simulator, iPad, iPod). Add a fallback (show the number) — the crisis card's Call 988 has the same gap.
-- [ ] Patterns "What helps" reads 100% rode out for every helper with real data: Log only offers helpers on "Rode it out", so the rate is always 100%. Rethink the metric or the copy.
-- [ ] Reflect letter can read the hour pattern differently from Patterns (7-day vs 90-day window, and Llama reads a raw 24-slot array). A precomputed peak-hours string would help, but the summary shape needs a SAFETY.md review first.
-- [ ] Log's "Other" input shows two counters (`10/140` and `10/20`). One is enough.
-- [ ] Intensity insight mixes precision ("from around 9 toward 4.8").
-- [ ] Hour insight says "Most of your cravings…" from as few as 2 moments; consider a minimum count.
+- [x] Support links and the crisis card's call/text buttons show the number in an alert where there is no Phone app (verified on the iOS sim).
+- [x] Patterns "What helps" lists how many rode-out moments each helper showed up on, not an always-100% rate.
+- [x] Reflect summary carries `peakHours` ("8pm to 11pm"), the same window Patterns names, derived from byHour (SAFETY §4: hours). The proxy field guide mentions it; redeploy the proxy to pick that up (the field reaches Llama either way). The window still differs from Patterns' (7 vs 90 days) by design.
+- [x] Log's "Other" input shows one counter; the 140 limit appears only once text runs long.
+- [x] Intensity insight uses whole numbers.
+- [x] Hour insight waits for 5 moments and says "Most" only when the window holds over half.
 
 ## Review leftovers (strict pass, 2026-11-03)
 - [x] Screen-level crisis tests added with React Native Testing Library (`LogMomentScreen.test.tsx`, `CrisisScreen.test.tsx`): card renders with 988/911/Back, a crisis note persists nothing, an ordinary note saves. Device-verified on both platforms too.
