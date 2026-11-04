@@ -15,7 +15,7 @@ jest.mock('@/db/repos/moments', () => ({
 }));
 
 let mockHabits = [
-  { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+  { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
 ];
 
 jest.mock('@/db/repos/habits', () => ({
@@ -43,7 +43,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockList.mockResolvedValue([]);
   mockHabits = [
-    { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+    { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
   ];
 });
 
@@ -66,8 +66,8 @@ describe('PatternsScreen sample data', () => {
 
   it('names each tracked behavior in the intensity legend when two are logged', async () => {
     mockHabits = [
-      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' },
     ];
     mockList.mockResolvedValue([
       realMoment,
@@ -81,8 +81,8 @@ describe('PatternsScreen sample data', () => {
 
   it('puts the color-code labels below the title, before any graph, in larger text', async () => {
     mockHabits = [
-      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' },
     ];
     mockList.mockResolvedValue([
       realMoment,
@@ -109,10 +109,10 @@ describe('PatternsScreen sample data', () => {
 
   it('shares one three-behavior toggle across the page when four are logged', async () => {
     mockHabits = [
-      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h3', name: 'Alcohol', kind: 'alcohol', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h4', name: 'Sugar', kind: 'custom', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h3', name: 'Alcohol', kind: 'alcohol', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h4', name: 'Sugar', kind: 'custom', question: null, created_at: '2026-11-01T00:00:00.000Z' },
     ];
     mockList.mockResolvedValue([
       realMoment,

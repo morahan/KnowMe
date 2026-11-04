@@ -1,4 +1,11 @@
 import { daysSinceLastUsed, momentHabitLabel } from './logic';
+import { copy } from './copy';
+
+it('uses singular day only for one day since last time', () => {
+  expect(copy.daysSince(1)).toBe('day since last time');
+  expect(copy.daysSince(0)).toBe('days since last time');
+  expect(copy.daysSince(2)).toBe('days since last time');
+});
 
 const now = new Date(2026, 10, 10, 12, 0);
 
@@ -15,9 +22,9 @@ describe('daysSinceLastUsed', () => {
 });
 
 describe('momentHabitLabel', () => {
-  const nicotine = { id: 'h1', name: 'Nicotine', kind: 'nicotine' as const, created_at: '2026-11-01T00:00:00' };
-  const cannabis = { id: 'h2', name: 'Cannabis', kind: 'cannabis' as const, created_at: '2026-11-01T00:00:00' };
-  const sugar = { id: 'h3', name: 'Sugar', kind: 'custom' as const, created_at: '2026-11-01T00:00:00' };
+  const nicotine = { id: 'h1', name: 'Nicotine', kind: 'nicotine' as const, question: null, created_at: '2026-11-01T00:00:00' };
+  const cannabis = { id: 'h2', name: 'Cannabis', kind: 'cannabis' as const, question: null, created_at: '2026-11-01T00:00:00' };
+  const sugar = { id: 'h3', name: 'Sugar', kind: 'custom' as const, question: null, created_at: '2026-11-01T00:00:00' };
 
   it('is null when only one habit is tracked', () => {
     expect(momentHabitLabel({ habit_id: 'h1' }, [nicotine])).toBeNull();

@@ -6,4 +6,4 @@ Reasons are universal by default; with 2+ habits tracked, an optional separate l
 
 Route: `app/(tabs)/me.tsx`. Uses: `db/repos/*`, `ui/QuietLink`.
 Features don't import each other, so the route will pass the demo switch in as a prop (same pattern as Patterns + Reflect).
-Status: Get support and privacy note work; editing and demo switch — see TODO.md.
+Custom habit editors also edit their local-only question phrase. Null legacy phrases start with the lowercase name. Raw names and phrases pass safety `guard()` before writes; edits preserve existing moments and reasons.

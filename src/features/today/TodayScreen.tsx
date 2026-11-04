@@ -71,9 +71,7 @@ export function TodayScreen() {
             );
             return (
               <Body key={m.id} muted>
-                {`${formatTime(m.created_at)}${tagged ? ` · ${tagged}` : ''} · ${copy.intensityWord} ${m.intensity} · ${
-                  m.outcome === 'rode_it_out' ? copy.rodeItOut : copy.used
-                }`}
+                {`${formatTime(m.created_at)}${tagged ? ` · ${tagged}` : ''} · ${copy.intensityWord} ${m.intensity}`}
               </Body>
             );
           })

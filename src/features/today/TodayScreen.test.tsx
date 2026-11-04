@@ -17,7 +17,7 @@ jest.mock('expo-router', () => ({
 jest.mock('@/db/repos/settings', () => ({ getSetting: jest.fn(async () => 'yes') }));
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => [
-    { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
+    { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
   ]),
 }));
 jest.mock('@/db/repos/moments', () => ({
@@ -41,8 +41,8 @@ describe('TodayScreen focus reload', () => {
 describe('TodayScreen today list', () => {
   it('names the tagged habit on each moment when multiple habits are tracked', async () => {
     (listHabits as jest.Mock).mockResolvedValue([
-      { id: 'h1', name: 'Nicotine', kind: 'nicotine', created_at: '2026-11-01T00:00:00.000Z' },
-      { id: 'h2', name: 'Cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
+      { id: 'h2', name: 'Cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' },
     ]);
     (listMomentsSince as jest.Mock).mockResolvedValue([
       {
@@ -55,8 +55,8 @@ describe('TodayScreen today list', () => {
       },
     ]);
     const { getByText } = await render(<TodayScreen />);
-    await waitFor(() => expect(getByText(/Nicotine · intensity 7 · rode it out/)).toBeTruthy());
-    expect(getByText(/Cannabis · intensity 4 · used/)).toBeTruthy();
+    await waitFor(() => expect(getByText(/Nicotine · intensity 7$/)).toBeTruthy());
+    expect(getByText(/Cannabis · intensity 4$/)).toBeTruthy();
   });
 
   it('heads the summary “Today\'s Activity” as a section title, not a second “Today”', async () => {

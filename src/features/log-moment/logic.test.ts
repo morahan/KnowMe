@@ -6,10 +6,12 @@ import {
 } from './logic';
 
 describe('log draft', () => {
-  it('needs a habit and an intensity', () => {
+  it('needs a habit, intensity, and an explicit answer', () => {
     expect(isReady(emptyDraft)).toBe(false);
     expect(isReady({ ...emptyDraft, habitId: 'h1' })).toBe(false);
-    expect(isReady({ ...emptyDraft, habitId: 'h1', intensity: 6 })).toBe(true);
+    expect(isReady({ ...emptyDraft, habitId: 'h1', intensity: 6 })).toBe(false);
+    expect(isReady({ ...emptyDraft, habitId: 'h1', intensity: 6, outcome: 'used' })).toBe(true);
+    expect(isReady({ ...emptyDraft, habitId: 'h1', intensity: 6, outcome: 'rode_it_out' })).toBe(true);
   });
 
   it('drops helpers on a used moment and trims the note', () => {
@@ -19,11 +21,11 @@ describe('log draft', () => {
   });
 
   it('stores an empty note as null', () => {
-    expect(toNewMoment({ ...emptyDraft, habitId: 'h1', intensity: 3 }).note).toBeNull();
+    expect(toNewMoment({ ...emptyDraft, habitId: 'h1', intensity: 3, outcome: 'rode_it_out' }).note).toBeNull();
   });
 
   it('keeps custom tags on the saved moment', () => {
-    const m = toNewMoment({ ...emptyDraft, habitId: 'h1', intensity: 3, feelings: ['bored', 'antsy'], helpers: ['cold water'] });
+    const m = toNewMoment({ ...emptyDraft, habitId: 'h1', intensity: 3, outcome: 'rode_it_out', feelings: ['bored', 'antsy'], helpers: ['cold water'] });
     expect(m.feelings).toEqual(['bored', 'antsy']);
     expect(m.helpers).toEqual(['cold water']);
   });

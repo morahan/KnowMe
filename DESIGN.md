@@ -9,7 +9,7 @@ KnowMe is used in hard moments, often in the evening, often mid-craving. The des
 1. **One thing per screen.** One primary action, clearly the biggest thing on the screen.
 2. **Fewer choices.** If a screen needs instructions, it has too much on it.
 3. **Space is the decoration.** Generous padding, no borders, no cards-in-cards. The one divider is the small centered section break (two short hairlines around a lamp-amber dot) between major sections; never full-width rules or lines between rows.
-4. **No red.** Nothing in the app signals failure. "Used" is neutral gray, not red.
+4. **No red.** Nothing in the app signals failure. Yes and No are equal neutral choices with the same accent-selected styling.
 5. **Motion is slow and soft.** Nothing bounces, flashes, or shakes.
 6. **Thumb-first.** Primary actions sit in the bottom third. Touch targets ≥ 48pt.
 7. **Dark by default.** Support light mode, but design dark first.
@@ -23,9 +23,9 @@ KnowMe is used in hard moments, often in the evening, often mid-craving. The des
 | `bg` | `#0F1115` | Screen background |
 | `surface` | `#171A20` | Raised areas (sparingly) |
 | `text` | `#ECE8E1` | Primary text, warm off-white |
-| `muted` | `#8A8F98` | Secondary text, "used" state |
+| `muted` | `#8A8F98` | Secondary text |
 | `accent` | `#E8B07A` | One warm amber. Primary buttons, breath circle, highlights |
-| `calm` | `#7FB3A6` | Sage. "Rode it out," positive trends |
+| `calm` | `#7FB3A6` | Sage. Quiet trend information, never an answer's reward color |
 
 Light mode: invert bg/text, keep accent and calm. Never add a third accent.
 
@@ -49,7 +49,7 @@ Light mode: invert bg/text, keep accent and calm. Never add a third accent.
 
 ## Screen notes
 - **Today:** the days-since number large and centered. Below it, quiet text for today's moments. The **I'm in it** button is the only accent-filled thing on the screen.
-- **Log:** one scrollable screen, chips grouped by question, Save pinned at the bottom. Haptic tick on save, then return to Today.
+- **Log:** one scrollable screen, chips grouped by question, Save pinned at the bottom. Ask "Did you use cannabis?", "Did you use nicotine?", "Did you have a drink?", "Did you scroll?", or "Did you {question}?" for a custom habit. Equal-sized Yes / No buttons, neither preselected, identical accent-selected styling. Haptic tick on save, then return to Today.
 - **I'm in it:** full screen, no tab bar. Reasons fade in one at a time. The breath circle in the center. The timer is small and muted, never a big countdown.
 - **Patterns:** one chart per section, max 4 sections. A plain sentence above each chart says what it shows. No legends if avoidable.
 - **Reflect:** text appears line by line, generous line height, like reading a letter.
@@ -59,10 +59,10 @@ Calm, plain, adult. Short sentences. Talks *with* the user, never *at* them.
 
 | Instead of | Say |
 |---|---|
-| "Relapse" / "Failed" | "Used" |
-| "Great job! 🎉" | "You rode it out." |
+| "Relapse" / "Failed" | "Times you did" |
+| "Great job! 🎉" | "Times it passed" |
 | "You should try…" | "Last time, a walk helped." |
-| "Streak broken" | "Day 1 again. Still here." |
+| "Streak broken" | "Days since last time" ("day" for one) |
 | "Log your craving now!" | "Want to note this one?" |
 
 No emoji. No exclamation points. No guilt.

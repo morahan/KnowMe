@@ -8,8 +8,8 @@ export type ReflectionSummary = {
   days: number;
   habits: string[];
   moments: number;
-  rodeItOut: number;
-  used: number;
+  timesItPassed: number;
+  timesYouDid: number;
   averageIntensity: number | null;
   /** 24 buckets, local hour of day. */
   byHour: number[];
@@ -45,8 +45,8 @@ export function buildSummary({ habits, reasons, moments, days, includeNotes }: I
     days,
     habits: habits.map((h) => h.name),
     moments: moments.length,
-    rodeItOut: moments.filter((m) => m.outcome === 'rode_it_out').length,
-    used: moments.filter((m) => m.outcome === 'used').length,
+    timesItPassed: moments.filter((m) => m.outcome === 'rode_it_out').length,
+    timesYouDid: moments.filter((m) => m.outcome === 'used').length,
     averageIntensity: roundOrNull(mean(moments.map((m) => m.intensity))),
     byHour,
     peakHours: peak ? formatWindow(peak) : null,

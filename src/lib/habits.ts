@@ -11,6 +11,16 @@ export const PRESET_HABITS: { kind: Exclude<HabitKind, 'custom'>; label: string 
 /** Long enough for a person's own words, short enough to stay a chip. Matches Setup's custom cap. */
 export const MAX_HABIT_NAME_CHARS = 20;
 
+export const MAX_HABIT_QUESTION_CHARS = 80;
+
+export function cleanHabitQuestion(raw: string): string {
+  return raw.trim().replace(/\s+/g, ' ').slice(0, MAX_HABIT_QUESTION_CHARS).trim();
+}
+
+export function habitQuestionPhrase(habit: Pick<Habit, 'name' | 'question'>): string {
+  return cleanHabitQuestion(habit.question ?? '') || cleanHabitName(habit.name).toLowerCase();
+}
+
 /**
  * The one label for a habit, everywhere it is shown (Me, Log, Today,
  * I'm in it, Setup). A preset shows its named label — even for rows stored

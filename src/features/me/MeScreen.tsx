@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
-import { addHabit, listHabits, removeHabit, renameHabit } from '@/db/repos/habits';
+import { addHabit, editHabit, listHabits, removeHabit, renameHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import type { Habit } from '@/db/schema';
 import { openPhone, useSafety } from '@/features/safety';
 import {
-  MAX_HABIT_NAME_CHARS, PRESET_HABITS, cleanHabitName, habitLabel, habitNameKey, isTrackedName, renamedHabitName,
+  MAX_HABIT_NAME_CHARS, MAX_HABIT_QUESTION_CHARS, PRESET_HABITS, cleanHabitName, cleanHabitQuestion, habitLabel, habitNameKey, habitQuestionPhrase, isTrackedName, renamedHabitName,
 } from '@/lib/habits';
 import { reasonTextsFor } from '@/lib/reasons';
 import { radius, space, touch, type, useTheme } from '@/theme';
@@ -30,6 +30,8 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   const { guard } = useSafety();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabit, setNewHabit] = useState('');
+  const [newQuestion, setNewQuestion] = useState<string | null>(null);
+  const [editQuestion, setEditQuestion] = useState('');
   const [reasons, setReasons] = useState<string[]>([]);
   const [perHabit, setPerHabit] = useState<Record<string, string[]>>({});
   const [showSpecific, setShowSpecific] = useState(false);
@@ -93,20 +95,24 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
   };
   const addOwn = () => {
     const name = cleanHabitName(newHabit);
-    if (!name || guard(name)) return;
+    if (!name || guard(newHabit, newQuestion ?? '')) return;
     setNewHabit('');
+    setNewQuestion(null);
     if (isTrackedName(name, habits)) return;
     const preset = PRESET_HABITS.find((p) => habitNameKey(p.label) === habitNameKey(name));
-    void addHabit(preset ? preset.label : name, preset ? preset.kind : 'custom').then(load);
+    if (preset) void addHabit(preset.label, preset.kind).then(load);
+    else void addHabit(name, 'custom', cleanHabitQuestion(newQuestion ?? name.toLowerCase()) || null).then(load);
   };
 
   const editingHabit = habits.find((h) => h.id === editingId) ?? null;
   const saveTagEdit = () => {
     if (!editingHabit) return;
     const name = renamedHabitName(editText, habits, editingHabit.id);
-    if (!name || guard(name)) return;
+    if (!name || guard(editText, editQuestion)) return;
     setEditingId(null);
-    void renameHabit(editingHabit.id, name).then(load);
+    if (editingHabit.kind === 'custom') {
+      void editHabit(editingHabit.id, name, cleanHabitQuestion(editQuestion) || null).then(load);
+    } else void renameHabit(editingHabit.id, name).then(load);
   };
   const removeTagEdit = () => {
     if (!editingHabit) return;
@@ -129,6 +135,7 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
                 onPress={() => {
                   setEditingId(h.id);
                   setEditText(habitLabel(h));
+                  setEditQuestion(habitQuestionPhrase(h));
                 }}
               />
             ))}
@@ -136,6 +143,21 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
           <Label>{copy.editTagsHint}</Label>
           {editingHabit ? (
             <View style={styles.editBox}>
+              {editingHabit.kind === 'custom' ? (
+                <>
+                  <TextInput
+                    accessibilityLabel={copy.questionPhrase}
+                    placeholder={copy.questionPhrase}
+                    placeholderTextColor={colors.muted}
+                    value={editQuestion}
+                    onChangeText={setEditQuestion}
+                    maxLength={MAX_HABIT_QUESTION_CHARS}
+                    autoCapitalize="none"
+                    style={inputStyle}
+                  />
+                  <Label>{copy.questionPreview(cleanHabitQuestion(editQuestion) || cleanHabitName(editText).toLowerCase())}</Label>
+                </>
+              ) : null}
               <View style={styles.editRow}>
                 <TextInput
                   accessibilityLabel={copy.editTagPlaceholder}
@@ -199,6 +221,21 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
             maxLength={MAX_HABIT_NAME_CHARS}
             style={inputStyle}
           />
+          {cleanHabitName(newHabit) && !PRESET_HABITS.some((preset) => habitNameKey(preset.label) === habitNameKey(newHabit)) ? (
+            <>
+              <TextInput
+                accessibilityLabel={copy.questionPhrase}
+                placeholder={copy.questionPhrase}
+                placeholderTextColor={colors.muted}
+                value={newQuestion ?? cleanHabitName(newHabit).toLowerCase()}
+                onChangeText={setNewQuestion}
+                maxLength={MAX_HABIT_QUESTION_CHARS}
+                autoCapitalize="none"
+                style={inputStyle}
+              />
+              <Label>{copy.questionPreview(cleanHabitQuestion(newQuestion ?? cleanHabitName(newHabit).toLowerCase()) || cleanHabitName(newHabit).toLowerCase())}</Label>
+            </>
+          ) : null}
           <QuietLink label={copy.add} onPress={addOwn} />
         </>
       )}

@@ -16,7 +16,10 @@ const fakeDb = {
   async runAsync(sql: string, ...args: unknown[]): Promise<void> {
     const s = sql.replace(/\s+/g, ' ').trim();
     if (s.startsWith('INSERT INTO habits')) {
-      tables.habits!.push({ id: args[0], name: args[1], kind: args[2], created_at: args[3] });
+      tables.habits!.push({ id: args[0], name: args[1], kind: args[2], question: args[3], created_at: args[4] });
+    } else if (s.startsWith('UPDATE habits SET name = ?, question = ?')) {
+      const row = tables.habits!.find((r) => r.id === args[2]);
+      if (row) Object.assign(row, { name: args[0], question: args[1] });
     } else if (s.startsWith('UPDATE habits')) {
       const row = tables.habits!.find((r) => r.id === args[1]);
       if (row) row.name = args[0];
@@ -99,7 +102,7 @@ const byStr = (key: string) => (a: Row, b: Row) => String(a[key]).localeCompare(
 
 jest.mock('@/db/client', () => ({ db: fakeDb, migrate: () => undefined }));
 
-import { addHabit, listHabits, removeHabit, renameHabit } from './habits';
+import { addHabit, editHabit, listHabits, removeHabit, renameHabit } from './habits';
 import { countMoments, deleteDemoMoments, hasDemoMoments, insertMoment, lastUsedAt, listMomentsSince } from './moments';
 import { listAllReasons, listReasons, listReasonsForHabit, replaceReasons } from './reasons';
 import { getInstallId, getSetting, setSetting } from './settings';
@@ -112,6 +115,22 @@ const base = {
 beforeEach(reset);
 
 describe('habits repo', () => {
+  it('persists custom questions and edits without losing history or reasons', async () => {
+    const habit = await addHabit('Sugar', 'custom', 'eat sweets');
+    await insertMoment({ ...base, habit_id: habit.id });
+    await replaceReasons(['Feel present'], habit.id);
+    expect((await listHabits())[0]?.question).toBe('eat sweets');
+    await editHabit(habit.id, 'Sweets', 'have sweets');
+    expect((await listHabits())[0]).toMatchObject({ id: habit.id, name: 'Sweets', question: 'have sweets' });
+    expect(await countMoments()).toBe(1);
+    expect((await listReasonsForHabit(habit.id))[0]?.text).toBe('Feel present');
+  });
+
+  it('keeps preset questions null and supports legacy custom nulls', async () => {
+    await addHabit('Cannabis', 'cannabis', 'ignored');
+    await addHabit('Sugar', 'custom');
+    expect((await listHabits()).map((habit) => habit.question)).toEqual([null, null]);
+  });
   it('adds and lists habits in creation order', async () => {
     const a = await addHabit('cannabis', 'cannabis');
     await addHabit('Evening walks', 'custom');

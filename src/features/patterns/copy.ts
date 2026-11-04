@@ -10,7 +10,7 @@ export const copy = {
   contextsTitle: 'Where it happens',
   feelingsTitle: 'What is going on',
   helpersTitle: 'What helps',
-  rodeRate: 'rode it out',
+  rodeRate: 'times it passed',
   times: (n: number) => (n === 1 ? '1 time' : `${n} times`),
   showingThree: 'Showing three at a time. Tap one to swap it out.',
   intensityChartAlt: 'Intensity over time chart',

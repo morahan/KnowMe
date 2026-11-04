@@ -13,6 +13,8 @@ POST /api/reflect
 ```
 
 ## Env vars (Vercel project settings)
+The summary contract is `days`, `habits`, `moments`, `timesItPassed`, `timesYouDid`, `averageIntensity`, `byHour` (24 counts), `peakHours`, `topContexts`, `topFeelings`, `topHelpers`, `reasons`, and optional `notes`. No/Yes counts keep the original database semantics. Custom question phrases are local-only and are not accepted fields. Invalid summaries return 400 before model calls. Deploy app and proxy together when updating these field names.
+
 | Var | Required | Default |
 |---|---|---|
 | `LLAMA_API_KEY` | yes | — |
@@ -43,3 +45,9 @@ DEEPINFRA_KEY_FILE=/path/to/key RUNS=3 node --experimental-strip-types proxy/eva
 
 ## Logging
 Token counts and error codes only. Never log the summary or the model output.
+
+## Tests
+From the repository root (the app Jest preset excludes proxy tests):
+```
+npx jest --config='{"testEnvironment":"node","transform":{"^.+\\.[jt]sx?$":"babel-jest"},"testMatch":["**/proxy/**/*.test.ts"],"testPathIgnorePatterns":["/node_modules/"]}' --runInBand
+```

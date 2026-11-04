@@ -1,7 +1,7 @@
 // POST /api/reflect  { installId, summary }  ->  { crisis: true } | { crisis: false, text }
 // Logs nothing but token counts, errors, and which check flagged a crisis (SAFETY.md §4).
 import { collectStrings, inputIsCrisis, outputIsCrisis } from '../lib/crisis';
-import { SYSTEM_PROMPT, userMessage } from '../lib/prompt';
+import { isReflectionSummary, SYSTEM_PROMPT, userMessage } from '../lib/prompt';
 import { allow } from '../lib/rateLimit';
 import { screenForCrisis } from '../lib/screen';
 
@@ -42,6 +42,7 @@ export async function POST(req: Request): Promise<Response> {
 
   // Crisis first, before rate limits or network.
   if (inputIsCrisis(summary)) return crisis('keyword');
+  if (!isReflectionSummary(summary)) return json({ error: 'invalid summary' }, 400);
   if (!allow(installId)) return json({ error: 'slow down' }, 429);
 
   // Model screen before writing anything. If the screen can't run, fail closed: no reflection.

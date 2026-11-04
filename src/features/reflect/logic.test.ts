@@ -1,7 +1,9 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
+import { generateDemoMoments } from '@/lib/demoMoments';
 import { buildSummary, classifyResponse, freeText } from './logic';
+import { isReflectionSummary, SYSTEM_PROMPT, userMessage } from '../../../proxy/lib/prompt';
 
-const habit: Habit = { id: 'h1', name: 'cannabis', kind: 'cannabis', created_at: '2026-11-01T00:00:00.000Z' };
+const habit: Habit = { id: 'h1', name: 'cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' };
 const reasons: Reason[] = [{ id: 'r1', habit_id: null, text: 'Sleep better', sort_order: 0 }];
 const SECRET = 'my private note about Sam';
 
@@ -15,6 +17,38 @@ function moment(over: Partial<Moment>): Moment {
 const moments = [moment({}), moment({ outcome: 'used', intensity: 8, helpers: [] })];
 
 describe('buildSummary', () => {
+  it('keeps demo outcome literals and produces neutral reflection counts', () => {
+    const demoMoments = generateDemoMoments(new Date(2026, 10, 4, 23)).map((entry, index) => (
+      moment({ ...entry, id: `demo-${index}`, is_demo: true })
+    ));
+    const summary = buildSummary({ habits: [habit], reasons, moments: demoMoments, days: 21, includeNotes: false });
+    expect(summary.timesYouDid).toBe(demoMoments.filter((entry) => entry.outcome === 'used').length);
+    expect(summary.timesItPassed).toBe(demoMoments.filter((entry) => entry.outcome === 'rode_it_out').length);
+    expect(summary.timesYouDid + summary.timesItPassed).toBe(summary.moments);
+    expect(isReflectionSummary(summary)).toBe(true);
+    expect(summary.topHelpers).toEqual(expect.arrayContaining(['tea', 'walk']));
+  });
+
+  it.each([false, true])('keeps question phrases local with includeNotes=%s', (includeNotes) => {
+    const custom: Habit = { ...habit, kind: 'custom', name: 'Sugar', question: 'eat my secret snack' };
+    const summary = buildSummary({ habits: [custom], reasons, moments, days: 7, includeNotes });
+    expect(JSON.stringify(summary)).not.toContain(custom.question);
+    expect(freeText(summary)).not.toContain(custom.question);
+    expect(isReflectionSummary(summary)).toBe(true);
+    expect(userMessage(summary)).not.toContain(custom.question);
+  });
+
+  it('uses the same neutral outcome contract as the proxy prompt', () => {
+    const summary = buildSummary({ habits: [habit], reasons, moments, days: 7, includeNotes: false });
+    const message = userMessage(summary);
+    expect(message).toContain('timesItPassed:');
+    expect(message).toContain('timesYouDid:');
+    expect(message).not.toContain('- used:');
+    expect(message).not.toContain('- rodeItOut:');
+    expect(SYSTEM_PROMPT).toContain('"times it passed" and "times you did"');
+    expect(isReflectionSummary({ ...summary, question: 'private phrase' })).toBe(false);
+  });
+
   it('never includes raw notes when the toggle is off', () => {
     const s = buildSummary({ habits: [habit], reasons, moments, days: 7, includeNotes: false });
     expect(s.notes).toBeUndefined();
@@ -28,8 +62,10 @@ describe('buildSummary', () => {
 
   it('counts outcomes, hours, intensity and helpers', () => {
     const s = buildSummary({ habits: [habit], reasons, moments, days: 7, includeNotes: false });
-    expect(s.rodeItOut).toBe(1);
-    expect(s.used).toBe(1);
+    expect(s.timesItPassed).toBe(1);
+    expect(s.timesYouDid).toBe(1);
+    expect(s).not.toHaveProperty('rodeItOut');
+    expect(s).not.toHaveProperty('used');
     expect(s.byHour[21]).toBe(2);
     expect(s.averageIntensity).toBe(7);
     expect(s.topHelpers).toEqual(['tea']);

@@ -18,9 +18,9 @@ Self-directed adults who want to understand their habits without being lectured,
 ## MVP scope (build only this)
 | Feature | What it does |
 |---|---|
-| Setup | Pick what you're tracking. Write 1–8 reasons why. Skippable. |
-| Log a moment | Intensity 1–10, context, feelings, rode it out / used, what helped, optional note. |
-| Today | Days since last "used" per habit, today's moments, the **I'm in it** button. |
+| Setup | Pick what you're tracking. Custom habits have an editable question phrase, prefilled with their lowercase name. Write 1–8 reasons why. Skippable. |
+| Log a moment | Intensity 1–10, context, feelings, a habit-specific question with equal Yes / No choices, what helped after No, optional note. Neither answer is preselected. |
+| Today | Days since last time per habit (singular for one day), today's activity without outcome labels, the **I'm in it** button. |
 | I'm in it | Your reasons, your top 3 helpers, a 20-minute timer with paced breathing, then "Where's it at now?" |
 | Patterns | Local charts: intensity over time, cravings by hour, top contexts/feelings, what helps. One plain sentence under each. |
 | Reflect | Llama writes a short weekly mirror from an anonymous summary. Ends with one open question. |
@@ -30,11 +30,11 @@ Self-directed adults who want to understand their habits without being lectured,
 Accounts, cloud sync, payments, notifications, social features, the GuideMe chat coach, wearables, streak badges, gamification.
 
 ## Data model
-- `habits(id, name, kind, created_at)`
+- `habits(id, name, kind, created_at, question)` — nullable local-only question phrase for custom habits; editable in Me. Legacy null phrases fall back to the lowercase habit name. Presets use built-in questions.
 - `reasons(id, habit_id, text, sort_order)` — `habit_id` null means universal (applies to every habit); a habit id means that reason belongs to that habit only. Per-habit reasons are optional and only offered when tracking 2+ habits.
 - `moments(id, habit_id, created_at, intensity, context, feelings[], outcome, helpers[], note)`
   - `context`: car | home | social | work | other
-  - `outcome`: rode_it_out | used
+  - `outcome`: rode_it_out | used (unchanged storage: No → rode_it_out, Yes → used; summaries say "times it passed" / "times you did")
   - `feelings`: bored, celebrating, lonely, restless, stressed, tired, other
   - `helpers`: call someone, food, game, music, shower, tea, walk, other
 

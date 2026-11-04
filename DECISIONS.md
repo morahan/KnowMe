@@ -85,3 +85,6 @@ One line each: `date | decision | why`
 2026-11-04 | Leaving Setup by Android Back or the iOS back swipe marks onboarding done, same as "Skip for now" | otherwise Today re-opened Setup on every launch and "How KnowMe works" → Skip landed on Setup, even with habits set on Me
 2026-11-04 | Long custom tags cut at the last whole word within 20 characters | "a deadline at work t" read as broken; a single over-long word is still cut as is
 2026-11-04 | Android toolchain installed user-local for testing (JDK 17 in ~/.local/jdk, SDK in ~/Library/Android/sdk, AVD knowme_pixel) | no brew or sudo on this machine; nothing added to the repo
+2026-11-04 | Ask habit-specific questions with equal Yes/No buttons and no preselected answer; keep Yes=used and No=rode_it_out in storage | neutral explicit answers without rewriting history or query semantics
+2026-11-04 | Add nullable local-only custom question phrases via migration 4, guarded before saving and editable in Me; legacy null uses lowercase name | personal wording without exposing another free-text field to AI
+2026-11-04 | Use last time and times it passed/times you did in UI and the validated reflection contract; keep app/proxy fields aligned | remove judgmental outcome labels and reject extra question fields before model calls
