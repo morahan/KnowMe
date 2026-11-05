@@ -49,6 +49,8 @@ knowme/
 │   │   └── repos/        habits.ts, reasons.ts, moments.ts
 │   └── lib/             ← tiny pure helpers (dates, ids, stats math)
 │
+├── scripts/             ← release-version.sh: deploy's version/build prompt and bump
+│
 ├── proxy/               ← Vercel serverless function for Llama
 │   ├── api/reflect.ts   ← the only endpoint
 │   ├── lib/

@@ -4,9 +4,12 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 yarn := "corepack yarn@4.18.1"
 team_id := "CZK4R5DGMY"
 proxy_url := "https://knowme-proxy.vercel.app"
-# One build number per `just` run, so `just deploy` gives both stores the same one.
-build_number := env("BUILD_NUMBER", `echo $(( $(date +%s) / 60 ))`)
 signing_dir := env("KNOWME_SIGNING_DIR", home_directory() / ".knowme")
+
+# CocoaPods is a user-level gem on this machine.
+export PATH := home_directory() / ".gem/ruby/2.6.0/bin:" + env("PATH")
+export LANG := "en_US.UTF-8"
+export COREPACK_ENABLE_DOWNLOAD_PROMPT := "0"
 
 # Show the 100 most recent Claude prompts
 claude-history:
@@ -28,23 +31,52 @@ android:
 
 # Install exactly what yarn.lock pins
 install:
-    COREPACK_ENABLE_DOWNLOAD_PROMPT=0 {{yarn}} install --immutable
+    {{yarn}} install --immutable
 
-# Ship to both stores
-deploy: deploy-ios deploy-android
+# Clean build: wipe caches and native projects, reinstall, regenerate ios/ and android/
+cb: deep-clean install prebuild
 
-# Archive and upload to App Store Connect (TestFlight)
-deploy-ios: install check
+# Remove node_modules, generated native projects, and Metro caches
+deep-clean:
+    command -v watchman >/dev/null && watchman watch-del-all >/dev/null || true
+    rm -rf node_modules ios android .expo
+    rm -rf "${TMPDIR:-/tmp}"/metro-* "${TMPDIR:-/tmp}"/haste-map-* ~/Library/Caches/metro
+
+# Regenerate ios/ and android/ from app.json (also runs pod install)
+prebuild:
+    command -v pod >/dev/null || gem install cocoapods --user-install --no-document
+    CI=1 npx expo prebuild --clean
+
+# Confirm version and build, clean build, then ship to both stores
+deploy: (release-confirm "both Android and iOS") cb check android-keystore _ship-ios release-bump _ship-android
+
+# Confirm version and build, clean build, then upload to App Store Connect (TestFlight)
+deploy-ios: (release-confirm "iOS") cb check _ship-ios release-bump
+
+# Confirm version and build, clean build, then make a signed .aab for Google Play
+deploy-android: (release-confirm "Android") cb check android-keystore _ship-android release-bump
+
+alias cb-deploy := deploy
+alias cb-deploy-ios := deploy-ios
+alias cb-deploy-testflight := deploy-ios
+alias cb-deploy-android := deploy-android
+
+# Ask "Is this Version X, build N?" and fix the numbers in app.json if not
+release-confirm label="both Android and iOS":
+    @scripts/release-version.sh confirm "{{label}}"
+
+# Mark the current build number spent: app.json moves to the next one
+release-bump:
+    @scripts/release-version.sh bump
+
+[private]
+_ship-ios:
     #!/usr/bin/env bash
     set -euo pipefail
-    export PATH="$HOME/.gem/ruby/2.6.0/bin:$PATH" LANG=en_US.UTF-8 CI=1
-    export EXPO_PUBLIC_PROXY_URL={{proxy_url}} BUILD_NUMBER={{build_number}}
-    command -v pod >/dev/null || gem install cocoapods --user-install --no-document
-
-    npx expo prebuild --clean --platform ios
-
-    out="dist/ios/{{build_number}}"
-    rm -rf "$out" && mkdir -p "$out"
+    export EXPO_PUBLIC_PROXY_URL={{proxy_url}}
+    build="$(node -p "require('./app.json').expo.ios.buildNumber")"
+    out="dist/ios/$build"
+    mkdir -p "$out"
     cat > "$out/ExportOptions.plist" <<EOF
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -58,7 +90,7 @@ deploy-ios: install check
     </dict></plist>
     EOF
 
-    echo "Archiving build {{build_number}} (log: $out/archive.log)…"
+    echo "Archiving iOS build $build (log: $out/archive.log)…"
     xcodebuild -workspace ios/KnowMe.xcworkspace -scheme KnowMe -configuration Release \
       -destination 'generic/platform=iOS' -archivePath "$out/KnowMe.xcarchive" \
       -allowProvisioningUpdates archive > "$out/archive.log" 2>&1 \
@@ -70,22 +102,20 @@ deploy-ios: install check
       -allowProvisioningUpdates > "$out/upload.log" 2>&1 \
       || { tail -40 "$out/upload.log"; exit 1; }
 
-    echo "iOS build {{build_number}} uploaded. It shows up in TestFlight after processing."
+    echo "iOS build $build uploaded. It shows up in TestFlight after processing."
 
-# Build a signed .aab for Google Play
-deploy-android: install check android-keystore
+[private]
+_ship-android:
     #!/usr/bin/env bash
     set -euo pipefail
-    export CI=1 JAVA_HOME="$(/usr/libexec/java_home -v 17)"
+    export EXPO_PUBLIC_PROXY_URL={{proxy_url}} JAVA_HOME="$(/usr/libexec/java_home -v 17)"
     export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
-    export EXPO_PUBLIC_PROXY_URL={{proxy_url}} BUILD_NUMBER={{build_number}}
     source "{{signing_dir}}/android-signing.env"
+    read -r version build < <(node -p "const {expo} = require('./app.json'); expo.version + ' ' + expo.android.versionCode")
+    out="dist/android/$build"
+    mkdir -p "$out"
 
-    npx expo prebuild --clean --platform android
-
-    out="dist/android/{{build_number}}"
-    rm -rf "$out" && mkdir -p "$out"
-    echo "Building bundle {{build_number}} (log: $out/build.log)…"
+    echo "Building Android bundle $build (log: $out/build.log)…"
     # Signing goes in through env, so the password never shows up in `ps`.
     (cd android && env \
       "ORG_GRADLE_PROJECT_android.injected.signing.store.file={{signing_dir}}/upload.jks" \
@@ -95,8 +125,7 @@ deploy-android: install check android-keystore
       ./gradlew bundleRelease) > "$out/build.log" 2>&1 \
       || { tail -40 "$out/build.log"; exit 1; }
 
-    version="$(node -p "require('./app.json').expo.version")"
-    aab="$out/knowme-$version-{{build_number}}.aab"
+    aab="$out/knowme-$version-$build.aab"
     cp android/app/build/outputs/bundle/release/app-release.aab "$aab"
     echo "Signed bundle: $aab"
     echo "Upload it in Play Console → KnowMe → Test and release."

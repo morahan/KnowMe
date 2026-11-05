@@ -29,12 +29,13 @@ yarn typecheck && yarn lint && yarn test
 ## Ship to the stores
 
 ```sh
-just deploy-ios       # archive with Xcode's signed-in Freio Labs account, upload to App Store Connect
-just deploy-android   # signed .aab in dist/android/, then upload it in Play Console
-just deploy           # both, with one shared build number
+just deploy           # both stores, one build number   (alias: cb-deploy)
+just deploy-ios       # App Store Connect / TestFlight   (aliases: cb-deploy-ios, cb-deploy-testflight)
+just deploy-android   # signed .aab, upload in Play Console (alias: cb-deploy-android)
+just cb               # clean build only: wipe caches, node_modules, ios/, android/; reinstall; prebuild
 ```
 
-Each run checks, regenerates `ios/`/`android/` with `expo prebuild --clean`, and uses a timestamp build number (override with `BUILD_NUMBER=`). The Play upload key lives in `~/.knowme/` and is created on first run — back it up.
+Version and build live in `app.json` (`expo.version`, `ios.buildNumber`, `android.versionCode`), which always holds the build that ships next. Each deploy asks *"Is this Version 0.0.1, build 1 on …? [y/N]"* and lets you fix the build, the version, or both. Then it runs `just cb` and the checks, builds, and ships. Once a build number is spent, it commits `app.json` with the next one (not pushed). The Play upload key lives in `~/.knowme/` and is created on first run. Back it up.
 
 ## How it works
 

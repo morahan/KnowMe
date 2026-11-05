@@ -98,5 +98,6 @@ One line each: `date | decision | why`
 2026-11-04 | Merge: Gambling asks "Did you gamble?" with the Yes/No buttons, replacing the plain "How did it go?" exception; question column stays migration 4 (already pushed), Scrolling→custom moves to migration 5 | Yes/No answers fit a behavior; pushed migrations keep their index
 2026-11-04 | Reflect splits lines only where end punctuation meets a space; Today scrolls above its pinned I'm in it button | "5.6" broke into "5." / "6."; more than a few moments ran under the button (seen while recording the demo)
 2026-11-04 | `just deploy` builds locally: iOS archives and uploads with Xcode's account; Android stops at a signed .aab | no EAS login or cloud builds needed; Play takes a new app's first bundle only through Console
-2026-11-04 | Build numbers are epoch minutes, passed via BUILD_NUMBER into a thin app.config.js | always increase, no app.json edit per release
+2026-11-04 | Version/build live in app.json (starts v0.0.1 build 1); deploy asks to confirm, then bumps and commits the build once it's spent | modeled on WorkoutFlow-v2's cb-deploy prompt; one source of truth, visible in git
+2026-11-04 | `just deploy*` always runs `just cb` (deep-clean, install, prebuild) first; aliases cb-deploy, cb-deploy-ios, cb-deploy-testflight, cb-deploy-android | matches WorkoutFlow-v2 names; a clean native project every release
 2026-11-04 | Play upload key lives in ~/.knowme/, outside the repo, signed in via Gradle injected props | the key never enters git; the password never shows in `ps`
