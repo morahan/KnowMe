@@ -101,3 +101,5 @@ One line each: `date | decision | why`
 2026-11-04 | Version/build live in app.json (starts v0.0.1 build 1); deploy asks to confirm, then bumps and commits the build once it's spent | modeled on WorkoutFlow-v2's cb-deploy prompt; one source of truth, visible in git
 2026-11-04 | `just deploy*` always runs `just cb` (deep-clean, install, prebuild) first; aliases cb-deploy, cb-deploy-ios, cb-deploy-testflight, cb-deploy-android | matches WorkoutFlow-v2 names; a clean native project every release
 2026-11-04 | Play upload key lives in ~/.knowme/, outside the repo, signed in via Gradle injected props | the key never enters git; the password never shows in `ps`
+2026-11-04 | Ignore the missing-dSYM warnings for React/ReactNativeDependencies/hermesvm | RN ships them prebuilt without symbols; the upload succeeds and KnowMe has no crash reporter
+2026-11-04 | deploy-ios uploads with an App Store Connect API key when ~/.knowme/app-store-connect.env exists, else Xcode's Apple ID; a failed upload opens the archive in Organizer | xcodebuild's Apple ID upload failed with a credentials error while Organizer worked

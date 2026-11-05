@@ -96,11 +96,25 @@ _ship-ios:
       -allowProvisioningUpdates archive > "$out/archive.log" 2>&1 \
       || { tail -40 "$out/archive.log"; exit 1; }
 
+    # An App Store Connect API key is the reliable way to upload from the command line.
+    # Without one, xcodebuild uses the Apple ID signed in to Xcode.
+    auth=()
+    if [ -f "{{signing_dir}}/app-store-connect.env" ]; then
+      source "{{signing_dir}}/app-store-connect.env"
+      auth=(-authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+    fi
+
     echo "Uploading to App Store Connect (log: $out/upload.log)…"
-    xcodebuild -exportArchive -archivePath "$out/KnowMe.xcarchive" \
+    if ! xcodebuild -exportArchive -archivePath "$out/KnowMe.xcarchive" \
       -exportOptionsPlist "$out/ExportOptions.plist" -exportPath "$out/export" \
-      -allowProvisioningUpdates > "$out/upload.log" 2>&1 \
-      || { tail -40 "$out/upload.log"; exit 1; }
+      -allowProvisioningUpdates ${auth[@]+"${auth[@]}"} > "$out/upload.log" 2>&1; then
+      tail -20 "$out/upload.log"
+      echo ""
+      echo "Upload failed; build $build is not marked spent. Opening the archive in Xcode Organizer:"
+      echo "click Distribute App to upload it by hand, then run: just release-bump"
+      open "$out/KnowMe.xcarchive"
+      exit 1
+    fi
 
     echo "iOS build $build uploaded. It shows up in TestFlight after processing."
 

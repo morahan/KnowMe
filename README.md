@@ -37,6 +37,16 @@ just cb               # clean build only: wipe caches, node_modules, ios/, andro
 
 Version and build live in `app.json` (`expo.version`, `ios.buildNumber`, `android.versionCode`), which always holds the build that ships next. Each deploy asks *"Is this Version 0.0.1, build 1 on …? [y/N]"* and lets you fix the build, the version, or both. Then it runs `just cb` and the checks, builds, and ships. Once a build number is spent, it commits `app.json` with the next one (not pushed). The Play upload key lives in `~/.knowme/` and is created on first run. Back it up.
 
+For reliable iOS uploads from the terminal, create an App Store Connect API key (App Store Connect → Users and Access → Integrations → Team Keys, role App Manager), save the `.p8` in `~/.knowme/`, and add `~/.knowme/app-store-connect.env`:
+
+```sh
+ASC_KEY_ID=ABC123DEFG
+ASC_ISSUER_ID=00000000-0000-0000-0000-000000000000
+ASC_KEY_PATH=$HOME/.knowme/AuthKey_ABC123DEFG.p8
+```
+
+Without it, the upload uses the Apple ID signed in to Xcode. If an upload fails, the archive opens in Organizer; upload it there, then run `just release-bump`. "Upload Symbols Failed" for React, ReactNativeDependencies and hermesvm is a harmless warning: React Native ships those frameworks prebuilt without dSYMs.
+
 ## How it works
 
 | Tab | What it does |
