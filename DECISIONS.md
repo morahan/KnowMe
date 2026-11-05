@@ -97,3 +97,6 @@ One line each: `date | decision | why`
 2026-11-04 | Reflect requests time out after 30 s; the I'm in it countdown runs on the wall clock | a stalled proxy left the gnome up forever; the timer froze while the phone was locked
 2026-11-04 | Merge: Gambling asks "Did you gamble?" with the Yes/No buttons, replacing the plain "How did it go?" exception; question column stays migration 4 (already pushed), Scrolling→custom moves to migration 5 | Yes/No answers fit a behavior; pushed migrations keep their index
 2026-11-04 | Reflect splits lines only where end punctuation meets a space; Today scrolls above its pinned I'm in it button | "5.6" broke into "5." / "6."; more than a few moments ran under the button (seen while recording the demo)
+2026-11-04 | `just deploy` builds locally: iOS archives and uploads with Xcode's account; Android stops at a signed .aab | no EAS login or cloud builds needed; Play takes a new app's first bundle only through Console
+2026-11-04 | Build numbers are epoch minutes, passed via BUILD_NUMBER into a thin app.config.js | always increase, no app.json edit per release
+2026-11-04 | Play upload key lives in ~/.knowme/, outside the repo, signed in via Gradle injected props | the key never enters git; the password never shows in `ps`

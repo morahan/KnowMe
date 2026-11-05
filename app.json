@@ -10,7 +10,8 @@
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.freiolabs.knowme"
+      "bundleIdentifier": "com.freiolabs.knowme",
+      "appleTeamId": "CZK4R5DGMY"
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",

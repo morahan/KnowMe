@@ -10,10 +10,10 @@ A private journal for people changing a habit. It reflects your own data back to
 
 ## Run locally
 
-Needs Node 20+ and Yarn.
+Needs Node 20+ and [just](https://just.systems). `yarn.lock` is Yarn 4, so install with `just install` (plain Yarn 1 rewrites the lockfile).
 
 ```sh
-yarn install
+just install
 cp .env.example .env   # set EXPO_PUBLIC_PROXY_URL after deploying the proxy (optional)
 yarn ios               # or: yarn android · yarn start for the QR code
 ```
@@ -25,6 +25,16 @@ First launch offers setup: pick what you are tracking and write your reasons. Ev
 ```sh
 yarn typecheck && yarn lint && yarn test
 ```
+
+## Ship to the stores
+
+```sh
+just deploy-ios       # archive with Xcode's signed-in Freio Labs account, upload to App Store Connect
+just deploy-android   # signed .aab in dist/android/, then upload it in Play Console
+just deploy           # both, with one shared build number
+```
+
+Each run checks, regenerates `ios/`/`android/` with `expo prebuild --clean`, and uses a timestamp build number (override with `BUILD_NUMBER=`). The Play upload key lives in `~/.knowme/` and is created on first run — back it up.
 
 ## How it works
 

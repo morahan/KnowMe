@@ -1,6 +1,8 @@
 # TODO.md
 
 ## Verify on a real device / account
+- [ ] First real `just deploy-ios`: signed archive and upload were not run by the agent (they create certs/profiles in the Freio Labs account); the unsigned Release archive passes (2026-11-04).
+- [ ] Android upload is manual in Play Console; automate with a Play service account once the app exists there (2026-11-04).
 - [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.
 - [ ] Deploy the neutral-count app/proxy contract together and verify a live reflection uses "times it passed" / "times you did"; deployment and live verification remain pending (2026-11-04).
 - [ ] Visually check the softened layered BreathCircle through full cycles on iOS and Android in dark/light mode, with Reduce Motion and large text; agent device access was disabled during this polish pass (2026-11-03).
