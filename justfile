@@ -101,6 +101,7 @@ _ship-ios:
     auth=()
     if [ -f "{{signing_dir}}/app-store-connect.env" ]; then
       source "{{signing_dir}}/app-store-connect.env"
+      : "${ASC_ISSUER_ID:?Add your Issuer ID to {{signing_dir}}/app-store-connect.env (App Store Connect → Users and Access → Integrations → Team Keys)}"
       auth=(-authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
     fi
 
