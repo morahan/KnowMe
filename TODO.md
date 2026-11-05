@@ -1,6 +1,7 @@
 # TODO.md
 
 ## Verify on a real device / account
+- [ ] Set a monthly spend cap / prepaid limit on the DeepInfra account; the one-letter-a-day limit is app-side only and a script can call the proxy directly (2026-11-04).
 - [ ] First real `just deploy-ios`: signed archive and upload were not run by the agent (they create certs/profiles in the Freio Labs account); the unsigned Release archive passes (2026-11-04).
 - [ ] Android upload is manual in Play Console; automate with a Play service account once the app exists there (2026-11-04).
 - [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.

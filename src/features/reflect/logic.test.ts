@@ -1,6 +1,6 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
 import { generateDemoMoments } from '@/lib/demoMoments';
-import { buildSummary, classifyResponse, freeText } from './logic';
+import { buildSummary, classifyResponse, freeText, parseCachedLetter, reflectedToday } from './logic';
 import { isReflectionSummary, SYSTEM_PROMPT, userMessage } from '../../../proxy/lib/prompt';
 
 const habit: Habit = { id: 'h1', name: 'cannabis', kind: 'cannabis', question: null, created_at: '2026-11-01T00:00:00.000Z' };
@@ -126,5 +126,46 @@ describe('classifyResponse (SAFETY.md: CRISIS output shows the card)', () => {
     const r = classifyResponse({ crisis: false, text: 'Average intensity was 5.6 this week. What helped most?' });
     if (r.kind === 'letter') expect(r.lines).toEqual(['Average intensity was 5.6 this week.', 'What helped most?']);
     else throw new Error('expected a letter');
+  });
+});
+
+describe('reflectedToday', () => {
+  const now = new Date(2026, 10, 4, 15, 0);
+
+  it('is true for a letter earlier today, local time', () => {
+    expect(reflectedToday(new Date(2026, 10, 4, 0, 1).toISOString(), now)).toBe(true);
+  });
+
+  it('resets at local midnight', () => {
+    const lateLastNight = new Date(2026, 10, 3, 23, 59).toISOString();
+    expect(reflectedToday(lateLastNight, now)).toBe(false);
+    expect(reflectedToday(lateLastNight, new Date(2026, 10, 3, 23, 59, 30))).toBe(true);
+    expect(reflectedToday(lateLastNight, new Date(2026, 10, 4, 0, 0))).toBe(false);
+  });
+
+  it('is false with no letter or an unreadable date', () => {
+    expect(reflectedToday(null, now)).toBe(false);
+    expect(reflectedToday(undefined, now)).toBe(false);
+    expect(reflectedToday('not a date', now)).toBe(false);
+  });
+});
+
+describe('parseCachedLetter', () => {
+  it('reads lines and the date', () => {
+    expect(parseCachedLetter(JSON.stringify({ lines: ['Hi.'], at: '2026-11-04T10:00:00.000Z' }))).toEqual({
+      lines: ['Hi.'],
+      at: '2026-11-04T10:00:00.000Z',
+    });
+  });
+
+  it('treats a missing date as unknown', () => {
+    expect(parseCachedLetter(JSON.stringify({ lines: ['Hi.'] }))).toEqual({ lines: ['Hi.'], at: null });
+  });
+
+  it('treats junk as no cache', () => {
+    expect(parseCachedLetter(null)).toBeNull();
+    expect(parseCachedLetter('{')).toBeNull();
+    expect(parseCachedLetter(JSON.stringify({ lines: [] }))).toBeNull();
+    expect(parseCachedLetter(JSON.stringify({ lines: [1] }))).toBeNull();
   });
 });

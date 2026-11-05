@@ -1,7 +1,7 @@
 /* eslint-disable import/first -- jest.mock must precede the imports it mocks */
 /**
  * Reflect network path: timeout, double-submit, local screen of the letter,
- * and re-reflecting once a letter is cached. Repos and router are mocked;
+ * re-reflecting on a new day, and the one-letter-a-day limit. Repos and router are mocked;
  * the real SafetyProvider and crisis matcher run.
  */
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
@@ -23,7 +23,9 @@ let mockCache: string | null = null;
 jest.mock('@/db/repos/settings', () => ({
   getInstallId: jest.fn(async () => 'install-1'),
   getSetting: jest.fn(async () => mockCache),
-  setSetting: jest.fn(async () => undefined),
+  setSetting: jest.fn(async (_key: string, value: string) => {
+    mockCache = value;
+  }),
 }));
 
 import { router } from 'expo-router';
@@ -31,6 +33,7 @@ import { setSetting } from '@/db/repos/settings';
 
 const mockFetch = jest.fn();
 const okLetter = (text: string) => ({ ok: true, json: async () => ({ crisis: false, text }) });
+const yesterday = () => new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
 beforeAll(() => {
   process.env.EXPO_PUBLIC_PROXY_URL = 'https://proxy.test';
@@ -101,8 +104,8 @@ describe('ReflectCard', () => {
     expect(setSetting).not.toHaveBeenCalled();
   });
 
-  it('can reflect again when a cached letter is showing', async () => {
-    mockCache = JSON.stringify({ lines: ['Last week was quieter.'] });
+  it('can reflect again when the cached letter is from an earlier day', async () => {
+    mockCache = JSON.stringify({ lines: ['Last week was quieter.'], at: yesterday() });
     mockFetch.mockResolvedValue(okLetter('This week was busier. What changed?'));
     const utils = await renderCard();
     expect(utils.getByText('Last week was quieter.')).toBeTruthy();
@@ -110,5 +113,46 @@ describe('ReflectCard', () => {
       fireEvent.press(utils.getByText(copy.button));
     });
     await waitFor(() => expect(utils.getByText('This week was busier.')).toBeTruthy());
+  });
+
+  it('shows the daily-limit note instead of calling the proxy when today\'s letter already came', async () => {
+    mockCache = JSON.stringify({ lines: ['Evenings looked hardest.'], at: new Date().toISOString() });
+    const utils = await renderCard();
+    await act(async () => {
+      fireEvent.press(utils.getByText(copy.button));
+    });
+    await waitFor(() => expect(utils.getByText(copy.limited)).toBeTruthy());
+    expect(utils.getByText('Evenings looked hardest.')).toBeTruthy();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('keeps the new letter on screen when a second tap the same day hits the limit', async () => {
+    mockFetch.mockResolvedValue(okLetter('Mornings were steadier. What helped?'));
+    const utils = await renderCard();
+    await act(async () => {
+      fireEvent.press(utils.getByText(copy.button));
+    });
+    await waitFor(() => expect(utils.getByText('Mornings were steadier.')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(utils.getByText(copy.button));
+    });
+    await waitFor(() => expect(utils.getByText(copy.limited)).toBeTruthy());
+    expect(utils.getByText('Mornings were steadier.')).toBeTruthy();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not use up the day when Reflect fails', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+    const utils = await renderCard();
+    await act(async () => {
+      fireEvent.press(utils.getByText(copy.button));
+    });
+    await waitFor(() => expect(utils.getByText(copy.error)).toBeTruthy());
+    mockFetch.mockResolvedValueOnce(okLetter('A quieter week. What made room for that?'));
+    await act(async () => {
+      fireEvent.press(utils.getByText(copy.button));
+    });
+    await waitFor(() => expect(utils.getByText('A quieter week.')).toBeTruthy());
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });

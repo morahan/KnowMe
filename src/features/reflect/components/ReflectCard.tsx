@@ -43,9 +43,11 @@ export function ReflectCard() {
       ) : (
         <>
           {lines ? <Letter lines={lines} /> : null}
-          {/* Keyed by status so returning from an error fades in too. A cached letter can still be refreshed. */}
+          {/* Keyed by status so returning from an error fades in too. A cached letter from an earlier day can be refreshed. */}
           <FadeIn key={state.status} style={styles.idle}>
-            {state.status === 'error' || !lines ? (
+            {state.status === 'limited' ? (
+              <Body muted>{copy.limited}</Body>
+            ) : state.status === 'error' || !lines ? (
               <Body muted>{state.status === 'error' ? copy.error : copy.intro}</Body>
             ) : null}
             <View style={styles.toggle}>

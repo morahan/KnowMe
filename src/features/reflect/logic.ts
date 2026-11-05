@@ -1,6 +1,7 @@
 import type { Habit, Moment, Reason } from '@/db/schema';
 // The pure matcher only: logic.ts stays free of React and the router.
 import { isCrisis } from '@/features/safety/logic';
+import { toISODate } from '@/lib/dates';
 import { formatWindow, hourBuckets, peakWindow } from '@/lib/hours';
 import { allReasonTexts } from '@/lib/reasons';
 import { countBy, mean, topN } from '@/lib/stats';
@@ -101,4 +102,28 @@ export function classifyResponse(data: ProxyResponse): Classified {
 
 function roundOrNull(n: number | null): number | null {
   return n === null ? null : Math.round(n * 10) / 10;
+}
+
+/** The last letter, as cached in settings. */
+export type CachedLetter = { lines: string[]; at: string | null };
+
+/** Parses the `reflect_cache` setting. Anything malformed is just no cache. */
+export function parseCachedLetter(raw: string | null): CachedLetter | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { lines?: unknown; at?: unknown };
+    const { lines, at } = parsed;
+    if (!Array.isArray(lines) || lines.length === 0 || !lines.every((l) => typeof l === 'string')) return null;
+    return { lines, at: typeof at === 'string' ? at : null };
+  } catch {
+    return null;
+  }
+}
+
+/** One letter a day: true when the last letter landed on today's local date. Resets at local midnight. */
+export function reflectedToday(at: string | null | undefined, now: Date = new Date()): boolean {
+  if (!at) return false;
+  const last = new Date(at);
+  if (Number.isNaN(last.getTime())) return false;
+  return toISODate(last) === toISODate(now);
 }

@@ -6,7 +6,7 @@ import { getInstallId, getSetting, setSetting } from '@/db/repos/settings';
 import { useSafety } from '@/features/safety';
 import { daysAgo } from '@/lib/dates';
 import { motion } from '@/theme';
-import { buildSummary, classifyResponse, freeText, type ProxyResponse } from './logic';
+import { buildSummary, classifyResponse, freeText, parseCachedLetter, reflectedToday, type ProxyResponse } from './logic';
 
 const DAYS = 7;
 // The proxy screens, then writes (two model calls, ~7-9 s). Past this, show the calm error.
@@ -25,7 +25,9 @@ type State =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'done'; lines: string[] }
-  | { status: 'error' };
+  | { status: 'error' }
+  /** Today's letter already came; the next one is available after local midnight. */
+  | { status: 'limited' };
 
 export function useReflection() {
   const { guard, showCrisisCard } = useSafety();
@@ -38,10 +40,8 @@ export function useReflection() {
   useEffect(() => {
     getSetting('reflect_cache')
       .then((raw) => {
-        if (!raw) return;
-        const parsed = JSON.parse(raw) as { lines?: unknown };
-        const lines = parsed.lines;
-        if (Array.isArray(lines) && lines.length > 0 && lines.every((l) => typeof l === 'string')) setCached(lines);
+        const letter = parseCachedLetter(raw);
+        if (letter) setCached(letter.lines);
       })
       .catch(() => {
         // A corrupt or unreadable cache is just no cache.
@@ -51,12 +51,21 @@ export function useReflection() {
   const reflect = useCallback(
     async (includeNotes: boolean) => {
       if (busy.current) return;
+      busy.current = true;
+      // One letter a day, reset at local midnight. Only a delivered letter is
+      // cached, so errors and the crisis card never use up the day.
+      const last = await getSetting('reflect_cache').then(parseCachedLetter, () => null);
+      if (reflectedToday(last?.at)) {
+        setState({ status: 'limited' });
+        busy.current = false;
+        return;
+      }
       const url = proxyUrl();
       if (!url) {
         setState({ status: 'error' });
+        busy.current = false;
         return;
       }
-      busy.current = true;
       setState({ status: 'loading' });
       const startedAt = Date.now();
       const controller = new AbortController();
@@ -95,6 +104,8 @@ export function useReflection() {
         const lines = result.lines;
         // Cache locally so the letter survives offline and relaunch.
         await setSetting('reflect_cache', JSON.stringify({ lines, at: new Date().toISOString() }));
+        // Today's letter stays on screen if they tap again and see the daily limit.
+        setCached(lines);
         // Hold the loading state briefly so the reveal never flashes. The
         // crisis path above returns earlier and is never delayed (SAFETY.md §1).
         await holdUntilReveal(startedAt);
