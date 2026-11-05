@@ -15,7 +15,7 @@ marketing/
     v0.0.1/                     ← one folder per App Store version
       AppStoreScreenshots/      ← per device (see below), upload 01→06 in order
         iPhone-6.9/             ← marketing frames 1290×2796 + device-captures/ (real app)
-        iPhone-Duo/             ← device-captures/ only: wide-window QA proof (no App Store slot)
+        iPhone-Duo/             ← marketing frames 2007×2853 (Duo inner display) + device-captures/ (real app)
         iPad-13/                ← marketing frames 2064×2752 + device-captures/ (real app)
       description/              ← dated App Store description snapshots
       releasenotes/             ← dated "What's New" snapshots

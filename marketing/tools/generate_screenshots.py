@@ -8,7 +8,7 @@ Slides 2-6: bold clear headline above a PARTIAL phone — the top of a real app
 capture in a phone frame that runs off the bottom edge.
 
 Real captures live in each device folder's device-captures/ (shot on iPhone 17
-Pro, iPad Pro 13, Pixel 7). When the UI changes, re-shoot captures first, then
+Pro, iPhone Duo, iPad Pro 13, Pixel 7). When the UI changes, re-shoot captures first, then
 rerun: /tmp/knowme-venv/bin/python marketing/tools/generate_screenshots.py
 Bump VERSION per store release. Copy: no medical/treatment/cure claims.
 """
@@ -34,10 +34,10 @@ def font(sz, bold=False):
 def rr(d, box, r, **kw): d.rounded_rectangle(box, radius=r, **kw)
 
 CAPS = {  # kind -> candidate capture files (first hit wins), repo-relative
-    "today":    ["iphone-today.png", "android-today.png", "ipad-today.png"],
+    "today":    ["duo-today.png", "iphone-today.png", "android-today.png", "ipad-today.png"],
     "log":      ["iphone-log.png", "android-log.png"],
     "init":     ["ipad-in-it.png", "iphone-in-it.png"],
-    "patterns": ["ipad-patterns-reflect.png", "iphone-patterns.png", "android-patterns.png"],
+    "patterns": ["duo-patterns.png", "ipad-patterns-reflect.png", "iphone-patterns.png", "android-patterns.png"],
     "privacy":  ["ipad-me-privacy.png", "iphone-me.png", "android-me.png", "ipad-me.png"],
     "reflect":  ["ipad-onboarding.png", "ipad-patterns-reflect.png"],
 }
@@ -147,6 +147,9 @@ def main():
     sets = [
         ("iPhone-6.9", (1290, 2796), os.path.join(ios, "iPhone-6.9"),
          [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
+        # iPhone Duo inner display (Apple's screenshot specs: 2007×2853 portrait)
+        ("iPhone-Duo", (2007, 2853), os.path.join(ios, "iPhone-Duo"),
+         [os.path.join(ios, "iPhone-Duo/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
         ("iPad-13", (2064, 2752), os.path.join(ios, "iPad-13"),
          [os.path.join(ios, "iPad-13/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(andr, "device-captures")]),
         ("android/Phone", (1080, 1920), andr,
