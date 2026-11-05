@@ -72,11 +72,11 @@ marketing/
 
 | Need | Go to |
 |---|---|
-| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/AppStoreScreenshots/](/Users/msfm/Creations/Coding/KnowMe/marketing/ios/v0.0.1/AppStoreScreenshots/) |
-| Android screenshots (Phone) | [android/v0.0.1/PlayStoreScreenshots/Phone/](/Users/msfm/Creations/Coding/KnowMe/marketing/android/v0.0.1/PlayStoreScreenshots/Phone/) |
-| Play feature graphic | [android/v0.0.1/feature-graphic/](/Users/msfm/Creations/Coding/KnowMe/marketing/android/v0.0.1/feature-graphic/) |
-| App Store copy | [ios/v0.0.1/description/2026.11.03-AppDescription.md](/Users/msfm/Creations/Coding/KnowMe/marketing/ios/v0.0.1/description/2026.11.03-AppDescription.md) |
-| Play copy | [android/v0.0.1/description/2026.11.03-AppDescription.md](/Users/msfm/Creations/Coding/KnowMe/marketing/android/v0.0.1/description/2026.11.03-AppDescription.md) |
+| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/AppStoreScreenshots/](ios/v0.0.1/AppStoreScreenshots/) |
+| Android screenshots (Phone) | [android/v0.0.1/PlayStoreScreenshots/Phone/](android/v0.0.1/PlayStoreScreenshots/Phone/) |
+| Play feature graphic | [android/v0.0.1/feature-graphic/](android/v0.0.1/feature-graphic/) |
+| App Store copy | [ios/v0.0.1/description/2026.11.03-AppDescription.md](ios/v0.0.1/description/2026.11.03-AppDescription.md) |
+| Play copy | [android/v0.0.1/description/2026.11.03-AppDescription.md](android/v0.0.1/description/2026.11.03-AppDescription.md) |
 | Release notes | `ios|android/v0.0.1/releasenotes/2026.11.03-ReleaseNotes.md` |
 | Regenerate images | `/tmp/knowme-venv/bin/python marketing/tools/generate_screenshots.py` |
 
