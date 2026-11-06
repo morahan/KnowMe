@@ -26,7 +26,8 @@ marketing/
     v0.0.1/                     ← one folder per Play version
       PlayStoreScreenshots/
         Phone/                  ← marketing frames 1080×1920 + device-captures/ (real app)
-      feature-graphic/          ← the required 1024×500 Play feature graphic
+      feature-graphic/          ← the required 1024×500 Play feature graphic (Play's hero banner)
+      icon/                     ← 512×512 Play listing icon
       description/              ← dated Play description snapshots (name/short/full)
       releasenotes/             ← dated Play release-notes snapshots
       listing/                  ← Data safety, declarations, asset table
@@ -79,9 +80,9 @@ marketing/
 | Android screenshots (Phone) | [android/v0.0.1/PlayStoreScreenshots/Phone/](android/v0.0.1/PlayStoreScreenshots/Phone/) |
 | Play feature graphic | [android/v0.0.1/feature-graphic/](android/v0.0.1/feature-graphic/) |
 | App Store copy | [ios/v0.0.1/description/2026.11.06-AppDescription.md](ios/v0.0.1/description/2026.11.06-AppDescription.md) |
-| Play copy | [android/v0.0.1/description/2026.11.03-AppDescription.md](android/v0.0.1/description/2026.11.03-AppDescription.md) |
+| Play copy | [android/v0.0.1/description/2026.11.06-AppDescription.md](android/v0.0.1/description/2026.11.06-AppDescription.md) |
 | App Store release notes | [ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md](ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md) |
-| Play release notes | [android/v0.0.1/releasenotes/2026.11.03-ReleaseNotes.md](android/v0.0.1/releasenotes/2026.11.03-ReleaseNotes.md) |
+| Play release notes | [android/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md](android/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md) |
 | Regenerate images | `/tmp/knowme-venv/bin/python marketing/tools/generate_screenshots.py` |
 
 ## Starting v0.0.2 (checklist)
