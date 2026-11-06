@@ -14,9 +14,11 @@ marketing/
   ios/
     v0.0.1/                     ← one folder per App Store version
       AppStoreScreenshots/      ← per device (see below), upload 01→06 in order
+        iPhone-6.3/             ← marketing frames 1206×2622 (App Store Connect's default "medium display" slot)
         iPhone-6.9/             ← marketing frames 1290×2796 + device-captures/ (real app)
         iPhone-Duo/             ← marketing frames 2007×2853 (Duo inner display) + device-captures/ (real app)
         iPad-13/                ← marketing frames 2064×2752 + device-captures/ (real app)
+      header/                   ← product page header 3840×1646 (App Store Connect → Header and Search Results)
       description/              ← dated App Store description snapshots
       releasenotes/             ← dated "What's New" snapshots
       listing/                  ← keywords, categories, privacy, reviewer notes
@@ -72,6 +74,7 @@ marketing/
 
 | Need | Go to |
 |---|---|
+| App Store header (hero) | [ios/v0.0.1/header/](ios/v0.0.1/header/) |
 | iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/AppStoreScreenshots/](ios/v0.0.1/AppStoreScreenshots/) |
 | Android screenshots (Phone) | [android/v0.0.1/PlayStoreScreenshots/Phone/](android/v0.0.1/PlayStoreScreenshots/Phone/) |
 | Play feature graphic | [android/v0.0.1/feature-graphic/](android/v0.0.1/feature-graphic/) |

@@ -147,6 +147,9 @@ def main():
     sets = [
         ("iPhone-6.9", (1290, 2796), os.path.join(ios, "iPhone-6.9"),
          [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
+        # App Store Connect's default iPhone slot: "iPhone with Dynamic Island (medium display)", 6.3"
+        ("iPhone-6.3", (1206, 2622), os.path.join(ios, "iPhone-6.3"),
+         [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
         # iPhone Duo inner display (Apple's screenshot specs: 2007×2853 portrait)
         ("iPhone-Duo", (2007, 2853), os.path.join(ios, "iPhone-Duo"),
          [os.path.join(ios, "iPhone-Duo/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
@@ -180,6 +183,15 @@ def main():
     c(W//2, 800, "The gnome never judges. It just holds the lantern.", font(38), AMBER)
     pr = P(f"marketing/shared/{VERSION}/promo"); os.makedirs(pr, exist_ok=True)
     img.save(os.path.join(pr, f"{DATE_TAG}-promo-hero-1800x1200.png")); print("hero", img.size)
+    # App Store product page header (App Store Connect → Header and Search Results)
+    W, H = 3840, 1646
+    img = Image.new("RGB", (W, H), BG); d = ImageDraw.Draw(img)
+    g = gnome_img(1100); img.paste(g, (W-g.width-420, (H-g.height)//2), g); d = ImageDraw.Draw(img)
+    d.text((420, 560), "Know yourself.", font=font(150, True), fill=TEXT)
+    d.text((420, 740), "Change follows.", font=font(150, True), fill=AMBER)
+    d.text((424, 960), "A calm, private journal. Stored only on your phone.", font=font(64), fill=MUTED)
+    hd = P(f"marketing/ios/{VERSION}/header"); os.makedirs(hd, exist_ok=True)
+    img.save(os.path.join(hd, f"{DATE_TAG}-app-store-header-3840x1646.png")); print("header", img.size)
 
 if __name__ == "__main__":
     main()
