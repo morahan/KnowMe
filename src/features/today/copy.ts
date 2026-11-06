@@ -9,4 +9,9 @@ export const copy = {
   loading: 'A moment…',
   noHabit: 'Nothing tracked yet.',
   setUp: 'Set up what you are tracking',
+  welcomeTitle: 'Where to start',
+  welcomeBody:
+    'Make KnowMe yours in Me: choose what you track and write your reasons. When an urge comes, tap I\'m in it. Log is for noting a moment after.',
+  welcomeOpenMe: 'Open Me',
+  welcomeDismiss: 'Got it',
 } as const;

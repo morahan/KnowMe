@@ -1,20 +1,22 @@
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { router } from 'expo-router';
 import { listHabits } from '@/db/repos/habits';
 import { listMomentsSince } from '@/db/repos/moments';
+import { getSetting, setSetting } from '@/db/repos/settings';
 import { TodayScreen } from './TodayScreen';
 // jest.mock calls below are hoisted above these imports.
 
 // Mirrors react-navigation: the focus effect re-runs whenever the callback
 // identity changes. An inline (unmemoized) callback would reload forever.
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn() },
+  router: { push: jest.fn(), navigate: jest.fn() },
   useFocusEffect: (cb: () => void) => {
     const { useEffect } = jest.requireActual('react');
     useEffect(cb, [cb]);
   },
 }));
 
-jest.mock('@/db/repos/settings', () => ({ getSetting: jest.fn(async () => 'yes') }));
+jest.mock('@/db/repos/settings', () => ({ getSetting: jest.fn(async () => 'yes'), setSetting: jest.fn(async () => undefined) }));
 jest.mock('@/db/repos/habits', () => ({
   listHabits: jest.fn(async () => [
     { id: 'h1', name: 'Nicotine', kind: 'nicotine', question: null, created_at: '2026-11-01T00:00:00.000Z' },
@@ -64,5 +66,25 @@ describe('TodayScreen today list', () => {
     const heading = await waitFor(() => getByText("Today's Activity"));
     expect(heading.props.accessibilityRole).toBe('header');
     expect(getAllByText('Today')).toHaveLength(1);
+  });
+});
+
+describe('TodayScreen welcome note', () => {
+  afterEach(() => (getSetting as jest.Mock).mockImplementation(async () => 'yes'));
+
+  it('points a new user to Me once, and remembers when it is followed', async () => {
+    (getSetting as jest.Mock).mockImplementation(async (key: string) => (key === 'today_welcome_dismissed' ? null : 'yes'));
+    const { getByText, queryByText } = await render(<TodayScreen />);
+    const openMe = await waitFor(() => getByText('Open Me'));
+    await act(async () => fireEvent.press(openMe));
+    expect(router.navigate).toHaveBeenCalledWith('/me');
+    expect(setSetting).toHaveBeenCalledWith('today_welcome_dismissed', '1');
+    expect(queryByText('Where to start')).toBeNull();
+  });
+
+  it('stays hidden once dismissed', async () => {
+    const { getAllByText, queryByText } = await render(<TodayScreen />);
+    await waitFor(() => expect(getAllByText(/Nicotine/).length).toBeGreaterThan(0));
+    expect(queryByText('Where to start')).toBeNull();
   });
 });

@@ -1,9 +1,9 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { getSetting } from '@/db/repos/settings';
+import { getSetting, setSetting } from '@/db/repos/settings';
 import { habitLabel } from '@/lib/habits';
-import { space } from '@/theme';
+import { radius, space, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { QuietLink } from '@/ui/QuietLink';
@@ -17,11 +17,21 @@ import { momentHabitLabel } from './logic';
 
 export function TodayScreen() {
   const { data, reload } = useToday();
+  const { colors } = useTheme();
+  // A first-days note pointing to Me, until it is dismissed or followed.
+  const [showWelcome, setShowWelcome] = useState(false);
+  const dismissWelcome = () => {
+    setShowWelcome(false);
+    void setSetting(WELCOME_KEY, '1');
+  };
 
   // First launch: the short Gnome walkthrough once, then setup, until done or skipped.
   useEffect(() => {
     void Promise.all([getSetting('onboarded'), getSetting('onboarding_seen')]).then(([done, seen]) => {
-      if (done) return;
+      if (done) {
+        void getSetting(WELCOME_KEY).then((dismissed) => setShowWelcome(!dismissed));
+        return;
+      }
       router.push(seen ? '/setup' : '/onboarding');
     });
   }, []);
@@ -47,6 +57,23 @@ export function TodayScreen() {
         resizeMode="contain"
       />
       <Title>{copy.title}</Title>
+
+      {showWelcome ? (
+        <View style={[styles.welcome, { backgroundColor: colors.surface }]}>
+          <SectionTitle>{copy.welcomeTitle}</SectionTitle>
+          <Body muted>{copy.welcomeBody}</Body>
+          <View style={styles.welcomeActions}>
+            <QuietLink
+              label={copy.welcomeOpenMe}
+              onPress={() => {
+                dismissWelcome();
+                router.navigate('/me');
+              }}
+            />
+            <QuietLink label={copy.welcomeDismiss} onPress={dismissWelcome} />
+          </View>
+        </View>
+      ) : null}
 
       {data === null ? (
         <Body muted>{copy.loading}</Body>
@@ -87,6 +114,8 @@ export function TodayScreen() {
   );
 }
 
+const WELCOME_KEY = 'today_welcome_dismissed';
+
 function formatTime(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -96,5 +125,7 @@ function formatTime(iso: string): string {
 const styles = StyleSheet.create({
   logo: { width: space.xxl, height: space.xxl, alignSelf: 'center', marginTop: space.md },
   block: { gap: space.sm, marginTop: space.lg },
+  welcome: { gap: space.sm, marginTop: space.lg, padding: space.md, borderRadius: radius.md },
+  welcomeActions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
   habit: { alignItems: 'center', paddingVertical: space.md },
 });
