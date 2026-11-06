@@ -8,7 +8,7 @@ export const copy = {
   empty: 'Nothing noted today. That is fine.',
   loading: 'A moment…',
   noHabit: 'Nothing tracked yet.',
-  setUp: 'Set up what you are tracking',
+  getStarted: 'Get started',
   welcomeTitle: 'Where to start',
   welcomeBody:
     'Make KnowMe yours in Me: choose what you track and write your reasons. When an urge comes, tap I\'m in it. Log is for noting a moment after.',

@@ -88,3 +88,13 @@ describe('TodayScreen welcome note', () => {
     expect(queryByText('Where to start')).toBeNull();
   });
 });
+
+describe('TodayScreen with nothing tracked', () => {
+  it('offers a clear Get started button that opens setup', async () => {
+    (listHabits as jest.Mock).mockResolvedValue([]);
+    const { getByText } = await render(<TodayScreen />);
+    const button = await waitFor(() => getByText('Get started'));
+    await act(async () => fireEvent.press(button));
+    expect(router.push).toHaveBeenCalledWith('/setup');
+  });
+});

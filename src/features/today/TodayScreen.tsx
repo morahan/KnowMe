@@ -5,6 +5,7 @@ import { getSetting, setSetting } from '@/db/repos/settings';
 import { habitLabel } from '@/lib/habits';
 import { radius, space, useTheme } from '@/theme';
 import { Body } from '@/ui/Body';
+import { OutlineButton } from '@/ui/OutlineButton';
 import { PrimaryButton } from '@/ui/PrimaryButton';
 import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
@@ -80,7 +81,7 @@ export function TodayScreen() {
       ) : data.habits.length === 0 ? (
         <View style={styles.block}>
           <Body muted>{copy.noHabit}</Body>
-          <QuietLink label={copy.setUp} onPress={() => router.push('/setup')} />
+          <OutlineButton label={copy.getStarted} onPress={() => router.push('/setup')} />
         </View>
       ) : (
         <View style={styles.block}>
