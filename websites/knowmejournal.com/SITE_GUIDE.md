@@ -14,7 +14,7 @@ Owner TODOs are marked **TODO (owner)**. Never fill them with invented values.
 |---|---|---|
 | Company | Freio Labs, LLC | owner |
 | App name in prose | KnowMe | `app.json` |
-| Store name | **TODO (owner):** confirm the exact App Store name. The brief says "KnowMe: Private Journal"; `marketing/ios/v0.0.1/description/2026.11.03-AppDescription.md` says "KnowMe: Private Habit Journal". Use whichever is live in App Store Connect. | |
+| Store name | **TODO (owner):** confirm the exact App Store name. The brief says "KnowMe: Private Journal"; `marketing/ios/v0.0.1/description/2026.11.06-AppDescription.md` says "KnowMe: Private Habit Journal". Use whichever is live in App Store Connect. | |
 | Price | $7.99 once. No subscription, no in-app purchases. | `marketing/ios/v0.0.1/listing/` |
 | Platforms | iPhone and iPad now. Android to follow (no date). | owner |
 | App Store app id | `6830937525` | owner |
@@ -164,7 +164,7 @@ From `src/theme/index.ts`: system font only, four sizes, two weights.
 
 ### 2.6 Imagery
 
-- Real app screens only. Start from `marketing/ios/v0.0.1/AppStoreScreenshots/iPhone-6.9/device-captures/`
+- Real app screens only. Start from `marketing/ios/v0.0.1/screenshots/iPhone-6.9/device-captures/`
   (real captures) or the numbered marketing frames. Note: current captures came from the dev
   client and show a small dev gear icon; **TODO (owner):** re-shoot from the store build before
   launch (same as the App Store submission note).

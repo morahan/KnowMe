@@ -11,26 +11,27 @@ marketing/
   README.md                     ← you are here (conventions + index)
   tools/
     generate_screenshots.py     ← regenerates every screenshot/graphic below
-  ios/
+  ios/                          ← iOS and Android version folders have the SAME subfolders
     v0.0.1/                     ← one folder per App Store version
-      AppStoreScreenshots/      ← per device (see below), upload 01→06 in order
-        iPhone-6.3/             ← marketing frames 1206×2622 (App Store Connect's default "medium display" slot)
-        iPhone-6.9/             ← marketing frames 1290×2796 + device-captures/ (real app)
-        iPhone-Duo/             ← marketing frames 2007×2853 (Duo inner display) + device-captures/ (real app)
-        iPad-13/                ← marketing frames 2064×2752 + device-captures/ (real app)
-      header/                   ← product page header 3840×1646 (App Store Connect → Header and Search Results)
-      description/              ← dated App Store description snapshots
-      releasenotes/             ← dated "What's New" snapshots
+      description/              ← current dated App Store description (+ archive/ for superseded ones)
+      releasenotes/             ← current dated "What's New" (+ archive/)
       listing/                  ← keywords, categories, privacy, reviewer notes
+      screenshots/              ← one folder per device, upload 01→06 in order
+        iPhone-6.3/             ← 1206×2622 (App Store Connect's default "medium display" slot)
+        iPhone-6.9/             ← 1290×2796 + device-captures/ (real app)
+        iPhone-Duo/             ← 2007×2853 (Duo inner display) + device-captures/ (real app)
+        iPad-13/                ← 2064×2752 + device-captures/ (real app)
+      hero/                     ← product page banner: App Store "Header", 3840×1646
+      icon/                     ← 1024×1024 App Store icon (reference copy; the build carries the real one)
   android/
     v0.0.1/                     ← one folder per Play version
-      PlayStoreScreenshots/
-        Phone/                  ← marketing frames 1080×1920 + device-captures/ (real app)
-      feature-graphic/          ← the required 1024×500 Play feature graphic (Play's hero banner)
-      icon/                     ← 512×512 Play listing icon
-      description/              ← dated Play description snapshots (name/short/full)
-      releasenotes/             ← dated Play release-notes snapshots
+      description/              ← current dated Play description (name/short/full) (+ archive/)
+      releasenotes/             ← current dated Play release notes (+ archive/)
       listing/                  ← Data safety, declarations, asset table
+      screenshots/
+        Phone/                  ← 1080×1920 + device-captures/ (real app)
+      hero/                     ← product page banner: Play "Feature graphic", 1024×500 (required)
+      icon/                     ← 512×512 Play listing icon
   shared/
     v0.0.1/promo/               ← cross-platform art for press/social (not store uploads)
     legal/PRIVACY_POLICY.md     ← host publicly; link in both consoles
@@ -46,28 +47,32 @@ marketing/
    after it ships. For the next release, copy the folder to `vX.Y.Z+1`, edit there, and
    bump `VERSION` in `tools/generate_screenshots.py` before regenerating images.
 3. **Dated snapshots for text.** Descriptions, release notes, and listing metadata are
-   files named `YYYY.MM.DD-<Name>.md` (e.g. `2026.11.03-AppDescription.md`). A copy tweak
-   during review gets a new dated file in the same folder; the store always matches
-   exactly one dated snapshot.
-4. **Numbered screenshots = upload order.** `01` is always the hero claim. Renaming a file
+   files named `YYYY.MM.DD-<Name>.md` (e.g. `2026.11.06-AppDescription.md`). A copy tweak
+   during review gets a new dated file in the same folder and the old one moves to that
+   folder's `archive/`. Outside `archive/` there is exactly one file per folder: the one the
+   store matches.
+4. **Same subfolders on both platforms.** Every `ios/vX.Y.Z/` and `android/vX.Y.Z/` has
+   `description/ releasenotes/ listing/ screenshots/ hero/ icon/`. `hero/` is the product-page
+   banner each store calls by its own name (App Store "Header", Play "Feature graphic").
+5. **Numbered screenshots = upload order.** `01` is always the hero claim. Renaming a file
    is how you reorder the store gallery — keep numbers and order in sync with the
    “Screenshot order” table in each platform’s `listing/` doc.
-5. **Shared means genuinely shared.** Only the promo art, privacy policy, and submission
+6. **Shared means genuinely shared.** Only the promo art, privacy policy, and submission
    checklist live in `shared/`. If a file is pasted into just one console, it belongs in
    that platform’s version folder.
-6. **Design: modeled on onboarding.** Slide 01 (and the 06 bookend) copy the
+7. **Design: modeled on onboarding.** Slide 01 (and the 06 bookend) copy the
    onboarding screens — progress dots, the gnome in a speech bubble, calm
    left-aligned type, the one amber button. Slides 02–05 are **not** full-screen
    screenshots: a bold headline sits above a partial phone (top of a real app
    capture in a frame that runs off the bottom edge).
-7. **Marketing frames vs. device captures.** Numbered `01-…06-….png` files are the
+8. **Marketing frames vs. device captures.** Numbered `01-…06-….png` files are the
    store frames above. Each device folder also holds `device-captures/` —
    unedited screenshots of the real app taken on that device (iPhone 17 Pro,
    iPhone Duo, iPad Pro 13, Pixel 7) and composited into the frames by
    `tools/generate_screenshots.py`. Captures came from the Expo dev client, so
    they carry a small dev gear icon that a production build does not have:
    re-shoot captures from the store build before final submission.
-7. **No medical claims, ever.** Copy sells tracking, reflection, privacy, and calm — never
+9. **No medical claims, ever.** Copy sells tracking, reflection, privacy, and calm — never
    treatment, cures, or “overcoming addiction”. See the watch-list in
    `shared/submission/SUBMISSION_CHECKLIST.md`.
 
@@ -75,10 +80,10 @@ marketing/
 
 | Need | Go to |
 |---|---|
-| App Store header (hero) | [ios/v0.0.1/header/](ios/v0.0.1/header/) |
-| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/AppStoreScreenshots/](ios/v0.0.1/AppStoreScreenshots/) |
-| Android screenshots (Phone) | [android/v0.0.1/PlayStoreScreenshots/Phone/](android/v0.0.1/PlayStoreScreenshots/Phone/) |
-| Play feature graphic | [android/v0.0.1/feature-graphic/](android/v0.0.1/feature-graphic/) |
+| App Store header (hero) | [ios/v0.0.1/hero/](ios/v0.0.1/hero/) |
+| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/screenshots/](ios/v0.0.1/screenshots/) |
+| Android screenshots (Phone) | [android/v0.0.1/screenshots/Phone/](android/v0.0.1/screenshots/Phone/) |
+| Play feature graphic | [android/v0.0.1/hero/](android/v0.0.1/hero/) |
 | App Store copy | [ios/v0.0.1/description/2026.11.06-AppDescription.md](ios/v0.0.1/description/2026.11.06-AppDescription.md) |
 | Play copy | [android/v0.0.1/description/2026.11.06-AppDescription.md](android/v0.0.1/description/2026.11.06-AppDescription.md) |
 | App Store release notes | [ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md](ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md) |

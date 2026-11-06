@@ -142,8 +142,8 @@ def phone_slide(W, H, s, idx, cap_path):
     return img
 
 def main():
-    ios = P(f"marketing/ios/{VERSION}/AppStoreScreenshots")
-    andr = P(f"marketing/android/{VERSION}/PlayStoreScreenshots/Phone")
+    ios = P(f"marketing/ios/{VERSION}/screenshots")
+    andr = P(f"marketing/android/{VERSION}/screenshots/Phone")
     sets = [
         ("iPhone-6.9", (1290, 2796), os.path.join(ios, "iPhone-6.9"),
          [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
@@ -172,7 +172,7 @@ def main():
     d.text((292, 222), "Know yourself. Change follows.", font=font(38), fill=AMBER)
     d.text((292, 282), "Private habit tracking. Stored only on your phone.", font=font(30), fill=MUTED)
     d.text((292, 332), "$7.99 once. No subscription.", font=font(30, True), fill=SAGE)
-    fg = P(f"marketing/android/{VERSION}/feature-graphic"); os.makedirs(fg, exist_ok=True)
+    fg = P(f"marketing/android/{VERSION}/hero"); os.makedirs(fg, exist_ok=True)
     img.save(os.path.join(fg, f"{DATE_TAG}-feature-graphic-1024x500.png")); print("feature", img.size)
     W, H = 1800, 1200
     img = Image.new("RGB", (W, H), BG); d = ImageDraw.Draw(img)
@@ -190,7 +190,7 @@ def main():
     d.text((420, 560), "Know yourself.", font=font(150, True), fill=TEXT)
     d.text((420, 740), "Change follows.", font=font(150, True), fill=AMBER)
     d.text((424, 960), "A calm, private journal. Stored only on your phone.", font=font(64), fill=MUTED)
-    hd = P(f"marketing/ios/{VERSION}/header"); os.makedirs(hd, exist_ok=True)
+    hd = P(f"marketing/ios/{VERSION}/hero"); os.makedirs(hd, exist_ok=True)
     img.save(os.path.join(hd, f"{DATE_TAG}-app-store-header-3840x1646.png")); print("header", img.size)
 
 if __name__ == "__main__":

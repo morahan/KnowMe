@@ -23,7 +23,7 @@ When something is unclear, make the simplest reasonable call and log it.
 4. `SAFETY.md` — non-negotiable crisis and no-medical-advice rules.
 5. `PRODUCT.md` — what the app does and doesn't do. Don't describe features that aren't there.
 6. `marketing/shared/legal/PRIVACY_POLICY.md` — rendered as `/privacy`.
-7. `marketing/ios/v0.0.1/description/2026.11.03-AppDescription.md` — approved store copy to reuse.
+7. `marketing/ios/v0.0.1/description/2026.11.06-AppDescription.md` — approved store copy to reuse.
 8. `AGENTS.md` — the repo's working rules (commit, check, log). They apply to you.
 
 Do not change the app (`app/`, `src/`, `proxy/`, `marketing/`). The only files outside
@@ -88,7 +88,7 @@ correct, and the only placeholders left are the owner TODOs.
 
 ### Phase 3 — Home
 - The eight sections in the guide, real screenshots from
-  `marketing/ios/v0.0.1/AppStoreScreenshots/iPhone-6.9/device-captures/`, CSS-only
+  `marketing/ios/v0.0.1/screenshots/iPhone-6.9/device-captures/`, CSS-only
   `BreathCircle`, official App Store badge linked to `https://apps.apple.com/app/id6830937525`.
 - Reuse the approved store lines; don't write new claims.
 
