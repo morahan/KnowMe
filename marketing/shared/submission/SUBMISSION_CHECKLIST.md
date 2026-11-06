@@ -9,7 +9,7 @@ paid agreements, tax/banking, or identity) · ⏳ build/upload step to run.
 - [x] Android `allowBackup=false` so the journal can't be swept into cloud backup
 - [x] 6 store screenshots each for iOS (1290×2796) + Android (1080×1920), Play feature graphic (1024×500), promo hero (1800×1200) — `marketing/ios|android/v0.0.1/…Screenshots/`, generator `marketing/tools/generate_screenshots.py` (see `marketing/README.md`)
 - [x] Store description, subtitle, keywords, categories, privacy answers, reviewer notes — `marketing/ios|android/v0.0.1/description/` + `listing/`
-- [x] Release notes 0.0.1 (Apple + Play) — `marketing/ios|android/v0.0.1/releasenotes/2026.11.03-ReleaseNotes.md`
+- [x] Release notes 0.0.1 (Apple + Play) — `marketing/ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md`, `marketing/android/v0.0.1/releasenotes/2026.11.03-ReleaseNotes.md`
 - [x] Privacy policy draft — `marketing/shared/legal/PRIVACY_POLICY.md`
 - [x] Pricing decision: **paid app $7.99** in both consoles. No IAP/subscription products, no billing code. (EAS account confirmed signed in: `freiolabs`.)
 
