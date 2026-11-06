@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addHabit, editHabit, listHabits, removeHabit, renameHabit } from '@/db/repos/habits';
 import { listAllReasons, MAX_REASONS, replaceReasons } from '@/db/repos/reasons';
 import type { Habit } from '@/db/schema';
@@ -18,6 +18,9 @@ import { QuietLink } from '@/ui/QuietLink';
 import { Screen } from '@/ui/Screen';
 import { Title } from '@/ui/Title';
 import { copy } from './copy';
+
+const PRIVACY_URL = 'https://knowmejournal.com/privacy';
+const TERMS_URL = 'https://knowmejournal.com/terms';
 
 type Props = {
   demoOn?: boolean;
@@ -347,7 +350,11 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
 
       <Title>{copy.privacyTitle}</Title>
       <Body muted>{copy.privacyBody}</Body>
-      <QuietLink label={copy.howItWorks} onPress={() => router.push('/onboarding')} />
+      <View style={styles.list}>
+        <QuietLink label={copy.howItWorks} onPress={() => router.push('/onboarding')} />
+        <QuietLink label={copy.privacyPolicy} onPress={() => void Linking.openURL(PRIVACY_URL)} />
+        <QuietLink label={copy.terms} onPress={() => void Linking.openURL(TERMS_URL)} />
+      </View>
     </Screen>
   );
 }

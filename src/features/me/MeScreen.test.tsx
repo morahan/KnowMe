@@ -5,7 +5,7 @@
  * behavior the option stays hidden entirely.
  */
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { Alert, type AlertButton } from 'react-native';
+import { Alert, Linking, type AlertButton } from 'react-native';
 import { router } from 'expo-router';
 import { SafetyProvider } from '@/features/safety/SafetyProvider';
 import { MeScreen } from './MeScreen';
@@ -235,6 +235,17 @@ describe('MeScreen gambling preset and support', () => {
     expect(
       await findByText('National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), call or text, 24/7'),
     ).toBeTruthy();
+  });
+});
+
+describe('MeScreen privacy links', () => {
+  it('opens the privacy policy and terms on knowmejournal.com', async () => {
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const { findByText, getByText } = await renderMe();
+    await fireEvent.press(await findByText('Privacy policy'));
+    await fireEvent.press(getByText('Terms of use'));
+    expect(open).toHaveBeenCalledWith('https://knowmejournal.com/privacy');
+    expect(open).toHaveBeenCalledWith('https://knowmejournal.com/terms');
   });
 });
 

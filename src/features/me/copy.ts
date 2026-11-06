@@ -44,4 +44,6 @@ export const copy = {
   privacyTitle: 'Privacy',
   privacyBody:
     'Everything you log stays on this phone. Only when you tap Reflect does a short summary leave it, without your notes unless you include them.',
+  privacyPolicy: 'Privacy policy',
+  terms: 'Terms of use',
 } as const;
