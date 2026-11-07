@@ -6,7 +6,7 @@
 - [x] knowmejournal.com apex points at Vercel; /privacy and /terms return 200 (2026-11-06).
 - [x] Play Console setup is 14 of 14; answers in `marketing/android/v0.0.1/listing/2026.11.06-StoreMetadata.md` (2026-11-06).
 - [x] Play: production release (build 3) and listing sent for review together with open testing (2026-11-06).
-- [x] App Store: App Privacy published (Device ID, App Functionality, not linked, no tracking) and build 3 uploaded with the new Apple Distribution certificate (2026-11-07).
+- [x] App Store: App Privacy published (Device ID, App Functionality, not linked, no tracking) build 3 uploaded with the new Apple Distribution certificate, attached to 0.0.1 and submitted for App Review (2026-11-07).
 - [ ] `just deploy-ios` still uses automatic signing, which the API key can't do with cloud-managed certificates. Build 3 was exported by hand with `dist/ios/3/ExportOptions-manual.plist` (Apple Distribution identity in `~/.knowme/ios-distribution/knowme-signing.keychain-db`, profile "KnowMe App Store") and uploaded with `xcrun altool`; fold that into the recipe (2026-11-07).
 - [ ] Play: upload native debug symbols for build 3 (Play warns; the uploaded bundle had them stripped to fit the browser's 50 MB limit) (2026-11-06).
 - [ ] Re-shoot the Android store screenshots on the emulator from a Release build; they use cropped iPhone captures because the Device panel needs ffmpeg with libx264 for Android (2026-11-06).
