@@ -55,7 +55,7 @@ SLIDES = [
     dict(kind="privacy", head="Your journal\nnever leaves home.",
          sub="Stored only on this phone.\nNo account. No cloud. No tracking."),
     dict(kind="reflect", head="A gnome who\nnever judges.",
-         sub="Gnomie holds the lantern, never the lecture.\nA gentle weekly reflection, in your own words.",
+         sub="The gnome holds the lantern, never the lecture.\nA short letter about your week, once a day.",
          bubble="No streaks. No shame. Just noticing.",
          hint="One price: $7.99 once. No subscription."),
 ]
