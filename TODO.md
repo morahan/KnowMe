@@ -8,6 +8,8 @@
 - [ ] Play: create a closed-testing or production release with the `.aab`, then Publishing overview → Send for review (2026-11-06).
 - [ ] Re-shoot the Android store screenshots on the emulator from a Release build; they use cropped iPhone captures because the Device panel needs ffmpeg with libx264 for Android (2026-11-06).
 - [ ] Android upload is manual in Play Console; automate with a Play service account once the app exists there (2026-11-04).
+- [ ] Play versions 2 and 3 were uploaded as "-slim" copies without debug symbols (version 2 also without its R8 map). Attach `dist/android/<v>/play-attachments/` (mapping + native-debug-symbols zip) in App bundle explorer → that version → Downloads, or replace them with build 4 (2026-11-06).
+- [ ] Upload the full `.aab` from `just deploy-android` in your own browser; agent browser automation caps uploads at 50 MB and the full bundle is ~60 MB. A Play service account would remove the cap (2026-11-06).
 - [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.
 - [ ] Deploy the neutral-count app/proxy contract together and verify a live reflection uses "times it passed" / "times you did"; deployment and live verification remain pending (2026-11-04).
 - [ ] Visually check the softened layered BreathCircle through full cycles on iOS and Android in dark/light mode, with Reduce Motion and large text; agent device access was disabled during this polish pass (2026-11-03).

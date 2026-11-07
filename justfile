@@ -142,6 +142,11 @@ _ship-android:
 
     aab="$out/knowme-$version-$build.aab"
     cp android/app/build/outputs/bundle/release/app-release.aab "$aab"
+    # Play reads crash reports with these (plugins/withPlayCrashSymbols.js). Upload this
+    # whole file: a copy with BUNDLE-METADATA stripped brings both Play warnings back.
+    for meta in com.android.tools.build.obfuscation/proguard.map com.android.tools.build.debugsymbols/; do
+      unzip -l "$aab" | grep -q "BUNDLE-METADATA/$meta" || { echo "$aab lacks BUNDLE-METADATA/$meta"; exit 1; }
+    done
     echo "Signed bundle: $aab"
     echo "Upload it in Play Console → KnowMe → Test and release."
     open -R "$aab"

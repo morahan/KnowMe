@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.freiolabs.knowme",
       "appleTeamId": "CZK4R5DGMY",
-      "buildNumber": "3"
+      "buildNumber": "4"
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F1115"
       },
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +29,7 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
+      "./plugins/withPlayCrashSymbols",
       [
         "expo-splash-screen",
         {
