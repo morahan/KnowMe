@@ -6,6 +6,7 @@
 - [x] knowmejournal.com apex points at Vercel; /privacy and /terms return 200 (2026-11-06).
 - [x] Play Console setup is 14 of 14; answers in `marketing/android/v0.0.1/listing/2026.11.06-StoreMetadata.md` (2026-11-06).
 - [ ] Play: create a closed-testing or production release with the `.aab`, then Publishing overview → Send for review (2026-11-06).
+- [ ] Re-shoot the Android store screenshots on the emulator from a Release build; they use cropped iPhone captures because the Device panel needs ffmpeg with libx264 for Android (2026-11-06).
 - [ ] Android upload is manual in Play Console; automate with a Play service account once the app exists there (2026-11-04).
 - [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.
 - [ ] Deploy the neutral-count app/proxy contract together and verify a live reflection uses "times it passed" / "times you did"; deployment and live verification remain pending (2026-11-04).

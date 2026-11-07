@@ -33,13 +33,12 @@ def font(sz, bold=False):
 
 def rr(d, box, r, **kw): d.rounded_rectangle(box, radius=r, **kw)
 
-CAPS = {  # kind -> candidate capture files (first hit wins), repo-relative
-    "today":    ["duo-today.png", "iphone-today.png", "android-today.png", "ipad-today.png"],
-    "log":      ["iphone-log.png", "android-log.png"],
-    "init":     ["ipad-in-it.png", "iphone-in-it.png"],
-    "patterns": ["duo-patterns.png", "ipad-patterns-reflect.png", "iphone-patterns.png", "android-patterns.png"],
-    "privacy":  ["ipad-me-privacy.png", "iphone-me.png", "android-me.png", "ipad-me.png"],
-    "reflect":  ["ipad-onboarding.png", "ipad-patterns-reflect.png"],
+CAPS = {  # kind -> capture file names; each set's own device folder is searched first
+    "today":    ["iphone-today.png", "ipad-today.png", "android-today.png"],
+    "log":      ["iphone-log.png", "ipad-log.png", "android-log.png"],
+    "init":     ["iphone-in-it.png", "ipad-in-it.png", "android-in-it.png"],
+    "patterns": ["iphone-patterns.png", "ipad-patterns.png", "android-patterns.png"],
+    "privacy":  ["iphone-me.png", "ipad-me.png", "android-me.png"],
 }
 SLIDES = [
     dict(kind="hero", head="Know yourself.\nChange follows.",
@@ -61,8 +60,8 @@ SLIDES = [
 ]
 
 def find_capture(kind, cap_dirs):
-    for name in CAPS.get(kind, []):
-        for d in cap_dirs:
+    for d in cap_dirs:  # the set's own device first, so an iPad slide shows the iPad app
+        for name in CAPS.get(kind, []):
             p = os.path.join(d, name)
             if os.path.exists(p): return p
     return None
@@ -115,7 +114,7 @@ def hero(W, H, s, idx):
     d.text((gx, H-int(110*u)), "KnowMe  ·  Know thyself", font=font(int(38*u), True), fill=AMBER)
     return img
 
-def phone_slide(W, H, s, idx, cap_path):
+def phone_slide(W, H, s, idx, cap_path, trim_top=0.0):
     img = Image.new("RGB", (W, H), BG); d = ImageDraw.Draw(img)
     u = W/1290.0; gx = int(90*u)
     dots(d, gx, int(96*u), idx, u=u)
@@ -131,6 +130,8 @@ def phone_slide(W, H, s, idx, cap_path):
     if cap_path:
         # cover-crop: scale the real capture to fill the partial phone, top-aligned
         cap = Image.open(cap_path).convert("RGB")
+        if trim_top:  # drop another platform's status bar (Android set built from iPhone captures)
+            cap = cap.crop((0, int(cap.height*trim_top), cap.width, cap.height))
         vis = H - py
         sc = max(pw / cap.width, vis / cap.height)
         cap = cap.resize((int(cap.width*sc)+1, int(cap.height*sc)+1))
@@ -150,9 +151,6 @@ def main():
         # App Store Connect's default iPhone slot: "iPhone with Dynamic Island (medium display)", 6.3"
         ("iPhone-6.3", (1206, 2622), os.path.join(ios, "iPhone-6.3"),
          [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
-        # iPhone Duo inner display (Apple's screenshot specs: 2007×2853 portrait)
-        ("iPhone-Duo", (2007, 2853), os.path.join(ios, "iPhone-Duo"),
-         [os.path.join(ios, "iPhone-Duo/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
         ("iPad-13", (2064, 2752), os.path.join(ios, "iPad-13"),
          [os.path.join(ios, "iPad-13/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(andr, "device-captures")]),
         ("android/Phone", (1080, 1920), andr,
@@ -161,7 +159,10 @@ def main():
     for name, (W, H), out, cap_dirs in sets:
         os.makedirs(out, exist_ok=True)
         for i, s in enumerate(SLIDES):
-            img = hero(W, H, s, i) if s["kind"] in ("hero", "reflect") else phone_slide(W, H, s, i, find_capture(s["kind"], cap_dirs))
+            cap = find_capture(s["kind"], cap_dirs)
+            # No Android captures from the Release build yet: use the iPhone ones without their status bar.
+            trim = 0.072 if name == "android/Phone" and cap and "/ios/" in cap else 0.0
+            img = hero(W, H, s, i) if s["kind"] in ("hero", "reflect") else phone_slide(W, H, s, i, cap, trim)
             img.save(os.path.join(out, f"{i+1:02d}-{s['kind']}.png"))
             print(name, i+1, s["kind"], img.size)
     # Play feature graphic + promo hero stay onboarding-branded
