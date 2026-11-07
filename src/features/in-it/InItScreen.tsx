@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { insertMoment } from '@/db/repos/moments';
 import { habitLabel } from '@/lib/habits';
 import { visibleReasons } from '@/lib/reasons';
@@ -27,6 +27,8 @@ export function InItScreen() {
   const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
   const [manualCheck, setManualCheck] = useState(false);
   const [intensity, setIntensity] = useState<number | null>(null);
+  const [centerHeight, setCenterHeight] = useState<number | null>(null);
+  const { fontScale } = useWindowDimensions();
   const saving = useRef(false);
 
   const habits = data?.habits ?? [];
@@ -35,6 +37,13 @@ export function InItScreen() {
   const checking = !picking && data !== null && (manualCheck || secondsLeft === 0);
   const helpers = data ? topHelpersForHabit(data.moments, habit?.id ?? null) : [];
   const shownReasons = data ? visibleReasons(data.reasons, habit?.id ?? null, habits.length) : [];
+  const showHabitLabel = habits.length > 1 && habit !== null;
+  // The circle gets what the reasons and helpers leave, so the habit name and
+  // the timer never land on top of them (three reasons on a 6.3" phone did).
+  const textLines = showHabitLabel ? 2 : 1;
+  const circleRoom = centerHeight === null
+    ? undefined
+    : Math.max(0, centerHeight - textLines * (type.label.lineHeight * fontScale + space.lg));
 
   // The 20 minutes only run once we know what this moment is about. Counted
   // against the clock, not by ticks, so time in the background still counts.
@@ -127,12 +136,14 @@ export function InItScreen() {
         </View>
       ) : null}
 
-      <FadeIn style={styles.center}>
-        {habits.length > 1 && habit ? <Label>{habitLabel(habit)}</Label> : null}
-        <BreathCircle inLabel={copy.breatheIn} outLabel={copy.breatheOut} />
-        {/* Fixed-width digits so the countdown ticks without shifting. */}
-        <Text style={[type.label, styles.countdown, { color: colors.muted }]}>{formatCountdown(secondsLeft)}</Text>
-      </FadeIn>
+      <View style={styles.room} onLayout={(e) => setCenterHeight(e.nativeEvent.layout.height)}>
+        <FadeIn style={styles.center}>
+          {showHabitLabel && habit ? <Label>{habitLabel(habit)}</Label> : null}
+          <BreathCircle inLabel={copy.breatheIn} outLabel={copy.breatheOut} maxFootprint={circleRoom} />
+          {/* Fixed-width digits so the countdown ticks without shifting. */}
+          <Text style={[type.label, styles.countdown, { color: colors.muted }]}>{formatCountdown(secondsLeft)}</Text>
+        </FadeIn>
+      </View>
 
       {helpers.length > 0 ? (
         <FadeIn style={styles.helpers} delay={motion.slow * (shownReasons.length + 1)}>
@@ -146,6 +157,7 @@ export function InItScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
+  room: { flex: 1 },
   reasons: { gap: space.md, paddingTop: space.xl },
   helpers: { gap: space.sm, paddingBottom: space.lg, alignItems: 'center' },
   footer: { gap: space.md },

@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react-native';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import { BreathCircle } from './BreathCircle';
 
 function mockReduceMotion(on: boolean) {
@@ -29,6 +29,14 @@ describe('BreathCircle', () => {
     });
     expect(utils.getByText('in', { includeHiddenElements: true })).toBeTruthy();
     expect(utils.getByText('out', { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it('fits the whole halo inside the room the screen gives it', async () => {
+    mockReduceMotion(false);
+    const utils = await render(<BreathCircle inLabel="in" outLabel="out" maxFootprint={120} />);
+    const style = StyleSheet.flatten(utils.getByLabelText('in, out').props.style);
+    expect(style.height).toBeCloseTo(120);
+    expect(style.width).toBeCloseTo(120);
   });
 
   it('goes still and wordless with Reduce Motion', async () => {

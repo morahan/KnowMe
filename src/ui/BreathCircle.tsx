@@ -3,7 +3,12 @@ import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-n
 import { breath, gutter, layout, motion, radius, type, useTheme } from '@/theme';
 import { useReduceMotion } from './useReduceMotion';
 
-type Props = { inLabel: string; outLabel: string };
+type Props = {
+  inLabel: string;
+  outLabel: string;
+  /** Most height the whole halo may take; the screen passes what is left beside its text. */
+  maxFootprint?: number;
+};
 
 const OUTER_SCALE = breath.layers[0].scale[1];
 // Each word fades over `motion.slow` at both ends of its phase, so the swap
@@ -17,7 +22,7 @@ const OUT_FADE = motion.slow / motion.breathOut;
  * in-breath, 1→2 the out-breath. Nothing re-renders per breath, so the
  * screen's countdown ticking each second can never make the circle stutter.
  */
-export function BreathCircle({ inLabel, outLabel }: Props) {
+export function BreathCircle({ inLabel, outLabel, maxFootprint = Infinity }: Props) {
   const { colors } = useTheme();
   const reduceMotion = useReduceMotion();
   // Cap the diameter so the circle stays a focal point, not a full screen,
@@ -28,6 +33,7 @@ export function BreathCircle({ inLabel, outLabel }: Props) {
     height * breath.widthRatio,
     (width - gutter * 2) / OUTER_SCALE,
     layout.breathMaxDiameter,
+    maxFootprint / OUTER_SCALE,
   );
   const [anim] = useState(() => {
     const t = new Animated.Value(0);
