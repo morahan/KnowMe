@@ -13,7 +13,8 @@
 - [ ] Play versions 2 and 3 were uploaded as "-slim" copies without debug symbols (version 2 also without its R8 map). Attach `dist/android/<v>/play-attachments/` (mapping + native-debug-symbols zip) in App bundle explorer → that version → Downloads, or replace them with build 4 (2026-11-06).
 - [x] Build 4 uploaded whole (mapping + symbols) to an internal-testing draft; Play lists mapping.txt and native-debug-symbols.zip for it (2026-11-06).
 - [x] Production and open testing both resubmitted with build 4 (R8 map + native symbols); review restarted with build 4 only (2026-11-06).
-- [ ] Open testing track is paused; resume it only if you want public testers. Internal testing still holds a build 4 draft (not rolled out) (2026-11-06).
+- [ ] Open testing track is paused; resume it only if you want public testers (2026-11-06).
+- [ ] Internal testing has build 4 live ("Msfm" list). Install it from https://play.google.com/apps/internaltest/4699837133086644398 and walk launch → Log → I'm in it → Patterns → Reflect → Me to confirm R8 and resource shrinking broke nothing (2026-11-06).
 - [ ] Verify habit-specific Yes/No logging and custom question create/edit/relaunch on iOS and Android, including keyboard, large text, and both themes (2026-11-04); automated tests pass, this feature has not had a device walk.
 - [ ] Deploy the neutral-count app/proxy contract together and verify a live reflection uses "times it passed" / "times you did"; deployment and live verification remain pending (2026-11-04).
 - [ ] Visually check the softened layered BreathCircle through full cycles on iOS and Android in dark/light mode, with Reduce Motion and large text; agent device access was disabled during this polish pass (2026-11-03).
