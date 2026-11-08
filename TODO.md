@@ -63,6 +63,7 @@
 - [ ] Rate limit is per warm Vercel instance only. Use shared storage (e.g. Upstash) for a real limit.
 - [ ] "How much can I safely use?" is handled by the system prompt only. Add a proxy-side dosing-phrase check if it ever matters.
 - [ ] Light-theme polish pass; dark is the designed default.
+- [ ] iOS uploads warn "Upload Symbols Failed" for React, ReactNativeDependencies and hermesvm: RN 0.88 ships them prebuilt without dSYMs, so crashes inside them don't symbolicate (our code still does). `RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS=1` at pod install covers React only; the other two need their dSYMs fetched into the archive or RN built from source.
 
 ## Done (kept for the record)
 - [x] Scaffold, theme, data layer with repository unit tests.
