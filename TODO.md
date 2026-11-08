@@ -4,6 +4,7 @@
 - [ ] Set a monthly spend cap / prepaid limit on the DeepInfra account; the one-letter-a-day limit is app-side only and a script can call the proxy directly (2026-11-04).
 - [ ] First real `just deploy-ios`: signed archive and upload were not run by the agent (they create certs/profiles in the Freio Labs account); the unsigned Release archive passes (2026-11-04).
 - [x] knowmejournal.com apex points at Vercel; /privacy and /terms return 200 (2026-11-06).
+- [x] support@knowmejournal.com forwards to morahan.mike@gmail.com (Namecheap Redirect Email); send a test mail to confirm delivery (2026-11-07).
 - [x] Play Console setup is 14 of 14; answers in `marketing/android/v0.0.1/listing/2026.11.06-StoreMetadata.md` (2026-11-06).
 - [x] Play: production release (build 3) and listing sent for review together with open testing (2026-11-06).
 - [x] App Store: App Privacy published (Device ID, App Functionality, not linked, no tracking) build 3 uploaded with the new Apple Distribution certificate, attached to 0.0.1 and submitted for App Review (2026-11-07).
