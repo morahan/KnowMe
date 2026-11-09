@@ -342,8 +342,10 @@ export function MeScreen({ demoOn = false, onLoadDemo, onClearDemo }: Props) {
       <Title>{copy.supportTitle}</Title>
       <View style={styles.list}>
         <QuietLink label={copy.lifeline} onPress={() => openPhone('tel:988', '988')} />
+        <QuietLink label={copy.lifelineText} onPress={() => openPhone('sms:988', '988')} />
         <QuietLink label={copy.samhsa} onPress={() => openPhone('tel:18006624357', '1-800-662-4357')} />
         <QuietLink label={copy.gamblingHelpline} onPress={() => openPhone('tel:18006973738', '1-800-697-3738')} />
+        <QuietLink label={copy.gamblingHelplineText} onPress={() => openPhone('sms:18006973738', '1-800-697-3738')} />
         <QuietLink label={copy.quitNow} onPress={() => openPhone('tel:18007848669', '1-800-784-8669')} />
         <QuietLink label={copy.tellSomeone} onPress={() => Share.share({ message: copy.tellSomeoneMessage })} />
       </View>

@@ -233,8 +233,27 @@ describe('MeScreen gambling preset and support', () => {
   it('shows the National Problem Gambling Helpline under Get support', async () => {
     const { findByText } = await renderMe();
     expect(
-      await findByText('National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), call or text, 24/7'),
+      await findByText('National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), 24/7'),
     ).toBeTruthy();
+  });
+
+  it('makes every listed support number tappable, by call and by text where offered', async () => {
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const { findByText, getByText } = await renderMe();
+    await fireEvent.press(await findByText('Call 988, the Suicide & Crisis Lifeline'));
+    await fireEvent.press(getByText('Text 988'));
+    await fireEvent.press(getByText('SAMHSA National Helpline — 1-800-662-4357, free, 24/7'));
+    await fireEvent.press(getByText('National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), 24/7'));
+    await fireEvent.press(getByText('Text 1-800-MY-RESET'));
+    await fireEvent.press(getByText('1-800-QUIT-NOW — for nicotine'));
+    expect(open.mock.calls.map(([url]) => url)).toEqual([
+      'tel:988',
+      'sms:988',
+      'tel:18006624357',
+      'tel:18006973738',
+      'sms:18006973738',
+      'tel:18007848669',
+    ]);
   });
 });
 

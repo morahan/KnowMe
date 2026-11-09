@@ -33,9 +33,11 @@ export const copy = {
   loadDemo: 'Load demo data',
   clearDemo: 'Clear demo data',
   supportTitle: 'Get support',
-  lifeline: '988 Suicide & Crisis Lifeline — call or text',
+  lifeline: 'Call 988, the Suicide & Crisis Lifeline',
+  lifelineText: 'Text 988',
   samhsa: 'SAMHSA National Helpline — 1-800-662-4357, free, 24/7',
-  gamblingHelpline: 'National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), call or text, 24/7',
+  gamblingHelpline: 'National Problem Gambling Helpline — 1-800-MY-RESET (1-800-697-3738), 24/7',
+  gamblingHelplineText: 'Text 1-800-MY-RESET',
   quitNow: '1-800-QUIT-NOW — for nicotine',
   tellSomeone: 'Tell someone you trust',
   tellSomeoneMessage:
