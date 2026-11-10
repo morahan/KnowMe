@@ -46,6 +46,7 @@ deep-clean:
 prebuild:
     command -v pod >/dev/null || gem install cocoapods --user-install --no-document
     CI=1 npx expo prebuild --clean
+    git checkout -- ios/ci_scripts
 
 # Confirm version and build, clean build, then ship to both stores
 deploy: (release-confirm "both Android and iOS") cb check android-keystore _ship-ios release-bump _ship-android

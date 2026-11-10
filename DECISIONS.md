@@ -124,3 +124,4 @@ One line each: `date | decision | why`
 2026-11-09 | Get support lists a separate Text link for each "call or text" line (988, 1-800-MY-RESET) | every listed contact method should be one tap; the old rows said text but only dialed
 2026-11-09 | Verified 1-800-MY-RESET texting on ncpgambling.org/help-treatment ("Text. 1-800-MY-RESET" links to sms://18006973738; SMS terms list 1-800-697-3738) | the Get support Text link must match the official number
 2026-11-10 | knowmejournal.com counts pageviews with cookieless PostHog via a same-origin proxy; the app stays analytics-free | owner wants site traffic; SAFETY.md §4 and the App Store privacy label cover the app and stay true
+2026-11-10 | Xcode Cloud builds ios/ itself in a committed `ios/ci_scripts/ci_post_clone.sh` (yarn install, expo prebuild, pods); `.gitignore` keeps only that folder and `just prebuild` restores it | ios/ stays generated, and Xcode Cloud failed with "Workspace KnowMe.xcworkspace does not exist"
