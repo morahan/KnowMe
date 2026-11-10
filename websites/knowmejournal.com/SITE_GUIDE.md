@@ -56,7 +56,7 @@ disclosed. This site does not host articles.
 | Not doing | Why |
 |---|---|
 | React Native Web build of the app | Undercuts the paid app, exposes the paid Llama proxy to the open web, and browser storage is the wrong home for a private journal. |
-| Analytics, pixels, cookie banners | Nothing to consent to if nothing is collected. App Store Connect already reports installs. |
+| Pixels, cookie banners, third-party requests | Analytics is cookieless PostHog pageviews only, through our own /ingest proxy (2026-11-10). Nothing to consent to. |
 | Contact form | Needs a backend and stores messages. A `mailto:` link is simpler and private. |
 | Articles / blog | Lives on addictiontracking.com by design. |
 | Testimonials, star ratings, "as seen in" | Unverifiable at launch; reads as hype. Revisit with real, permissioned quotes. |

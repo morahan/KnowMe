@@ -123,3 +123,4 @@ One line each: `date | decision | why`
 2026-11-07 | Declared KnowMe not a regulated medical device; app.json sets usesNonExemptEncryption false | it is a journal with no diagnosis or treatment; it only uses standard HTTPS, and build 3 shipped without the key so App Review asked
 2026-11-09 | Get support lists a separate Text link for each "call or text" line (988, 1-800-MY-RESET) | every listed contact method should be one tap; the old rows said text but only dialed
 2026-11-09 | Verified 1-800-MY-RESET texting on ncpgambling.org/help-treatment ("Text. 1-800-MY-RESET" links to sms://18006973738; SMS terms list 1-800-697-3738) | the Get support Text link must match the official number
+2026-11-10 | knowmejournal.com counts pageviews with cookieless PostHog via a same-origin proxy; the app stays analytics-free | owner wants site traffic; SAFETY.md §4 and the App Store privacy label cover the app and stay true
