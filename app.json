@@ -12,8 +12,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.freiolabs.knowme",
       "appleTeamId": "CZK4R5DGMY",
-      "buildNumber": "7",
-      "config": { "usesNonExemptEncryption": false }
+      "buildNumber": "8",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
@@ -22,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F1115"
       },
-      "versionCode": 7
+      "versionCode": 8
     },
     "web": {
       "favicon": "./assets/favicon.png"
