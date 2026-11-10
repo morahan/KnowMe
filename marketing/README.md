@@ -19,7 +19,7 @@ marketing/
       screenshots/              ← one folder per device, upload 01→06 in order
         iPhone-6.3/             ← 1206×2622 (App Store Connect's default "medium display" slot)
         iPhone-6.9/             ← 1290×2796 + device-captures/ (real app)
-        iPhone-Duo/             ← 2007×2853 (Duo inner display) + device-captures/ (real app)
+        iPhone-Duo/             ← 2007×2853 portrait frames; device-captures/ are the open inner display (2853×2007)
         iPad-13/                ← 2064×2752 + device-captures/ (real app)
       hero/                     ← product page banner: App Store "Header", 3840×1646
       icon/                     ← 1024×1024 App Store icon (reference copy; the build carries the real one)
@@ -81,14 +81,15 @@ marketing/
 | Need | Go to |
 |---|---|
 | App Store header (hero) | [ios/v0.0.1/hero/](ios/v0.0.1/hero/) |
-| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.1/screenshots/](ios/v0.0.1/screenshots/) |
+| iOS screenshots (iPhone / Duo / iPad) | [ios/v0.0.2/screenshots/](ios/v0.0.2/screenshots/) |
 | Android screenshots (Phone) | [android/v0.0.1/screenshots/Phone/](android/v0.0.1/screenshots/Phone/) |
 | Play feature graphic | [android/v0.0.1/hero/](android/v0.0.1/hero/) |
 | App Store copy | [ios/v0.0.1/description/2026.11.06-AppDescription.md](ios/v0.0.1/description/2026.11.06-AppDescription.md) |
 | Play copy | [android/v0.0.1/description/2026.11.06-AppDescription.md](android/v0.0.1/description/2026.11.06-AppDescription.md) |
-| App Store release notes | [ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md](ios/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md) |
+| App Store release notes | [ios/v0.0.2/releasenotes/2026.11.10-ReleaseNotes.md](ios/v0.0.2/releasenotes/2026.11.10-ReleaseNotes.md) |
 | Play release notes | [android/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md](android/v0.0.1/releasenotes/2026.11.06-ReleaseNotes.md) |
 | Regenerate images | `/tmp/knowme-venv/bin/python marketing/tools/generate_screenshots.py` |
+| Upload a screenshot slot | `node scripts/asc-screenshots.mjs 0.0.2 APP_IPHONE_DUO marketing/ios/v0.0.2/screenshots/iPhone-Duo` |
 
 ## Starting v0.0.2 (checklist)
 

@@ -15,7 +15,7 @@ Bump VERSION per store release. Copy: no medical/treatment/cure claims.
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-VERSION = "v0.0.1"
+VERSION = "v0.0.2"
 DATE_TAG = "2026.11.03"
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def P(*a): return os.path.join(ROOT, *a)
@@ -34,11 +34,11 @@ def font(sz, bold=False):
 def rr(d, box, r, **kw): d.rounded_rectangle(box, radius=r, **kw)
 
 CAPS = {  # kind -> capture file names; each set's own device folder is searched first
-    "today":    ["iphone-today.png", "ipad-today.png", "android-today.png"],
-    "log":      ["iphone-log.png", "ipad-log.png", "android-log.png"],
-    "init":     ["iphone-in-it.png", "ipad-in-it.png", "android-in-it.png"],
-    "patterns": ["iphone-patterns.png", "ipad-patterns.png", "android-patterns.png"],
-    "privacy":  ["iphone-me.png", "ipad-me.png", "android-me.png"],
+    "today":    ["duo-today.png", "iphone-today.png", "ipad-today.png", "android-today.png"],
+    "log":      ["duo-log.png", "iphone-log.png", "ipad-log.png", "android-log.png"],
+    "init":     ["duo-in-it.png", "iphone-in-it.png", "ipad-in-it.png", "android-in-it.png"],
+    "patterns": ["duo-patterns.png", "iphone-patterns.png", "ipad-patterns.png", "android-patterns.png"],
+    "privacy":  ["duo-me.png", "iphone-me.png", "ipad-me.png", "android-me.png"],
 }
 SLIDES = [
     dict(kind="hero", head="Know yourself.\nChange follows.",
@@ -151,6 +151,9 @@ def main():
         # App Store Connect's default iPhone slot: "iPhone with Dynamic Island (medium display)", 6.3"
         ("iPhone-6.3", (1206, 2622), os.path.join(ios, "iPhone-6.3"),
          [os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(ios, "iPad-13/device-captures"), os.path.join(andr, "device-captures")]),
+        # iPhone Duo inner (open) display
+        ("iPhone-Duo", (2007, 2853), os.path.join(ios, "iPhone-Duo"),
+         [os.path.join(ios, "iPhone-Duo/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures")]),
         ("iPad-13", (2064, 2752), os.path.join(ios, "iPad-13"),
          [os.path.join(ios, "iPad-13/device-captures"), os.path.join(ios, "iPhone-6.9/device-captures"), os.path.join(andr, "device-captures")]),
         ("android/Phone", (1080, 1920), andr,
