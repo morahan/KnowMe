@@ -9,6 +9,8 @@ anywhere else in the repo.
 ```
 marketing/
   README.md                     ← you are here (conventions + index)
+  goals/
+    releases.md                 ← release goal the admin.morahan.dev dashboard checks
   tools/
     generate_screenshots.py     ← regenerates every screenshot/graphic below
   ios/                          ← iOS and Android version folders have the SAME subfolders
