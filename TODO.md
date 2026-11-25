@@ -11,6 +11,7 @@
 - [x] App Store: replied to the Guideline 2.1 Information Needed message (walkthrough https://youtu.be/NPIfyLfMYqE plus answers; text in `marketing/ios/v0.0.1/review/2026.11.08-AppReviewReply.md`) and resubmitted 0.0.1 with build 6 (f2dae43, adds the Get support Text links); Waiting for Review (2026-11-09).
 - [x] App Store: 0.0.2 (build 7, same app code as 0.0.1 build 6) submitted with "What's New" and a new iPhone Duo screenshot set; Waiting for Review (2026-11-10).
 - [x] App Store: Duo screenshot 06-reflect stalled on 0.0.2 (Apple side); uploaded to 0.0.3 on the first try, all six COMPLETE (2026-11-25).
+- [x] App Store: 0.0.3 (build 8, same app code as build 7) submitted with the "Pay once" description, the sale promo text and all six Duo screenshots; Waiting for Review (2026-11-25).
 - [ ] App Store: on 2026-12-01 put the standing promotional text back on 0.0.3 (and 0.0.2 if still live): "A calm, private journal for understanding your habits. Log a moment in ten seconds, see your own patterns, and let a gnome who never judges hold the lantern." The sale text names Nov 26 to 30 (2026-11-25).
 - [ ] Play: the Black Friday sale is App Store only. Google Play still sells at $7.99; a Play sale is set by hand in Play Console → Monetize → Products → App pricing → Price experiments/sales (2026-11-25).
 - [ ] App Store: the walkthrough was recorded in the iOS Simulator; if Apple asks for a physical device, re-record the same steps on an iPhone (2026-11-09).
